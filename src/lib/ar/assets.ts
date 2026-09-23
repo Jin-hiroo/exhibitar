@@ -2,6 +2,9 @@ import { BufferGeometry, Mesh, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import type { ViewerProject } from '../types';
+import { resolveAsset } from './asset-url';
+
+export { resolveAsset };
 
 export interface ExhibitAssets {
   /** the stored simplified mesh, model coords (metres), triangle order preserved */
@@ -12,11 +15,6 @@ export interface ExhibitAssets {
   markerUrls: string[];
   /** the whole-mat tracking image, when the project has one */
   matBitmap: ImageBitmap | null;
-}
-
-export function resolveAsset(base: string, path: string): string {
-  if (/^https?:\/\//.test(path)) return path;
-  return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 }
 
 /** Load the frozen GLB (meshopt-compressed) and the marker PNGs. */

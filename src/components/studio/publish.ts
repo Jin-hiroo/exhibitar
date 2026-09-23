@@ -29,6 +29,11 @@ export async function saveToCloud(
   media: Record<string, File> = {},
 ): Promise<StudioProject> {
   const { id } = project;
+  // validate everything before writing anything
+  for (const file of Object.values(media)) {
+    if (!MEDIA_TYPES[file.type]) throw new Error(`${file.name}: use a PNG, JPEG or WebP image.`);
+    if (file.size > MAX_MEDIA_BYTES) throw new Error(`${file.name}: images must be under 5 MB.`);
+  }
   onProgress('Saving…', 0.02);
   if (!(await getMyProject(db, id))) {
     await createProject(db, { id, title: project.title });
@@ -84,9 +89,7 @@ export async function saveToCloud(
   let annotations = project.annotations;
   for (const [annId, file] of Object.entries(media)) {
     if (!annotations.some((a) => a.id === annId)) continue; // annotation was deleted
-    const ext = MEDIA_TYPES[file.type];
-    if (!ext) throw new Error(`${file.name}: use a PNG, JPEG or WebP image.`);
-    if (file.size > MAX_MEDIA_BYTES) throw new Error(`${file.name}: images must be under 5 MB.`);
+    const ext = MEDIA_TYPES[file.type]!;
     const path = assetPath('annotation-media', id, `${annId}-${Date.now().toString(36)}.${ext}`);
     onProgress(`Uploading ${file.name}…`, 0.87);
     await uploadAsset(db, path, file, file.type);

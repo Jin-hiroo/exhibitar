@@ -92,7 +92,20 @@ export function layoutMat(input: LayoutInput): MatLayout {
     const sz: [number, number] = [size[0] + grow, size[1] + grow];
     const l = tryLayout(input, sz, margin, markerW);
     if (l) {
-      const plan = planTiles(sz, pref);
+      const avoid = [
+        ...l.markers.map((m) => {
+          const half = m.widthMm / 2 + MARKER_QUIET_MM;
+          return {
+            x: m.center[0] - half,
+            y: m.center[1] - half,
+            w: 2 * half,
+            h: 2 * half,
+            weight: 10,
+          };
+        }),
+        { ...l.qr, weight: 1 },
+      ];
+      const plan = planTiles(sz, pref, avoid);
       return {
         ...l,
         paper: plan.paper,

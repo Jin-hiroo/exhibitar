@@ -13,6 +13,7 @@ export function MatTab({ ctx }: { ctx: EditorContext }) {
   const qrUrl = ready?.urls.qr ?? stored(`mats/${project.id}/qr-v${project.geometryVersion}.png`);
   const sheets = mat.tiles.cols * mat.tiles.rows;
   const base = `${(project.title || 'exhibit').replace(/[^\w-]+/g, '-')}-mat`;
+  const instructions = printInstructions(mat, project.title || 'this exhibit');
 
   return (
     <div className={styles.split}>
@@ -45,10 +46,17 @@ export function MatTab({ ctx }: { ctx: EditorContext }) {
               QR code
             </a>
           )}
+          <a
+            className={styles.secondary}
+            href={`data:text/plain;charset=utf-8,${encodeURIComponent(instructions)}`}
+            download={`${base}-instructions.txt`}
+          >
+            Instructions
+          </a>
         </div>
         {!ready && !storageBase && <p className={styles.small}>Files appear after publishing.</p>}
         <pre className={styles.small} style={{ whiteSpace: 'pre-wrap' }}>
-          {printInstructions(mat, project.title || 'this exhibit')}
+          {instructions}
         </pre>
         {ready && project.status === 'published' && (
           <p className={styles.warning}>

@@ -231,15 +231,17 @@ function tileMarks(l: MatLayout): DrawItem[] {
   const o = TILE_OVERLAP_MM / 2;
   const [W, H] = l.sizeMm;
   for (const win of plan.windows) {
-    // the last row/column of sheets may extend past the mat: only mark the mat itself
-    const w = Math.min(win.x + win.w, W) - win.x;
-    const h = Math.min(win.y + win.h, H) - win.y;
+    // sheets may extend past the mat on any side: only mark the mat itself
+    const x0 = Math.max(win.x, 0);
+    const y0 = Math.max(win.y, 0);
+    const w = Math.min(win.x + win.w, W) - x0;
+    const h = Math.min(win.y + win.h, H) - y0;
     // centre line of each overlap strip, along the shared edge
     if (win.col > 0) {
-      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + o, win.y + h * f);
+      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + o, y0 + h * f);
     }
     if (win.row > 0) {
-      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + w * f, win.y + o);
+      for (const f of [0.1, 0.5, 0.9]) addCross(x0 + w * f, win.y + o);
     }
   }
   const items: DrawItem[] = [];
@@ -255,14 +257,17 @@ function tileMarks(l: MatLayout): DrawItem[] {
   for (const win of plan.windows) {
     const label = tileLabel(win.col, win.row);
     const inset = TILE_OVERLAP_MM + 2;
-    const w = Math.min(win.x + win.w, W) - win.x;
-    const h = Math.min(win.y + win.h, H) - win.y;
+    // the part of this sheet's window that is on the mat (the grid may start off-mat)
+    const x0 = Math.max(win.x, 0);
+    const y0 = Math.max(win.y, 0);
+    const w = Math.min(win.x + win.w, W) - x0;
+    const h = Math.min(win.y + win.h, H) - y0;
     const spots: [number, number][] = [
-      [win.x + inset, win.y + inset],
-      [win.x + w - inset - 12, win.y + inset],
-      [win.x + inset, win.y + h - inset - 6],
-      [win.x + w - inset - 12, win.y + h - inset - 6],
-      [win.x + w / 2 - 6, win.y + h / 2 - 3],
+      [x0 + inset, y0 + inset],
+      [x0 + w - inset - 12, y0 + inset],
+      [x0 + inset, y0 + h - inset - 6],
+      [x0 + w - inset - 12, y0 + h - inset - 6],
+      [x0 + w / 2 - 6, y0 + h / 2 - 3],
     ];
     const spot = spots.find(([x, y]) => clear({ x, y, w: 12, h: 6 }));
     if (spot) {

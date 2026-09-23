@@ -6,7 +6,7 @@ import { parseStl } from '../geometry/parse-stl';
 import * as poly from '../geometry/polygons';
 import type { Rect } from './display-list';
 import { layoutMat, MARKER_QUIET_MM, SHADOW_CLEARANCE_MM, type MatLayout } from './layout';
-import { planTiles, PRINTER_MARGIN_MM, tileLabel } from './paper';
+import { planTiles, PRINTER_MARGIN_MM, TILE_OVERLAP_MM, tileLabel } from './paper';
 
 async function footprintOf(t: Float32Array, normal?: [number, number, number]) {
   const mesh = parseStl(toBinaryStl(t)).mesh;
@@ -110,13 +110,38 @@ describe('layoutMat', () => {
     assertValid(l, shadow);
     // windows cover the whole mat
     const plan = l.tilePlan!;
+    const first = plan.windows[0]!;
     const last = plan.windows[plan.windows.length - 1]!;
+    expect(first.x).toBeLessThanOrEqual(0);
+    expect(first.y).toBeLessThanOrEqual(0);
     expect(last.x + last.w).toBeGreaterThanOrEqual(l.sizeMm[0]);
     expect(last.y + last.h).toBeGreaterThanOrEqual(l.sizeMm[1]);
+    // no seam (overlap strip) runs through a marker
+    for (const win of plan.windows) {
+      for (const m of markerRects(l)) {
+        if (win.col > 0) {
+          expect(m.x + m.w <= win.x || m.x >= win.x + TILE_OVERLAP_MM).toBe(true);
+        }
+        if (win.row > 0) {
+          expect(m.y + m.h <= win.y || m.y >= win.y + TILE_OVERLAP_MM).toBe(true);
+        }
+      }
+    }
   });
 });
 
 describe('planTiles', () => {
+  it('shifts the sheet grid so seams avoid keep-out areas', () => {
+    // a 500 mm-wide mat on A4: an unshifted seam would cut this box
+    const plain = planTiles([500, 300], 'iso');
+    const seam = plain.windows.find((w) => w.col === 1)!.x;
+    const box = { x: seam - 20, y: 100, w: 60, h: 60, weight: 10 };
+    const shifted = planTiles([500, 300], 'iso', [box]);
+    for (const w of shifted.windows.filter((w) => w.col > 0)) {
+      expect(box.x + box.w <= w.x || box.x >= w.x + TILE_OVERLAP_MM).toBe(true);
+    }
+  });
+
   it('uses one sheet when the mat fits and labels tiles A1, B1, …', () => {
     expect(planTiles([150, 200], 'iso')).toMatchObject({ paper: 'A4', cols: 1, rows: 1 });
     const p = planTiles([500, 300], 'iso');
