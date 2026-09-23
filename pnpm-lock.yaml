@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@countertype/clipper2-ts':
+        specifier: 1.5.4-3.9a869ba
+        version: 1.5.4-3.9a869ba
       '@gltf-transform/core':
         specifier: ^4.5.0
         version: 4.5.0
@@ -29,9 +32,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.117.1
         version: 2.117.1
-      clipper2-js:
-        specifier: ^1.2.4
-        version: 1.2.4(@angular/common@15.2.10(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3))
       fflate:
         specifier: ^0.8.3
         version: 0.8.3
@@ -105,20 +105,6 @@ importers:
 
 packages:
 
-  '@angular/common@15.2.10':
-    resolution: {integrity: sha512-jdBn3fctkqoNrJn9VLsUHpcCEhCxWSczdsR+BBbD6T0oLl6vMrAVNjPwfBejnlgfWN1KoRU9kgOYsMxa5apIWQ==}
-    engines: {node: ^14.20.0 || ^16.13.0 || >=18.10.0}
-    peerDependencies:
-      '@angular/core': 15.2.10
-      rxjs: ^6.5.3 || ^7.4.0
-
-  '@angular/core@15.2.10':
-    resolution: {integrity: sha512-meGGidnitQJGDxYd9/LrqYiVlId+vGaLoiLgJdKBz+o2ZO6OmXQGuNw2VBqf17/Cc0/UjzrOY7+kILNFKkk/WQ==}
-    engines: {node: ^14.20.0 || ^16.13.0 || >=18.10.0}
-    peerDependencies:
-      rxjs: ^6.5.3 || ^7.4.0
-      zone.js: ~0.11.4 || ~0.12.0 || ~0.13.0
-
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
     engines: {node: '>=6.9.0'}
@@ -189,6 +175,11 @@ packages:
   '@babel/types@7.29.8':
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
+
+  '@countertype/clipper2-ts@1.5.4-3.9a869ba':
+    resolution: {integrity: sha512-LeO+CRdfipmLjSBszws6FC2KIjyjOpqDlNgLIrC5LtdV/ab0YXCt4cioIMYFaIVGT3saQQ51ejdHhWw28Rmdjw==}
+    engines: {node: '>=14.0.0'}
+    deprecated: Package moved to clipper2-ts (no scope). Please update your dependencies
 
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
@@ -1286,12 +1277,6 @@ packages:
 
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
-
-  clipper2-js@1.2.4:
-    resolution: {integrity: sha512-xD6ETXBuFYRI0IDWfSbkmMYB+M+nPoZQVVLi1GGlVhUVKV8rC//YYP6YHJX0ciyPsWYUCMxcv1QaIGLfnQo18Q==}
-    peerDependencies:
-      '@angular/common': ^15.1.0
-      '@angular/core': ^15.1.0
 
   cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
@@ -2416,9 +2401,6 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  rxjs@7.8.2:
-    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
-
   safe-array-concat@1.1.4:
     resolution: {integrity: sha512-wtZlHyOje6OZTGqAoaDKxFkgRtkF9CnHAVnCHKfuj200wAgL+bSJhdsCD2l0Qx/2ekEXjPWcyKkfGb5CPboslg==}
     engines: {node: '>=0.4'}
@@ -2886,9 +2868,6 @@ packages:
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
-  zone.js@0.13.3:
-    resolution: {integrity: sha512-MKPbmZie6fASC/ps4dkmIhaT5eonHkEt6eAy80K42tAm0G2W+AahLJjbfi6X9NPdciOE9GRFTTM8u2IiF6O3ww==}
-
   zustand@4.5.7:
     resolution: {integrity: sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==}
     engines: {node: '>=12.7.0'}
@@ -2923,18 +2902,6 @@ packages:
         optional: true
 
 snapshots:
-
-  '@angular/common@15.2.10(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2)':
-    dependencies:
-      '@angular/core': 15.2.10(rxjs@7.8.2)(zone.js@0.13.3)
-      rxjs: 7.8.2
-      tslib: 2.8.1
-
-  '@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3)':
-    dependencies:
-      rxjs: 7.8.2
-      tslib: 2.8.1
-      zone.js: 0.13.3
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -3037,6 +3004,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@countertype/clipper2-ts@1.5.4-3.9a869ba': {}
 
   '@dimforge/rapier3d-compat@0.12.0': {}
 
@@ -3999,12 +3968,6 @@ snapshots:
       supports-color: 7.2.0
 
   client-only@0.0.1: {}
-
-  clipper2-js@1.2.4(@angular/common@15.2.10(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3)):
-    dependencies:
-      '@angular/common': 15.2.10(@angular/core@15.2.10(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2)
-      '@angular/core': 15.2.10(rxjs@7.8.2)(zone.js@0.13.3)
-      tslib: 2.8.1
 
   cliui@6.0.0:
     dependencies:
@@ -5294,10 +5257,6 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  rxjs@7.8.2:
-    dependencies:
-      tslib: 2.8.1
-
   safe-array-concat@1.1.4:
     dependencies:
       call-bind: 1.0.9
@@ -5841,10 +5800,6 @@ snapshots:
       zod: 4.6.5
 
   zod@4.6.5: {}
-
-  zone.js@0.13.3:
-    dependencies:
-      tslib: 2.8.1
 
   zustand@4.5.7(@types/react@19.3.0)(react@19.2.8):
     dependencies:
