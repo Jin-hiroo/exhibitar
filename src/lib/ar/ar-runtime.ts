@@ -14,12 +14,13 @@ import type { ViewerProject } from '../types';
 import type { ExhibitScene } from './exhibit-scene';
 import {
   DEFAULT_IMAGE_CONVENTION,
-  detectImageConvention,
   estimateWorldFromMat,
   PoseFilter,
-  type ConventionScore,
+  printScales,
+  trackTargets,
   type ImageConvention,
   type MarkerObservation,
+  type TrackTarget,
 } from './pose';
 import {
   getImageTrackability,
@@ -34,17 +35,25 @@ export type TrackingPhase = 'starting' | 'searching' | 'tracking' | 'holding';
 
 export interface ArStatus {
   phase: TrackingPhase;
-  /** marker ids per tracking state this frame */
+  /** tracking target ids in `trackedImages` order (markers, then 'mat' if used) */
+  targets: string[];
+  /** target ids per tracking state this frame */
   tracked: string[];
   emulated: string[];
-  /** 'fit' (≥3 markers, convention-free) or 'average' */
-  method: 'fit' | 'average' | null;
+  /** RMS fit error of image corners/centres, mm */
   residualMm: number | null;
+  /** fit error per tracker axis convention this frame, mm (the loser is typically ≫) */
+  residualByConventionMm: Record<ImageConvention, number> | null;
   rejected: string[];
+  /** convention used for this frame's fit, and why */
+  frameConvention: ImageConvention | null;
+  decidedBy: string | null;
+  /** remembered preference and where it came from */
   convention: ImageConvention;
   conventionSource: 'default' | 'detected' | 'stored' | 'override';
-  conventionScores: ConventionScore[];
   trackability: readonly XRImageTrackability[] | null;
+  /** measured / expected image width (≈ 1 when printed at 100 %), median over tracked images */
+  printScale: number | null;
   fps: number;
 }
 
@@ -53,6 +62,8 @@ export interface ArRuntimeOptions {
   exhibit: ExhibitScene;
   /** in `project.mat.markers` order */
   markerBitmaps: ImageBitmap[];
+  /** the whole-mat tracking image, if the project has one; null disables it */
+  matBitmap: ImageBitmap | null;
   /** becomes the DOM overlay (UI on top of the camera view) */
   overlayRoot: HTMLElement;
   onStatus(status: ArStatus): void;
@@ -79,7 +90,7 @@ export class ArRuntime {
   private convention: ImageConvention;
   private conventionSource: ArStatus['conventionSource'];
   private conventionVotes = new Map<ImageConvention, number>();
-  private conventionScores: ConventionScore[] = [];
+  private readonly targets: TrackTarget[];
   private trackability: readonly XRImageTrackability[] | null = null;
   private lastTime = 0;
   private lastStatus = 0;
@@ -96,6 +107,7 @@ export class ArRuntime {
     this.scene.add(sun);
     this.scene.add(o.exhibit.root);
     o.exhibit.root.visible = false;
+    this.targets = trackTargets(o.project.mat, { includeMatImage: !!o.matBitmap });
 
     const stored = readStoredConvention();
     if (o.conventionOverride) {
@@ -114,9 +126,10 @@ export class ArRuntime {
   async start(): Promise<void> {
     const xr = navigator.xr;
     if (!xr) throw new Error('WebXR is not available in this browser.');
-    const trackedImages: XRTrackedImageInit[] = this.o.project.mat.markers.map((m, i) => ({
-      image: this.o.markerBitmaps[i]!,
-      widthInMeters: m.widthMm / 1000,
+    const bitmaps = [...this.o.markerBitmaps, ...(this.o.matBitmap ? [this.o.matBitmap] : [])];
+    const trackedImages: XRTrackedImageInit[] = this.targets.map((t, i) => ({
+      image: bitmaps[i]!,
+      widthInMeters: t.widthMm / 1000,
     }));
     const init = {
       requiredFeatures: [] as string[],
@@ -148,7 +161,7 @@ export class ArRuntime {
     getImageTrackability(session)
       .then((t) => (this.trackability = t))
       .catch(() => (this.trackability = null));
-    this.emitStatus('starting', [], [], null, true);
+    this.emitStatus('starting', [], [], null, [], true);
     renderer.setAnimationLoop(this.onFrame);
   }
 
@@ -180,28 +193,29 @@ export class ArRuntime {
     const emulated: string[] = [];
     if (ref) {
       for (const r of getImageTrackingResults(frame)) {
-        const marker = this.o.project.mat.markers[r.index];
-        const pose = marker && frame.getPose(r.imageSpace, ref);
-        if (!marker || !pose || r.trackingState === 'untracked') continue;
+        const target = this.targets[r.index];
+        const pose = target && frame.getPose(r.imageSpace, ref);
+        if (!target || !pose || r.trackingState === 'untracked') continue;
         observations.push({
-          markerId: marker.id,
+          markerId: target.id,
           worldFromImage: new Matrix4().fromArray(pose.transform.matrix),
           state: r.trackingState,
+          measuredWidthM: r.measuredWidthInMeters,
         });
-        (r.trackingState === 'tracked' ? tracked : emulated).push(marker.id);
+        (r.trackingState === 'tracked' ? tracked : emulated).push(target.id);
       }
     }
 
-    const fused = estimateWorldFromMat(observations, this.o.project.mat.markers, this.convention);
+    // Emulated images are ARCore's last known poses, which it keeps anchored as its
+    // world map is corrected, so they are followed too (a frozen copy would drift).
+    const fused = estimateWorldFromMat(observations, this.targets, this.convention);
     let phase: TrackingPhase;
-    if (fused && tracked.length > 0) {
-      if (fused.method === 'fit' && tracked.length >= 3)
-        this.voteConvention(observations, fused.worldFromMat);
+    if (fused) {
+      if (tracked.length > 0) this.voteConvention(fused);
       this.o.exhibit.root.matrix.copy(this.filter.update(fused.worldFromMat, dt));
       this.o.exhibit.root.visible = true;
-      phase = 'tracking';
+      phase = tracked.length > 0 ? 'tracking' : 'holding';
     } else if (this.filter.current) {
-      // Markers out of view: world tracking keeps the last pose anchored.
       phase = 'holding';
     } else {
       phase = 'searching';
@@ -210,7 +224,7 @@ export class ArRuntime {
     const xrCamera = renderer.xr.getCamera();
     this.o.exhibit.update(xrCamera);
     renderer.render(this.scene, this.camera);
-    this.emitStatus(phase, tracked, emulated, fused);
+    this.emitStatus(phase, tracked, emulated, fused, observations);
   };
 
   private readonly onSelect = (ev: XRInputSourceEvent) => {
@@ -239,26 +253,22 @@ export class ArRuntime {
     this.o.onEnd();
   };
 
-  /** Measure the tracker's axis convention on this device; lock it after consistent evidence. */
-  private voteConvention(obs: MarkerObservation[], worldFromMat: Matrix4): void {
-    this.conventionScores = detectImageConvention(obs, this.o.project.mat.markers, worldFromMat);
+  /**
+   * The fit tries both tracker axis conventions every frame; remember the one
+   * that wins clearly and consistently (Task D0 answer for this device).
+   */
+  private voteConvention(fused: NonNullable<ReturnType<typeof estimateWorldFromMat>>): void {
     if (this.conventionSource === 'override' || this.conventionSource === 'detected') return;
-    const [best, second] = this.conventionScores;
-    if (
-      !best ||
-      !second ||
-      best.meanErrorDeg > 20 ||
-      second.meanErrorDeg - best.meanErrorDeg < 30
-    ) {
-      return;
-    }
-    const votes = (this.conventionVotes.get(best.convention) ?? 0) + 1;
-    this.conventionVotes.set(best.convention, votes);
+    // only frames that could actually tell (several images, or a clear residual gap)
+    if (fused.decidedBy !== 'inliers' && fused.decidedBy !== 'residual') return;
+    const winner = fused.convention;
+    const votes = (this.conventionVotes.get(winner) ?? 0) + 1;
+    this.conventionVotes.set(winner, votes);
     if (votes >= CONVENTION_FRAMES_TO_LOCK) {
-      this.convention = best.convention;
+      this.convention = winner;
       this.conventionSource = 'detected';
       try {
-        localStorage.setItem(CONVENTION_STORAGE_KEY, best.convention);
+        localStorage.setItem(CONVENTION_STORAGE_KEY, winner);
       } catch {
         // storage unavailable (private mode): detection simply repeats next time
       }
@@ -280,6 +290,7 @@ export class ArRuntime {
     tracked: string[],
     emulated: string[],
     fused: ReturnType<typeof estimateWorldFromMat>,
+    observations: MarkerObservation[] = [],
     force = false,
   ): void {
     const now = performance.now();
@@ -287,15 +298,23 @@ export class ArRuntime {
     this.lastStatus = now;
     this.o.onStatus({
       phase,
+      targets: this.targets.map((t) => t.id),
       tracked,
       emulated,
-      method: fused?.method ?? null,
-      residualMm: fused?.residualM != null ? fused.residualM * 1000 : null,
+      residualMm: fused ? fused.residualM * 1000 : null,
+      residualByConventionMm: fused
+        ? {
+            spec: fused.residualByConvention.spec * 1000,
+            arcore: fused.residualByConvention.arcore * 1000,
+          }
+        : null,
       rejected: fused?.rejected ?? [],
+      frameConvention: fused?.convention ?? null,
+      decidedBy: fused?.decidedBy ?? null,
       convention: this.convention,
       conventionSource: this.conventionSource,
-      conventionScores: this.conventionScores,
       trackability: this.trackability,
+      printScale: median(printScales(observations, this.targets).map((p) => p.scale)),
       fps: this.fps,
     });
   }
@@ -313,4 +332,11 @@ function readStoredConvention(): ImageConvention | null {
   } catch {
     return null;
   }
+}
+
+function median(xs: number[]): number | null {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 }

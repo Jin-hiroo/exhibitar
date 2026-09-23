@@ -301,6 +301,24 @@ export class ExhibitScene {
       );
       this.debug.add(new LineLoop(new BufferGeometry().setFromPoints(pts), green));
     }
+    const track = this.project.mat.trackImage;
+    if (track) {
+      const [cx, cz] = track.centerMm;
+      const hw = track.widthMm / 2;
+      const hh = track.heightMm / 2;
+      const pts = [
+        [cx - hw, cz - hh],
+        [cx + hw, cz - hh],
+        [cx + hw, cz + hh],
+        [cx - hw, cz + hh],
+      ].map(([x, z]) => new Vector3(mmToM(x!), y, mmToM(z!)));
+      this.debug.add(
+        new LineLoop(
+          new BufferGeometry().setFromPoints(pts),
+          new LineBasicMaterial({ color: 0x00b8d4 }),
+        ),
+      );
+    }
     const orange = new LineBasicMaterial({ color: 0xff6d00 });
     for (const ring of this.project.mat.contactOutlineMm) {
       const pts = ring.map(([x, z]) => new Vector3(mmToM(x), y, mmToM(z)));

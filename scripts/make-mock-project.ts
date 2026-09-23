@@ -86,6 +86,7 @@ const project: Project = {
       ...m,
       imagePath: `fixtures/mock-cube-marker-${m.id}.png`,
     })),
+    trackImage: { ...mat.meta.trackImage, imagePath: 'fixtures/mock-cube-mat-track.png' },
   },
   annotations,
 };
@@ -93,6 +94,7 @@ const project: Project = {
 writeFileSync(join(pub, 'mock-cube.glb'), prepared.glb);
 writeFileSync(join(pub, 'mock-cube-mat.svg'), mat.svg);
 writeFileSync(join(pub, 'mock-cube-mat.pdf'), mat.pdf);
+writeFileSync(join(pub, 'mock-cube-mat-track.png'), mat.trackPng);
 for (const m of mat.markerPngs) writeFileSync(join(pub, `mock-cube-marker-${m.id}.png`), m.png);
 writeFileSync(
   join(root, 'tests/fixtures/project.mock.json'),

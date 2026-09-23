@@ -10,6 +10,8 @@ export interface ExhibitAssets {
   markerBitmaps: ImageBitmap[];
   /** marker image URLs in the same order (for textures) */
   markerUrls: string[];
+  /** the whole-mat tracking image, when the project has one */
+  matBitmap: ImageBitmap | null;
 }
 
 export function resolveAsset(base: string, path: string): string {
@@ -24,17 +26,19 @@ export async function loadExhibitAssets(
 ): Promise<ExhibitAssets> {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const markerUrls = project.mat.markers.map((m) => resolveAsset(base, m.imagePath));
-  const [gltf, markerBitmaps] = await Promise.all([
+  const trackImage = project.mat.trackImage;
+  const [gltf, markerBitmaps, matBitmap] = await Promise.all([
     loader.loadAsync(resolveAsset(base, project.model.glbPath)),
-    Promise.all(
-      markerUrls.map(async (url) => {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`marker image ${url}: HTTP ${res.status}`);
-        return createImageBitmap(await res.blob());
-      }),
-    ),
+    Promise.all(markerUrls.map(loadBitmap)),
+    trackImage ? loadBitmap(resolveAsset(base, trackImage.imagePath)) : Promise.resolve(null),
   ]);
-  return { geometry: firstMeshGeometry(gltf.scene), markerBitmaps, markerUrls };
+  return { geometry: firstMeshGeometry(gltf.scene), markerBitmaps, markerUrls, matBitmap };
+}
+
+async function loadBitmap(url: string): Promise<ImageBitmap> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`image ${url}: HTTP ${res.status}`);
+  return createImageBitmap(await res.blob());
 }
 
 /** The GLB holds exactly one mesh; bake its node transform so geometry = model coords. */

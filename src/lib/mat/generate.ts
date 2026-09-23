@@ -1,12 +1,14 @@
 import type { Polygons } from '../geometry/polygons';
-import type { Marker, Project } from '../types';
+import type { Marker, Project, TrackImage } from '../types';
 import { buildMatDrawing } from './drawing';
 import { printInstructions } from './instructions';
 import { layoutMat, type MatLayout } from './layout';
 import { pickMarkers } from './markers';
 import { PRINTER_MARGIN_MM, tileLabel, type PaperPreference } from './paper';
+import { encodePng } from './png';
 import { renderPdf, type PdfPage } from './pdf';
 import { qrPng, viewerUrl } from './qr';
+import { rasterizeDrawing } from './raster-drawing';
 import { renderSvg } from './svg';
 
 export interface MatInput {
@@ -26,10 +28,18 @@ export interface MatInput {
 
 /** A `Marker` before its PNG has been uploaded (the publisher fills in `imagePath`). */
 export type MarkerSpec = Omit<Marker, 'imagePath'>;
+export type TrackImageSpec = Omit<TrackImage, 'imagePath'>;
+
+/** Longest side of the whole-mat tracking image, px (ARCore needs ≥ 300). */
+const TRACK_IMAGE_MAX_PX = 1600;
+const TRACK_IMAGE_MAX_PX_PER_MM = 4;
 
 export interface GeneratedMat {
   /** everything for `Project.mat` except storage paths */
-  meta: Omit<Project['mat'], 'svgPath' | 'markers'> & { markers: MarkerSpec[] };
+  meta: Omit<Project['mat'], 'svgPath' | 'markers' | 'trackImage'> & {
+    markers: MarkerSpec[];
+    trackImage: TrackImageSpec;
+  };
   /** the full mat at actual size */
   svg: string;
   /** one SVG per sheet when tiled (empty for single-sheet mats) */
@@ -37,6 +47,8 @@ export interface GeneratedMat {
   /** actual size, one page per sheet */
   pdf: Uint8Array;
   markerPngs: { id: string; png: Uint8Array }[];
+  /** the whole mat as one tracking image (see `meta.trackImage`) */
+  trackPng: Uint8Array;
   qrUrl: string;
   qrPng: Uint8Array;
   instructions: string;
@@ -105,6 +117,14 @@ export function generateMat(input: MatInput): GeneratedMat {
     seed: markers[i]!.art.seed,
   }));
 
+  const pxPerMm = Math.min(TRACK_IMAGE_MAX_PX_PER_MM, TRACK_IMAGE_MAX_PX / Math.max(W, H));
+  const trackPng = encodePng(rasterizeDrawing(items, { x: 0, y: 0, w: W, h: H }, pxPerMm));
+  const trackImage: TrackImageSpec = {
+    widthMm: W,
+    heightMm: H,
+    centerMm: [W / 2 - layout.originMm[0], H / 2 - layout.originMm[1]],
+  };
+
   return {
     meta: {
       paper: layout.paper,
@@ -114,11 +134,13 @@ export function generateMat(input: MatInput): GeneratedMat {
       contactOutlineMm: input.contactOutlineMm,
       shadowOutlineMm: input.shadowOutlineMm,
       markers: markerSpecs,
+      trackImage,
     },
     svg,
     tileSvgs,
     pdf: renderPdf(items, pages),
     markerPngs: markers.map((m, i) => ({ id: `m${i}`, png: m.png })),
+    trackPng,
     qrUrl,
     qrPng: qrPng(qrUrl),
     instructions: printInstructions(layout, input.title),

@@ -80,6 +80,12 @@
         "imagePath": "fixtures/mock-cube-marker-m3.png"
       }
     ],
+    "trackImage": {
+      "widthMm": 297,
+      "heightMm": 210,
+      "centerMm": [0, 0],
+      "imagePath": "fixtures/mock-cube-mat-track.png"
+    },
     "svgPath": "fixtures/mock-cube-mat.svg"
   },
   "annotations": [

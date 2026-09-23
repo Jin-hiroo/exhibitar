@@ -85,6 +85,8 @@ export function ViewerApp({ project, assetBase }: Props) {
       project,
       exhibit,
       markerBitmaps: prepared.assets.markerBitmaps,
+      // ?mattrack=0 tracks the corner markers only (to compare on a device)
+      matBitmap: params.get('mattrack') === '0' ? null : prepared.assets.matBitmap,
       overlayRoot: overlay,
       onStatus: setStatus,
       onSelect: setSelected,
@@ -251,7 +253,7 @@ export function ViewerApp({ project, assetBase }: Props) {
                 Keep the square markers in view, 30–60 cm away.
               </div>
             )}
-            {debug && status && <pre className={styles.debug}>{debugText(status, project)}</pre>}
+            {debug && status && <pre className={styles.debug}>{debugText(status)}</pre>}
             {tourBar}
             {sheet}
           </>
@@ -310,20 +312,18 @@ function statusText(s: ArStatus | null): string {
   return `Tracking · ${n} marker${n === 1 ? '' : 's'}`;
 }
 
-function debugText(s: ArStatus, project: ViewerProject): string {
-  const ids = project.mat.markers.map((m) => m.id);
+function debugText(s: ArStatus): string {
   const state = (id: string) =>
     s.tracked.includes(id) ? 'T' : s.emulated.includes(id) ? 'e' : '·';
-  const scores = s.conventionScores
-    .map((c) => `${c.convention} ${c.meanErrorDeg.toFixed(1)}°`)
-    .join('  ');
+  const res = s.residualByConventionMm;
   return [
     `phase      ${s.phase}   fps ${s.fps.toFixed(0)}`,
-    `markers    ${ids.map((id) => `${id}:${state(id)}`).join(' ')}`,
-    `trackable  ${s.trackability ? s.trackability.map((t, i) => `${ids[i]}:${t === 'trackable' ? 'ok' : 'NO'}`).join(' ') : 'n/a'}`,
-    `pose       ${s.method ?? '-'}${s.residualMm != null ? `  residual ${s.residualMm.toFixed(1)} mm` : ''}${s.rejected.length ? `  rejected ${s.rejected.join(',')}` : ''}`,
-    `convention ${s.convention} (${s.conventionSource})`,
-    `  scores   ${scores || 'need ≥3 tracked markers'}`,
+    `images     ${s.targets.map((id) => `${id}:${state(id)}`).join(' ')}`,
+    `trackable  ${s.trackability ? s.trackability.map((t, i) => `${s.targets[i]}:${t === 'trackable' ? 'ok' : 'NO'}`).join(' ') : 'n/a'}`,
+    `fit        ${s.residualMm != null ? `${s.residualMm.toFixed(1)} mm` : '-'}${s.rejected.length ? `  rejected ${s.rejected.join(',')}` : ''}`,
+    `axes       ${s.frameConvention ?? '-'}${s.decidedBy ? ` (${s.decidedBy})` : ''} · saved ${s.convention} (${s.conventionSource})`,
+    `  residual ${res ? `spec ${res.spec.toFixed(1)}  arcore ${res.arcore.toFixed(1)} mm` : '-'}`,
+    `print      ${s.printScale != null ? `${(s.printScale * 100).toFixed(1)} % of expected size` : 'n/a'}`,
   ].join('\n');
 }
 

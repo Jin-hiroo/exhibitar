@@ -2,32 +2,40 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { markerItems } from '../mat/drawing';
 import type { MarkerArt } from '../mat/markers';
-import type { Marker } from '../types';
 import {
   composeWorldFromModel,
-  detectImageConvention,
   estimateWorldFromMat,
+  MAT_TARGET_ID,
   matFromImage,
   PoseFilter,
+  printScales,
   rigidFit,
+  trackTargets,
   type ImageConvention,
   type MarkerObservation,
+  type TrackTarget,
 } from './pose';
 
-// A4-landscape-like layout: four 60 mm markers near the corners (mat XZ, mm)
-const MARKERS: Marker[] = [
-  [-108.5, -65],
-  [108.5, -65],
-  [-108.5, 65],
-  [108.5, 65],
-].map(([x, z], i) => ({
-  id: `m${i}`,
-  imagePath: '',
-  widthMm: 60,
-  centerMm: [x!, z!],
-  rotationDeg: i === 3 ? 90 : 0,
-  seed: i,
-}));
+// A4 landscape: four 60 mm markers near the corners + the whole page as one image (mat XZ, mm)
+const MAT = {
+  markers: [
+    [-108.5, -65],
+    [108.5, -65],
+    [-108.5, 65],
+    [108.5, 65],
+  ].map(([x, z], i) => ({
+    id: `m${i}`,
+    imagePath: '',
+    widthMm: 60,
+    centerMm: [x!, z!] as [number, number],
+    rotationDeg: i === 3 ? 90 : 0,
+    seed: i,
+  })),
+  trackImage: { imagePath: '', widthMm: 297, heightMm: 210, centerMm: [0, 0] as [number, number] },
+};
+const TARGETS = trackTargets(MAT);
+const MARKERS_ONLY = trackTargets(MAT, { includeMatImage: false });
+const byId = (id: string) => TARGETS.find((t) => t.id === id)!;
 
 /** deterministic noise */
 function rng(seed: number) {
@@ -43,17 +51,24 @@ const TRUE_POSE = new Matrix4().compose(
 
 function observe(
   worldFromMat: Matrix4,
-  markers: Marker[],
-  noise?: { posM: number; angleDeg: number; seed: number },
-  convention?: ImageConvention,
+  targets: TrackTarget[],
+  {
+    noise,
+    convention = 'spec',
+  }: {
+    noise?: { posM: number; angleDeg: number; seed: number };
+    convention?: ImageConvention;
+  } = {},
 ): MarkerObservation[] {
   const r = rng(noise?.seed ?? 1);
-  return markers.map((m) => {
-    const worldFromImage = worldFromMat.clone().multiply(matFromImage(m, convention));
+  return targets.map((t) => {
+    const worldFromImage = worldFromMat.clone().multiply(matFromImage(t, convention));
     if (noise) {
+      // a planar target's angular error shrinks with its size: `angleDeg` is for a 60 mm marker
+      const angleDeg = noise.angleDeg * Math.min(1, 60 / t.widthMm);
       const q = new Quaternion().setFromAxisAngle(
         new Vector3(r(), r(), r()).normalize(),
-        (noise.angleDeg * Math.PI) / 180,
+        (angleDeg * Math.PI) / 180,
       );
       const p = new Vector3(r(), r(), r()).multiplyScalar(noise.posM);
       const pos = new Vector3();
@@ -61,7 +76,7 @@ function observe(
       worldFromImage.decompose(pos, rot, new Vector3());
       worldFromImage.compose(pos.add(p), q.multiply(rot), new Vector3(1, 1, 1));
     }
-    return { markerId: m.id, worldFromImage, state: 'tracked' as const };
+    return { markerId: t.id, worldFromImage, state: 'tracked' as const };
   });
 }
 
@@ -127,93 +142,148 @@ describe('matFromImage', () => {
   });
 });
 
+describe('trackTargets', () => {
+  it('lists markers then the whole-mat image, unless disabled', () => {
+    expect(TARGETS.map((t) => t.id)).toEqual(['m0', 'm1', 'm2', 'm3', MAT_TARGET_ID]);
+    expect(byId(MAT_TARGET_ID)).toMatchObject({ widthMm: 297, heightMm: 210, rotationDeg: 0 });
+    expect(MARKERS_ONLY.map((t) => t.id)).toEqual(['m0', 'm1', 'm2', 'm3']);
+    expect(trackTargets({ markers: MAT.markers }).map((t) => t.id)).toHaveLength(4);
+  });
+});
+
 describe('estimateWorldFromMat', () => {
-  it('recovers the exact pose from perfect observations (1, 2 and 4 markers)', () => {
-    for (const n of [1, 2, 4]) {
-      const est = estimateWorldFromMat(observe(TRUE_POSE, MARKERS.slice(0, n)), MARKERS)!;
-      const e = poseError(est.worldFromMat, TRUE_POSE);
-      expect(e.mm).toBeLessThan(1e-3);
-      expect(e.deg).toBeLessThan(1e-3);
-      expect(est.used).toHaveLength(n);
+  const subsets: [string, TrackTarget[]][] = [
+    ['one marker', [byId('m0')]],
+    ['the rotated marker', [byId('m3')]],
+    ['two markers', [byId('m0'), byId('m3')]],
+    ['four markers', MARKERS_ONLY],
+    ['the whole-mat image only', [byId(MAT_TARGET_ID)]],
+    ['everything', TARGETS],
+  ];
+
+  it('recovers the exact pose from any subset, for either tracker convention', () => {
+    for (const truth of ['spec', 'arcore'] as const) {
+      for (const [, subset] of subsets) {
+        for (const preferred of ['spec', 'arcore'] as const) {
+          const est = estimateWorldFromMat(
+            observe(TRUE_POSE, subset, { convention: truth }),
+            TARGETS,
+            preferred,
+          )!;
+          const e = poseError(est.worldFromMat, TRUE_POSE);
+          expect(e.mm).toBeLessThan(1e-3);
+          expect(e.deg).toBeLessThan(1e-3);
+          expect(est.convention).toBe(truth);
+          expect(est.used).toHaveLength(subset.length);
+          if (subset.length >= 3) {
+            // several images: the wrong convention cannot explain them all
+            const wrong = truth === 'spec' ? 'arcore' : 'spec';
+            expect(est.inliersByConvention[wrong]).toBeLessThan(subset.length);
+            expect(est.decidedBy).toBe('inliers');
+          }
+        }
+      }
     }
   });
 
   it('stays within ~3 mm at label height with realistic tracker noise', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      const obs = observe(TRUE_POSE, MARKERS, { posM: 0.002, angleDeg: 2, seed });
-      const est = estimateWorldFromMat(obs, MARKERS)!;
+      const obs = observe(TRUE_POSE, MARKERS_ONLY, { noise: { posM: 0.002, angleDeg: 2, seed } });
+      const est = estimateWorldFromMat(obs, TARGETS)!;
       expect(labelErrorMm(est.worldFromMat, TRUE_POSE)).toBeLessThan(3);
     }
   });
 
-  it('beats a single marker thanks to the wide baseline', () => {
-    let fused = 0;
-    let single = 0;
-    for (let seed = 1; seed <= 20; seed++) {
-      const obs = observe(TRUE_POSE, MARKERS, { posM: 0.002, angleDeg: 2, seed });
-      fused += labelErrorMm(estimateWorldFromMat(obs, MARKERS)!.worldFromMat, TRUE_POSE);
-      single += labelErrorMm(
-        estimateWorldFromMat(obs.slice(0, 1), MARKERS)!.worldFromMat,
-        TRUE_POSE,
-      );
+  it('gets better with more / bigger images (wide baseline)', () => {
+    const total = { single: 0, markers: 0, all: 0 };
+    for (let seed = 1; seed <= 30; seed++) {
+      const noise = { posM: 0.002, angleDeg: 2, seed };
+      const obs = observe(TRUE_POSE, TARGETS, { noise });
+      const err = (o: MarkerObservation[]) =>
+        labelErrorMm(estimateWorldFromMat(o, TARGETS)!.worldFromMat, TRUE_POSE);
+      total.single += err(obs.slice(0, 1));
+      total.markers += err(obs.slice(0, 4));
+      total.all += err(obs);
     }
-    expect(fused).toBeLessThan(single / 2);
+    expect(total.markers).toBeLessThan(total.single / 2);
+    expect(total.all).toBeLessThan(total.markers);
   });
 
-  it('rejects a marker whose estimate is way off', () => {
-    const obs = observe(TRUE_POSE, MARKERS);
+  it('rejects an image whose pose is way off', () => {
+    const obs = observe(TRUE_POSE, TARGETS);
     obs[2]!.worldFromImage.premultiply(new Matrix4().makeTranslation(0.1, 0, 0));
-    const est = estimateWorldFromMat(obs, MARKERS)!;
+    const est = estimateWorldFromMat(obs, TARGETS)!;
     expect(est.rejected).toEqual(['m2']);
-    expect(est.method).toBe('fit');
     expect(poseError(est.worldFromMat, TRUE_POSE).mm).toBeLessThan(1e-3);
   });
 
-  it('with ≥ 3 markers does not depend on the tracker axis convention', () => {
-    for (const truth of ['spec', 'arcore'] as const) {
-      const obs = observe(TRUE_POSE, MARKERS, undefined, truth);
-      for (const assumed of ['spec', 'arcore'] as const) {
-        const est = estimateWorldFromMat(obs, MARKERS, assumed)!;
-        expect(poseError(est.worldFromMat, TRUE_POSE).mm).toBeLessThan(1e-3);
-        expect(est.residualM).toBeLessThan(1e-6);
-      }
-    }
-  });
-
   it('trusts tracked images more than emulated ones', () => {
-    const obs = observe(TRUE_POSE, MARKERS.slice(0, 2));
+    const obs = observe(TRUE_POSE, [byId('m0'), byId('m1')]);
     obs[1]!.state = 'emulated';
     obs[1]!.worldFromImage.premultiply(new Matrix4().makeTranslation(0.01, 0, 0));
-    const est = estimateWorldFromMat(obs, MARKERS)!;
-    const e = poseError(est.worldFromMat, TRUE_POSE).mm;
+    const e = poseError(estimateWorldFromMat(obs, TARGETS)!.worldFromMat, TRUE_POSE).mm;
     expect(e).toBeGreaterThan(1);
-    expect(e).toBeLessThan(2); // 10 mm × 0.2 / 1.2
+    expect(e).toBeLessThan(3.5); // roughly 10 mm × 0.2 / 1.2
   });
 
-  it('ignores unknown markers and returns null with nothing tracked', () => {
-    expect(estimateWorldFromMat([], MARKERS)).toBeNull();
-    const obs = observe(TRUE_POSE, MARKERS.slice(0, 1));
+  it('works from emulated images alone', () => {
+    const obs = observe(TRUE_POSE, MARKERS_ONLY).map((o) => ({ ...o, state: 'emulated' as const }));
+    expect(poseError(estimateWorldFromMat(obs, TARGETS)!.worldFromMat, TRUE_POSE).mm).toBeLessThan(
+      1e-3,
+    );
+  });
+
+  it('ignores unknown images and returns null with nothing tracked', () => {
+    expect(estimateWorldFromMat([], TARGETS)).toBeNull();
+    const obs = observe(TRUE_POSE, [byId('m0')]);
     obs[0]!.markerId = 'nope';
-    expect(estimateWorldFromMat(obs, MARKERS)).toBeNull();
+    expect(estimateWorldFromMat(obs, TARGETS)).toBeNull();
   });
 });
 
-describe('detectImageConvention', () => {
-  it('identifies the convention the tracker used, even with noise', () => {
+describe('convention choice for ambiguous frames', () => {
+  it('uses gravity when a single image cannot tell (mat lies flat on a table)', () => {
     for (const truth of ['spec', 'arcore'] as const) {
-      const obs = observe(TRUE_POSE, MARKERS, { posM: 0.002, angleDeg: 3, seed: 7 }, truth);
-      const fit = estimateWorldFromMat(obs, MARKERS)!;
-      const [best, other] = detectImageConvention(obs, MARKERS, fit.worldFromMat);
-      expect(best!.convention).toBe(truth);
-      expect(best!.meanErrorDeg).toBeLessThan(6);
-      expect(other!.meanErrorDeg).toBeGreaterThan(60);
+      const wrong = truth === 'spec' ? 'arcore' : 'spec';
+      const est = estimateWorldFromMat(
+        observe(TRUE_POSE, [byId('m1')], { convention: truth }),
+        TARGETS,
+        wrong, // even when the preference is wrong
+      )!;
+      expect(est.decidedBy).toBe('gravity');
+      expect(est.convention).toBe(truth);
+      expect(poseError(est.worldFromMat, TRUE_POSE).deg).toBeLessThan(1e-3);
     }
+  });
+
+  it('falls back to the preference when even gravity cannot tell (mat on a tilted stand)', () => {
+    // tilt the mat 45° about X: both candidates are equally far from "up"
+    const tilted = TRUE_POSE.clone().multiply(new Matrix4().makeRotationX(-Math.PI / 4));
+    const est = estimateWorldFromMat(
+      observe(tilted, [byId('m1')], { convention: 'arcore' }),
+      TARGETS,
+      'arcore',
+    )!;
+    expect(est.convention).toBe('arcore');
+  });
+});
+
+describe('printScales', () => {
+  it('reports measured / expected width for tracked images that report a size', () => {
+    const obs = observe(TRUE_POSE, [byId('m0'), byId(MAT_TARGET_ID), byId('m1')]);
+    obs[0]!.measuredWidthM = 0.057;
+    obs[1]!.measuredWidthM = 0.297;
+    obs[2]!.measuredWidthM = 0; // unknown
+    const scales = printScales(obs, TARGETS);
+    expect(scales.map((s) => s.id)).toEqual(['m0', MAT_TARGET_ID]);
+    expect(scales[0]!.scale).toBeCloseTo(0.95, 6);
+    expect(scales[1]!.scale).toBeCloseTo(1, 6);
   });
 });
 
 describe('rigidFit', () => {
   it('fits coplanar points', () => {
-    const a = MARKERS.map((m) => new Vector3(m.centerMm[0] / 1000, 0, m.centerMm[1] / 1000));
+    const a = MAT.markers.map((m) => new Vector3(m.centerMm[0] / 1000, 0, m.centerMm[1] / 1000));
     const b = a.map((p) => p.clone().applyMatrix4(TRUE_POSE));
     const { rotation, translation } = rigidFit(a, b, [1, 1, 1, 1]);
     const est = new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1));

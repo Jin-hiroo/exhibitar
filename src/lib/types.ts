@@ -49,6 +49,12 @@ export interface Project {
     contactOutlineMm: [number, number][][]; // polygons, mat XZ plane
     shadowOutlineMm: [number, number][][];
     markers: Marker[];
+    /**
+     * The whole printed page as one extra tracking image (optional). A large
+     * target is detected sooner and tracked more steadily than the small
+     * corner markers; it is rendered from the same drawing as the SVG.
+     */
+    trackImage?: TrackImage;
   };
 
   annotations: Annotation[];
@@ -62,6 +68,13 @@ export interface Marker {
   /** In-plane rotation, degrees, clockwise as seen on the printed page (SVG `rotate()`). */
   rotationDeg: number;
   seed: number; // generator seed (reproducible)
+}
+
+export interface TrackImage {
+  imagePath: string; // PNG given to the tracker
+  widthMm: number; // physical printed size of the whole image
+  heightMm: number;
+  centerMm: [number, number]; // image centre in mat XZ; unrotated (page-aligned)
 }
 
 export type Annotation = {

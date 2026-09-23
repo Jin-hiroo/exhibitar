@@ -84,6 +84,10 @@ describe('generateMat', () => {
       expect(poly.area(poly.intersect(square, mat.meta.shadowOutlineMm))).toBe(0);
     }
     expect(mat.qrUrl).toBe('https://exhibitar.vercel.app/v/abc123');
+    // the whole page as one tracking image, centred on the page
+    expect(mat.meta.trackImage).toEqual({ widthMm: 297, heightMm: 210, centerMm: [0, 0] });
+    const v = new DataView(mat.trackPng.buffer, mat.trackPng.byteOffset);
+    expect([v.getUint32(16), v.getUint32(20)]).toEqual([1188, 840]);
     expect(mat.instructions).toMatch(/Actual size/);
   });
 
