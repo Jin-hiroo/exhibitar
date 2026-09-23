@@ -59,6 +59,9 @@ export interface EditorContext {
   /** unsaved changes (text, annotations, geometry) */
   dirty: boolean;
   markSaved: (p: StudioProject) => void;
+  /** annotation images chosen but not uploaded yet, by annotation id */
+  media: Record<string, File>;
+  setMedia: (update: (m: Record<string, File>) => Record<string, File>) => void;
 }
 
 const TABS: { id: Tab; label: string }[] = [
@@ -85,6 +88,7 @@ export function Editor({
   const [storedGeometry, setStoredGeometry] = useState<BufferGeometry | null>(null);
   const [tab, setTab] = useState<Tab>(initial.model ? 'annotate' : 'setup');
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [media, setMedia] = useState<Record<string, File>>({});
   // workers spawn lazily on first call, so creating the clients during SSR is harmless
   const [clients] = useState(() => ({ geometry: createGeometryClient(), mat: createMatClient() }));
   useEffect(
@@ -126,6 +130,7 @@ export function Editor({
 
   const dirty =
     !!ready ||
+    Object.keys(media).length > 0 ||
     project.title !== saved.title ||
     project.description !== saved.description ||
     JSON.stringify(project.annotations) !== JSON.stringify(saved.annotations);
@@ -149,7 +154,10 @@ export function Editor({
       setSaved(p);
       setProjectState(p);
       setReady(null);
+      setMedia({});
     },
+    media,
+    setMedia: (u) => setMedia(u),
   };
 
   const hasMat = !!project.mat;

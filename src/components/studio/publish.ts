@@ -7,6 +7,13 @@ import type { PreparedSession } from './Editor';
 
 export type ProgressFn = (message: string, fraction: number) => void;
 
+const MEDIA_TYPES: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
+const MAX_MEDIA_BYTES = 5 * 1024 * 1024;
+
 /**
  * Save (and optionally publish) a project: create the row if needed, upload
  * the frozen GLB + mat assets when there is new geometry, then write the row.
@@ -19,6 +26,7 @@ export async function saveToCloud(
   ready: PreparedSession | null,
   status: 'draft' | 'published',
   onProgress: ProgressFn,
+  media: Record<string, File> = {},
 ): Promise<StudioProject> {
   const { id } = project;
   onProgress('Saving…', 0.02);
@@ -72,6 +80,19 @@ export async function saveToCloud(
     };
   }
 
+  // annotation images chosen in the Studio
+  let annotations = project.annotations;
+  for (const [annId, file] of Object.entries(media)) {
+    if (!annotations.some((a) => a.id === annId)) continue; // annotation was deleted
+    const ext = MEDIA_TYPES[file.type];
+    if (!ext) throw new Error(`${file.name}: use a PNG, JPEG or WebP image.`);
+    if (file.size > MAX_MEDIA_BYTES) throw new Error(`${file.name}: images must be under 5 MB.`);
+    const path = assetPath('annotation-media', id, `${annId}-${Date.now().toString(36)}.${ext}`);
+    onProgress(`Uploading ${file.name}…`, 0.87);
+    await uploadAsset(db, path, file, file.type);
+    annotations = annotations.map((a) => (a.id === annId ? { ...a, imagePath: path } : a));
+  }
+
   if (status === 'published' && !(geometry?.model ?? project.model?.glbPath)) {
     throw new Error('Generate the model and mat (Setup) before publishing.');
   }
@@ -79,7 +100,7 @@ export async function saveToCloud(
   const saved = await saveProject(db, id, {
     title: project.title,
     description: project.description,
-    annotations: project.annotations,
+    annotations,
     status,
     ...(geometry ?? {}),
   });

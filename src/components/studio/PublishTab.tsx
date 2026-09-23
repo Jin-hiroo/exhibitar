@@ -27,10 +27,17 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
     if (!db) return setError('Supabase is not configured.');
     setError(null);
     try {
-      const saved = await saveToCloud(db, project, ready, status, (m, f) => {
-        setBusy(m);
-        setProgress(f);
-      });
+      const saved = await saveToCloud(
+        db,
+        project,
+        ready,
+        status,
+        (m, f) => {
+          setBusy(m);
+          setProgress(f);
+        },
+        ctx.media,
+      );
       ctx.markSaved(saved);
       if (isNew) router.replace(`/studio/${saved.id}`);
     } catch (e) {

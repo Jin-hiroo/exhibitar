@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   move,
   newPoint,
@@ -226,6 +226,21 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
                       }
                     />
                   </label>
+                  <AnnotationImage
+                    file={ctx.media[a.id] ?? null}
+                    storedUrl={
+                      a.imagePath && ctx.storageBase ? `${ctx.storageBase}/${a.imagePath}` : null
+                    }
+                    onPick={(f) => ctx.setMedia((m) => ({ ...m, [a.id]: f }))}
+                    onRemove={() => {
+                      ctx.setMedia((m) => {
+                        const next = { ...m };
+                        delete next[a.id];
+                        return next;
+                      });
+                      setList(update(project.annotations, a.id, { imagePath: undefined }));
+                    }}
+                  />
                   {a.kind === 'region' && (
                     <button className={styles.secondary} onClick={() => setTool('paint')}>
                       🖌 Paint this region
@@ -238,6 +253,50 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
           ))}
         </ul>
       </aside>
+    </div>
+  );
+}
+
+/** Optional image shown in the visitor's detail sheet (uploaded on Save / Publish). */
+function AnnotationImage({
+  file,
+  storedUrl,
+  onPick,
+  onRemove,
+}: {
+  file: File | null;
+  storedUrl: string | null;
+  onPick(f: File): void;
+  onRemove(): void;
+}) {
+  const localUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => void (localUrl && URL.revokeObjectURL(localUrl)), [localUrl]);
+  const url = localUrl ?? storedUrl;
+  return (
+    <div className={styles.field}>
+      <span>Image (optional)</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {url && <img src={url} alt="" style={{ width: '100%', borderRadius: 8 }} />}
+      <div className={styles.row}>
+        <label className={styles.secondary}>
+          {url ? 'Replace image…' : 'Add image…'}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onPick(f);
+            }}
+          />
+        </label>
+        {url && (
+          <button className={styles.ghost} onClick={onRemove}>
+            Remove
+          </button>
+        )}
+      </div>
+      {file && <span className={styles.small}>Uploaded when you save or publish.</span>}
     </div>
   );
 }

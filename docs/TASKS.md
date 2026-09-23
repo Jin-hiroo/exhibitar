@@ -60,7 +60,7 @@ computed mat size; same seed → identical output.
 
 - [x] C1 Point picking on mesh (raycast, BVH via three-mesh-bvh) → position + normal
 - [x] C2 Region brush painting on the simplified mesh → triangle index set
-- [x] C3 Annotation list: edit title/body/image/link, reorder (tour order), delete _(image upload not built yet)_
+- [x] C3 Annotation list: edit title/body/image/link, reorder (tour order), delete _(images upload to `annotation-media` on save/publish)_
 - [x] C4 Label rendering shared with viewer (back-face fade, occlusion) — coordinate with WS-D, _(src/lib/ar/labels.ts, used by Viewer, Preview and the annotate view)_
       put the shared renderer in `src/lib/ar/labels.ts` owned by WS-D
 
