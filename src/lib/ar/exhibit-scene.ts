@@ -118,6 +118,12 @@ export class ExhibitScene {
     this.root.add(this.debug);
   }
 
+  /** Live calibration (D5): re-place the model in the mat frame. */
+  setCalibration(calibration: ViewerProject['calibration']): void {
+    this.model.matrix.copy(matFromModel(calibration, this.project.objectToMat));
+    this.model.matrixWorldNeedsUpdate = true;
+  }
+
   /** Show the model itself (translucent), e.g. without the printed object or for calibration. */
   setGhost(visible: boolean, opacity = 0.45): void {
     const mat = this.ghost.material as MeshStandardMaterial;

@@ -37,6 +37,109 @@ export function trianglesInSphere(centroids: Float32Array, center: Vec3, radius:
   return out;
 }
 
+/** Per-triangle bounding spheres for brush queries (built once per mesh). */
+export interface TriangleSpatial {
+  positions: ArrayLike<number>;
+  indices: ArrayLike<number>;
+  centroids: Float32Array;
+  /** max distance from each centroid to its vertices */
+  radii: Float32Array;
+}
+
+export function buildTriangleSpatial(
+  positions: ArrayLike<number>,
+  indices: ArrayLike<number>,
+): TriangleSpatial {
+  const centroids = triangleCentroids(positions, indices);
+  const n = indices.length / 3;
+  const radii = new Float32Array(n);
+  for (let t = 0; t < n; t++) {
+    let r = 0;
+    for (let k = 0; k < 3; k++) {
+      const v = indices[t * 3 + k]! * 3;
+      r = Math.max(
+        r,
+        Math.hypot(
+          positions[v]! - centroids[t * 3]!,
+          positions[v + 1]! - centroids[t * 3 + 1]!,
+          positions[v + 2]! - centroids[t * 3 + 2]!,
+        ),
+      );
+    }
+    radii[t] = r;
+  }
+  return { positions, indices, centroids, radii };
+}
+
+/**
+ * Triangles the brush sphere actually touches (closest point on the triangle
+ * within `radius`), so large triangles of low-poly models can be painted too.
+ */
+export function trianglesTouchingSphere(
+  s: TriangleSpatial,
+  center: Vec3,
+  radius: number,
+): number[] {
+  const out: number[] = [];
+  const { positions: p, indices: ix, centroids: c, radii } = s;
+  for (let t = 0; t < radii.length; t++) {
+    const d = Math.hypot(
+      c[t * 3]! - center[0],
+      c[t * 3 + 1]! - center[1],
+      c[t * 3 + 2]! - center[2],
+    );
+    if (d > radius + radii[t]!) continue;
+    const a = ix[t * 3]! * 3;
+    const b = ix[t * 3 + 1]! * 3;
+    const cc = ix[t * 3 + 2]! * 3;
+    const q = closestPointOnTriangle(
+      center,
+      [p[a]!, p[a + 1]!, p[a + 2]!],
+      [p[b]!, p[b + 1]!, p[b + 2]!],
+      [p[cc]!, p[cc + 1]!, p[cc + 2]!],
+    );
+    if (Math.hypot(q[0] - center[0], q[1] - center[1], q[2] - center[2]) <= radius) out.push(t);
+  }
+  return out;
+}
+
+/** Ericson, Real-Time Collision Detection §5.1.5. */
+export function closestPointOnTriangle(p: Vec3, a: Vec3, b: Vec3, c: Vec3): Vec3 {
+  const sub = (u: Vec3, v: Vec3): Vec3 => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+  const dot = (u: Vec3, v: Vec3) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  const add = (u: Vec3, v: Vec3, k: number): Vec3 => [
+    u[0] + v[0] * k,
+    u[1] + v[1] * k,
+    u[2] + v[2] * k,
+  ];
+  const ab = sub(b, a);
+  const ac = sub(c, a);
+  const ap = sub(p, a);
+  const d1 = dot(ab, ap);
+  const d2 = dot(ac, ap);
+  if (d1 <= 0 && d2 <= 0) return a;
+  const bp = sub(p, b);
+  const d3 = dot(ab, bp);
+  const d4 = dot(ac, bp);
+  if (d3 >= 0 && d4 <= d3) return b;
+  const vc = d1 * d4 - d3 * d2;
+  if (vc <= 0 && d1 >= 0 && d3 <= 0) return add(a, ab, d1 / (d1 - d3));
+  const cp = sub(p, c);
+  const d5 = dot(ab, cp);
+  const d6 = dot(ac, cp);
+  if (d6 >= 0 && d5 <= d6) return c;
+  const vb = d5 * d2 - d1 * d6;
+  if (vb <= 0 && d2 >= 0 && d6 <= 0) return add(a, ac, d2 / (d2 - d6));
+  const va = d3 * d6 - d5 * d4;
+  if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) {
+    return add(b, sub(c, b), (d4 - d3) / (d4 - d3 + (d5 - d6)));
+  }
+  const denom = 1 / (va + vb + vc);
+  const v = vb * denom;
+  const w = vc * denom;
+  return add(add(a, ab, v), ac, w);
+}
+
 /** Add or erase a dab's triangles; returns a new sorted array (stable storage order). */
 export function applyBrush(
   current: readonly number[],

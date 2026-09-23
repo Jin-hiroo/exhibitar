@@ -45,6 +45,21 @@ export function ViewerApp({ project, assetBase }: Props) {
   );
   const selectedAnnotation = tour.find((a) => a.id === selected) ?? null;
 
+  // E5: count one view per page load for published (database) exhibits
+  useEffect(() => {
+    if (assetBase === '/') return; // bundled demo fixtures
+    const key = `exhibitar.viewed.${project.id}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch {
+      // storage unavailable: count anyway
+    }
+    import('@/lib/db/client')
+      .then(({ getBrowserDb }) => getBrowserDb()?.rpc('record_view', { p_id: project.id }))
+      .catch(() => {});
+  }, [project.id, assetBase]);
+
   // Capabilities + prefetch the runtime, GLB and marker images (ARCHITECTURE §5).
   useEffect(() => {
     let cancelled = false;

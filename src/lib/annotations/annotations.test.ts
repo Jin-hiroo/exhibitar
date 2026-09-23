@@ -3,7 +3,15 @@ import { sphereOnFlat, toBinaryStl } from '../../../tests/fixtures/shapes';
 import { decodeGlb, freezeModel } from '../geometry/glb';
 import { parseStl } from '../geometry/parse-stl';
 import { move, newPoint, newRegion, normalizeOrder, remove, sanitizeLink, update } from './list';
-import { applyBrush, regionAnchor, triangleCentroids, trianglesInSphere } from './region';
+import {
+  applyBrush,
+  buildTriangleSpatial,
+  closestPointOnTriangle,
+  regionAnchor,
+  triangleCentroids,
+  trianglesInSphere,
+  trianglesTouchingSphere,
+} from './region';
 
 describe('region painting', () => {
   it('painted triangle indices round-trip through GLB save/load unchanged (TASKS C)', async () => {
@@ -19,6 +27,18 @@ describe('region painting', () => {
     for (const t of region) {
       for (let k = 0; k < 3; k++) expect(cents2[t * 3 + k]).toBe(cents[t * 3 + k]);
     }
+  });
+
+  it('paints large triangles of low-poly models (brush touches, centroid far away)', () => {
+    // one big triangle; brush near a corner, far from the centroid
+    const positions = [0, 0, 0, 1, 0, 0, 0, 1, 0];
+    const s = buildTriangleSpatial(positions, [0, 1, 2]);
+    expect(trianglesInSphere(s.centroids, [0.05, 0.05, 0.002], 0.01)).toEqual([]);
+    expect(trianglesTouchingSphere(s, [0.05, 0.05, 0.002], 0.01)).toEqual([0]);
+    expect(trianglesTouchingSphere(s, [0.05, 0.05, 0.02], 0.01)).toEqual([]);
+    expect(closestPointOnTriangle([2, 2, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0])).toEqual([
+      0.5, 0.5, 0,
+    ]);
   });
 
   it('adds and erases dabs, keeping a sorted set', () => {

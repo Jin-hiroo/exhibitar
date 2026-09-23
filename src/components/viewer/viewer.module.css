@@ -290,3 +290,36 @@
   place-items: center;
   color: #6b7280;
 }
+
+/* ---- calibration ------------------------------------------------------- */
+
+.calPanel {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 6px;
+  background: rgb(18 18 22 / 0.78);
+  border-radius: 16px;
+  padding: 10px;
+}
+
+.calRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.calRow > span {
+  flex: 1;
+  font-size: 13px;
+  min-width: 90px;
+}
+
+.calRow b {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
