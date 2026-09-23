@@ -47,11 +47,11 @@ orientation of L-block picks the large face; GLB under budget.
 
 ## WS-B Mat & Markers (`src/lib/mat`)
 
-- [ ] B1 Seeded marker generator → SVG fragment + PNG; quality check (corners, asymmetry)
-- [ ] B2 Layout: markers in free space around shadow, QR, ruler, FRONT arrow, title
-- [ ] B3 Paper selection + tiling with alignment marks
-- [ ] B4 SVG writer in mm units; PDF export (actual size); print instructions text
-- [ ] B5 QR generation for `/v/[id]`
+- [x] B1 Seeded marker generator → SVG fragment + PNG; quality check (corners, asymmetry)
+- [x] B2 Layout: markers in free space around shadow, QR, ruler, FRONT arrow, title
+- [x] B3 Paper selection + tiling with alignment marks
+- [x] B4 SVG writer in mm units; PDF export (actual size); print instructions text
+- [x] B5 QR generation for `/v/[id]`
 
 **Tests:** markers never overlap shadow polygon; SVG physical size equals
 computed mat size; same seed → identical output.
