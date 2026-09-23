@@ -58,10 +58,10 @@ computed mat size; same seed → identical output.
 
 ## WS-C Annotations (`src/lib/annotations`, `src/components/studio/annotate`)
 
-- [ ] C1 Point picking on mesh (raycast, BVH via three-mesh-bvh) → position + normal
-- [ ] C2 Region brush painting on the simplified mesh → triangle index set
-- [ ] C3 Annotation list: edit title/body/image/link, reorder (tour order), delete
-- [ ] C4 Label rendering shared with viewer (back-face fade, occlusion) — coordinate with WS-D,
+- [x] C1 Point picking on mesh (raycast, BVH via three-mesh-bvh) → position + normal
+- [x] C2 Region brush painting on the simplified mesh → triangle index set
+- [x] C3 Annotation list: edit title/body/image/link, reorder (tour order), delete _(image upload not built yet)_
+- [x] C4 Label rendering shared with viewer (back-face fade, occlusion) — coordinate with WS-D, _(src/lib/ar/labels.ts, used by Viewer, Preview and the annotate view)_
       put the shared renderer in `src/lib/ar/labels.ts` owned by WS-D
 
 **Tests:** painted triangle indices round-trip through GLB save/load unchanged.
@@ -78,29 +78,29 @@ computed mat size; same seed → identical output.
 - [x] D1 Session setup, dom-overlay UI, capability detection, non-AR fallback viewer
 - [x] D2 Multi-marker pose fusion → `worldFromMat`; smoothing; loss/re-snap
 - [x] D3 Occluder GLB; labels; region highlights; tap selection
-- [ ] D4 Guided tour + off-screen arrow _(tour done; off-screen arrow pending)_
-- [ ] D5 Calibration mode UI (ghost, nudge controls, save)
+- [x] D4 Guided tour + off-screen arrow
+- [x] D5 Calibration mode UI (ghost, nudge controls, save)
 
 **Tests:** pose-fusion math unit tests with synthetic marker poses;
 manual device test checklist in `docs/DEVICE-TESTS.md`.
 
 ## WS-E Backend & Auth (`src/lib/db`, `src/app/api`, `supabase/`)
 
-- [ ] E1 Supabase project, auth (email magic link), env vars on Vercel
-- [ ] E2 `projects` table + RLS + public view for published projects
-- [ ] E3 Storage buckets + signed upload route; public read for published assets
-- [ ] E4 CRUD routes / server actions; `geometryVersion` bump logic
-- [ ] E5 Simple view counter (optional)
+- [x] E1 Supabase project, auth (email magic link), env vars on Vercel _(code done; add https://exhibitar.vercel.app/** to Supabase Auth redirect URLs)_
+- [x] E2 `projects` table + RLS + public view for published projects
+- [x] E3 Storage buckets + signed upload route; public read for published assets _(direct uploads guarded by storage RLS instead of signed URLs)_
+- [x] E4 CRUD routes / server actions; `geometryVersion` bump logic _(geometry_version bump enforced by a DB trigger)_
+- [x] E5 Simple view counter (optional)
 
 ## WS-F Studio integration (`src/app/studio`, `src/components/studio`)
 
 Depends on A, B, C, E (can start with mocks).
 
-- [ ] F1 Upload → units → orientation wizard
-- [ ] F2 Mat tab: preview SVG, regenerate, download
-- [ ] F3 Annotate tab (embeds WS-C)
-- [ ] F4 Preview tab: object on virtual mat with labels
-- [ ] F5 Publish: upload assets, show URL + QR + print checklist;
+- [x] F1 Upload → units → orientation wizard
+- [x] F2 Mat tab: preview SVG, regenerate, download
+- [x] F3 Annotate tab (embeds WS-C)
+- [x] F4 Preview tab: object on virtual mat with labels
+- [x] F5 Publish: upload assets, show URL + QR + print checklist;
       warn when geometry changes invalidate a printed mat
 
 ---
