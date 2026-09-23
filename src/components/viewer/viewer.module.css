@@ -1,0 +1,278 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: linear-gradient(160deg, #f4f5f7, #e6e9ef);
+  color: #111;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.12);
+  display: grid;
+  gap: 14px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.title {
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.description {
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+.primary,
+.secondary,
+.chipButton {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: #111;
+  color: #fff;
+  padding: 14px 20px;
+  font-size: 17px;
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.secondary {
+  background: #eef0f3;
+  color: #111;
+  padding: 12px 18px;
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #92400e;
+  background: #fffbeb;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.error {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #991b1b;
+  background: #fef2f2;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.fine {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ---- AR DOM overlay ---------------------------------------------------- */
+
+.overlay {
+  display: none;
+}
+
+.overlay.active {
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: #fff;
+  font-family: var(--font-sans);
+  background: transparent;
+}
+
+.overlay [data-ui] {
+  pointer-events: auto;
+}
+
+.topBar {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  background: rgb(18 18 22 / 0.72);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  backdrop-filter: blur(6px);
+}
+
+.chipButton {
+  background: rgb(18 18 22 / 0.72);
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.chipButton[aria-pressed='true'] {
+  background: #ffc400;
+  color: #111;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.hint {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgb(18 18 22 / 0.72);
+  border-radius: 16px;
+  padding: 14px 18px;
+  max-width: 80vw;
+  line-height: 1.4;
+}
+
+.hint strong {
+  display: block;
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.debug {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top)) + 48px);
+  left: 12px;
+  font: 11px/1.45 var(--font-mono);
+  background: rgb(0 0 0 / 0.66);
+  border-radius: 10px;
+  padding: 8px 10px;
+  white-space: pre;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+}
+
+.tour {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 8px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sheet {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  background: #fff;
+  color: #111;
+  border-radius: 18px;
+  padding: 16px 18px 18px;
+  box-shadow: 0 -6px 30px rgb(0 0 0 / 0.25);
+  display: grid;
+  gap: 8px;
+  max-height: 45dvh;
+  overflow: auto;
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+
+.badge {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffc400;
+  color: #111;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.sheetTitle {
+  font-size: 18px;
+  flex: 1;
+}
+
+.close {
+  appearance: none;
+  border: 0;
+  background: #eef0f3;
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sheetBody {
+  color: #374151;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.sheet img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* ---- fallback 3D viewer ------------------------------------------------ */
+
+.orbit {
+  position: fixed;
+  inset: 0;
+  background: #eef0f3;
+}
+
+.orbitCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+.orbit .topBar .chip,
+.orbit .chipButton {
+  background: rgb(255 255 255 / 0.9);
+  color: #111;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.12);
+}
+
+.orbit .chipButton[aria-pressed='true'] {
+  background: #ffc400;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+}
