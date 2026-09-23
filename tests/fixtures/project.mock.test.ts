@@ -1,4 +1,7 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { decodeGlb } from '@/lib/geometry/glb';
 import type { Annotation, Marker, Project, Vec3 } from '@/lib/types';
 import raw from './project.mock.json';
 
@@ -60,5 +63,19 @@ describe('project.mock.json', () => {
       expect(Math.abs(m.centerMm[0]) + m.widthMm / 2).toBeLessThanOrEqual(w / 2);
       expect(Math.abs(m.centerMm[1]) + m.widthMm / 2).toBeLessThanOrEqual(h / 2);
     }
+  });
+
+  it('matches its generated assets in public/fixtures', async () => {
+    const pub = join(__dirname, '../../public');
+    const mesh = await decodeGlb(new Uint8Array(readFileSync(join(pub, p.model.glbPath))));
+    expect(mesh.indices.length / 3).toBe(p.model.triangleCount);
+    for (const a of p.annotations) {
+      if (a.kind === 'region') {
+        expect(a.triangles.length).toBeGreaterThan(0);
+        expect(Math.max(...a.triangles)).toBeLessThan(p.model.triangleCount);
+      }
+    }
+    expect(existsSync(join(pub, p.mat.svgPath))).toBe(true);
+    for (const m of p.mat.markers) expect(existsSync(join(pub, m.imagePath))).toBe(true);
   });
 });
