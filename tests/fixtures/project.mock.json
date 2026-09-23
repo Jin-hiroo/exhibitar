@@ -1,0 +1,95 @@
+{
+  "id": "mockcube01",
+  "ownerId": "00000000-0000-0000-0000-000000000000",
+  "title": "Mock cube",
+  "description": "A 60 mm cube resting on its as-sliced bottom face. Placeholder until the real pipeline regenerates this file.",
+  "status": "published",
+  "createdAt": "2026-09-24T00:00:00.000Z",
+  "updatedAt": "2026-09-24T00:00:00.000Z",
+  "geometryVersion": 1,
+  "model": {
+    "glbPath": "fixtures/mock-cube.glb",
+    "triangleCount": 12,
+    "boundsMm": { "size": [60, 60, 60] },
+    "sourceScale": 1
+  },
+  "objectToMat": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+  "calibration": { "dxMm": 0, "dyMm": 0, "dzMm": 0, "yawDeg": 0 },
+  "mat": {
+    "paper": "A4",
+    "orientation": "landscape",
+    "tiles": { "cols": 1, "rows": 1 },
+    "sizeMm": [297, 210],
+    "svgPath": "fixtures/mock-cube-mat.svg",
+    "contactOutlineMm": [
+      [
+        [-30, -30],
+        [30, -30],
+        [30, 30],
+        [-30, 30]
+      ]
+    ],
+    "shadowOutlineMm": [
+      [
+        [-30, -30],
+        [30, -30],
+        [30, 30],
+        [-30, 30]
+      ]
+    ],
+    "markers": [
+      {
+        "id": "m0",
+        "imagePath": "fixtures/marker-0.png",
+        "widthMm": 60,
+        "centerMm": [-108.5, -65],
+        "rotationDeg": 0,
+        "seed": 1001
+      },
+      {
+        "id": "m1",
+        "imagePath": "fixtures/marker-1.png",
+        "widthMm": 60,
+        "centerMm": [108.5, -65],
+        "rotationDeg": 0,
+        "seed": 1002
+      },
+      {
+        "id": "m2",
+        "imagePath": "fixtures/marker-2.png",
+        "widthMm": 60,
+        "centerMm": [-108.5, 65],
+        "rotationDeg": 0,
+        "seed": 1003
+      },
+      {
+        "id": "m3",
+        "imagePath": "fixtures/marker-3.png",
+        "widthMm": 60,
+        "centerMm": [108.5, 65],
+        "rotationDeg": 0,
+        "seed": 1004
+      }
+    ]
+  },
+  "annotations": [
+    {
+      "id": "a1",
+      "order": 0,
+      "kind": "point",
+      "title": "Top face",
+      "body": "The top of the cube.",
+      "anchor": { "position": [0, 0, 0.06], "normal": [0, 0, 1] }
+    },
+    {
+      "id": "a2",
+      "order": 1,
+      "kind": "region",
+      "title": "A side face",
+      "body": "Two triangles of one side face.",
+      "link": "https://example.com",
+      "anchor": { "position": [0, -0.03, 0.03], "normal": [0, -1, 0] },
+      "triangles": [0, 1]
+    }
+  ]
+}
