@@ -76,3 +76,12 @@ export type Annotation = {
   | { kind: 'point' }
   | { kind: 'region'; triangles: number[] } // indices into the stored GLB
 );
+
+/**
+ * The fields the public Viewer needs (ARCHITECTURE.md §3: "a public view that
+ * exposes only Viewer-needed fields"). Never includes ownership or drafts.
+ */
+export type ViewerProject = Pick<
+  Project,
+  'id' | 'title' | 'description' | 'model' | 'objectToMat' | 'calibration' | 'mat' | 'annotations'
+>;

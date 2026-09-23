@@ -92,6 +92,7 @@ const project: Project = {
 
 writeFileSync(join(pub, 'mock-cube.glb'), prepared.glb);
 writeFileSync(join(pub, 'mock-cube-mat.svg'), mat.svg);
+writeFileSync(join(pub, 'mock-cube-mat.pdf'), mat.pdf);
 for (const m of mat.markerPngs) writeFileSync(join(pub, `mock-cube-marker-${m.id}.png`), m.png);
 writeFileSync(
   join(root, 'tests/fixtures/project.mock.json'),

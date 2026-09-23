@@ -6,7 +6,8 @@ import { mmToM } from '../units';
  * Pose math for the AR viewer (docs/ARCHITECTURE.md §2, §5). Metres, mat frame
  * = world of the exhibit:
  *
- *   worldFromMat   = fused over tracked markers of worldFromImage ∘ inverse(matFromImage)
+ *   worldFromMat   = fused over tracked markers (rigid fit on centres, or
+ *                    worldFromImage ∘ inverse(matFromImage) averaged)
  *   worldFromModel = worldFromMat ∘ calibration ∘ objectToMat
  */
 
@@ -14,25 +15,41 @@ import { mmToM } from '../units';
 // Marker poses in the mat frame
 
 /**
- * Tracked-image frame relative to the printed image, as reported by the
- * tracker (the XRPose of an XRImageTrackingResult).
+ * How a tracker orients an image's XRSpace. Internally we use a
+ * "page-aligned" image frame: +X toward the image's right edge, +Y out of the
+ * paper (normal), +Z toward the image's bottom edge — i.e. aligned with the
+ * mat frame for an unrotated marker.
  *
- * ASSUMPTION — VERIFY IN D0: origin at the image centre, +X toward the image's
- * right edge, +Y out of the image (its normal), +Z toward the image's bottom
- * edge (ARCore Augmented Images convention, used by Chrome's WebXR
- * image-tracking). If D0 finds a different convention, change only this.
+ * - 'spec':   W3C WebXR Image Tracking — +X right, +Y toward the image top,
+ *             +Z normal toward the viewer.
+ * - 'arcore': ARCore Augmented Images — +X right, +Y normal, +Z toward the
+ *             image bottom.
+ *
+ * Which one Chrome reports is Task D0; `detectImageConvention` measures it on
+ * the device whenever ≥ 3 markers are tracked.
  */
-export const IMAGE_FROM_TRACKER_FRAME = new Matrix4(); // identity under the assumption above
+export type ImageConvention = 'spec' | 'arcore';
+export const IMAGE_CONVENTIONS: ImageConvention[] = ['spec', 'arcore'];
+export const DEFAULT_IMAGE_CONVENTION: ImageConvention = 'spec';
+
+/** page-aligned image frame ← tracker's image frame */
+export function imageFromTracker(convention: ImageConvention): Matrix4 {
+  // spec: tracker X = X, tracker Y (top) = −Z, tracker Z (normal) = +Y  → Rx(−90°)
+  return convention === 'spec' ? new Matrix4().makeRotationX(-Math.PI / 2) : new Matrix4();
+}
 
 /**
- * Pose of a printed marker's image frame in the mat frame (metres).
+ * Pose of a marker's tracker image frame in the mat frame (metres).
  * Page x → mat +X, page y (down) → mat +Z, paper normal → mat +Y; a marker
  * rotated θ clockwise on the page is rotated −θ about +Y.
  */
-export function matFromImage(marker: Pick<Marker, 'centerMm' | 'rotationDeg'>): Matrix4 {
+export function matFromImage(
+  marker: Pick<Marker, 'centerMm' | 'rotationDeg'>,
+  convention: ImageConvention = DEFAULT_IMAGE_CONVENTION,
+): Matrix4 {
   const t = new Matrix4().makeTranslation(mmToM(marker.centerMm[0]), 0, mmToM(marker.centerMm[1]));
   const r = new Matrix4().makeRotationY((-marker.rotationDeg * Math.PI) / 180);
-  return t.multiply(r).multiply(IMAGE_FROM_TRACKER_FRAME);
+  return t.multiply(r).multiply(imageFromTracker(convention));
 }
 
 // ---------------------------------------------------------------------------
@@ -52,38 +69,43 @@ export interface FusedPose {
   worldFromMat: Matrix4;
   used: string[];
   rejected: string[];
+  /** 'fit': rigid fit on ≥ 3 marker centres (convention-independent); 'average': per-marker poses */
+  method: 'fit' | 'average';
+  /** RMS distance between fitted and observed marker centres, metres ('fit' only) */
+  residualM?: number;
 }
 
 /** Weight of an 'emulated' (not currently seen, extrapolated) image vs a 'tracked' one. */
 export const EMULATED_WEIGHT = 0.2;
-/** Per-marker estimates further than this from the consensus are outliers. */
+/** A marker centre further than this from the rigid fit is an outlier. */
 export const OUTLIER_DISTANCE_M = 0.02;
-export const OUTLIER_ANGLE_DEG = 10;
+
+type Pickable = Pick<Marker, 'id' | 'centerMm' | 'rotationDeg'>;
 
 /**
  * Estimate the mat's pose in the world from every tracked marker.
- * With ≥ 3 markers the rotation comes from the marker *positions* (a rigid
- * fit over the wide corner baseline), which is far steadier than any single
- * image's orientation; with 1–2 markers the per-marker poses are averaged.
+ * With ≥ 3 markers the pose comes from the marker *centres* alone (a rigid
+ * fit over the wide corner baseline): steadier than any single image's
+ * orientation and independent of the tracker's axis convention. Outliers are
+ * dropped one at a time while ≥ 3 remain. With 1–2 markers the per-marker
+ * poses are averaged, which needs the right `convention`.
  */
 export function estimateWorldFromMat(
   observations: MarkerObservation[],
-  markers: Pick<Marker, 'id' | 'centerMm' | 'rotationDeg'>[],
+  markers: Pickable[],
+  convention: ImageConvention = DEFAULT_IMAGE_CONVENTION,
 ): FusedPose | null {
   const byId = new Map(markers.map((m) => [m.id, m]));
-  const cands = observations.flatMap((o) => {
+  let cands = observations.flatMap((o) => {
     const m = byId.get(o.markerId);
     if (!m) return [];
-    const matFromImg = matFromImage(m);
-    const worldFromMat = o.worldFromImage.clone().multiply(matFromImg.clone().invert());
-    const { position, quaternion } = decompose(worldFromMat);
-    const weight = (o.state === 'tracked' ? 1 : EMULATED_WEIGHT) * (o.weight ?? 1);
+    const matFromImg = matFromImage(m, convention);
     return [
       {
         id: o.markerId,
-        weight,
-        position,
-        quaternion,
+        obs: o,
+        matFromImg,
+        weight: (o.state === 'tracked' ? 1 : EMULATED_WEIGHT) * (o.weight ?? 1),
         matPoint: new Vector3().setFromMatrixPosition(matFromImg),
         worldPoint: new Vector3().setFromMatrixPosition(o.worldFromImage),
       },
@@ -91,50 +113,86 @@ export function estimateWorldFromMat(
   });
   if (cands.length === 0) return null;
 
-  // Outlier rejection against the medoid (the estimate closest to all others).
-  let inliers = cands;
   const rejected: string[] = [];
   if (cands.length >= 3) {
-    const medoid = cands.reduce((best, c) => {
-      const cost = (x: (typeof cands)[number]) =>
-        cands.reduce((s, o) => s + x.position.distanceTo(o.position), 0);
-      return cost(c) < cost(best) ? c : best;
-    });
-    inliers = cands.filter((c) => {
-      const ok =
-        c.position.distanceTo(medoid.position) <= OUTLIER_DISTANCE_M &&
-        (c.quaternion.angleTo(medoid.quaternion) * 180) / Math.PI <= OUTLIER_ANGLE_DEG;
-      if (!ok) rejected.push(c.id);
-      return ok;
-    });
+    for (;;) {
+      const { rotation, translation } = rigidFit(
+        cands.map((c) => c.matPoint),
+        cands.map((c) => c.worldPoint),
+        cands.map((c) => c.weight),
+      );
+      const residuals = cands.map((c) =>
+        c.matPoint.clone().applyQuaternion(rotation).add(translation).distanceTo(c.worldPoint),
+      );
+      const worst = residuals.indexOf(Math.max(...residuals));
+      if (residuals[worst]! > OUTLIER_DISTANCE_M && cands.length > 3) {
+        rejected.push(cands[worst]!.id);
+        cands = cands.filter((_, i) => i !== worst);
+        continue;
+      }
+      const rms = Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / residuals.length);
+      return {
+        worldFromMat: new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1)),
+        used: cands.map((c) => c.id),
+        rejected,
+        method: 'fit',
+        residualM: rms,
+      };
+    }
   }
 
-  let rotation: Quaternion;
-  let translation: Vector3;
-  if (inliers.length >= 3) {
-    ({ rotation, translation } = rigidFit(
-      inliers.map((c) => c.matPoint),
-      inliers.map((c) => c.worldPoint),
-      inliers.map((c) => c.weight),
-    ));
-  } else {
-    rotation = averageQuaternions(
-      inliers.map((c) => c.quaternion),
-      inliers.map((c) => c.weight),
-    );
-    translation = new Vector3();
-    let wsum = 0;
-    for (const c of inliers) {
-      translation.addScaledVector(c.position, c.weight);
-      wsum += c.weight;
-    }
-    translation.divideScalar(wsum);
-  }
+  // 1–2 markers: average the per-marker estimates of worldFromMat
+  const poses = cands.map((c) =>
+    decompose(c.obs.worldFromImage.clone().multiply(c.matFromImg.clone().invert())),
+  );
+  const rotation = averageQuaternions(
+    poses.map((p) => p.quaternion),
+    cands.map((c) => c.weight),
+  );
+  const translation = new Vector3();
+  let wsum = 0;
+  poses.forEach((p, i) => {
+    translation.addScaledVector(p.position, cands[i]!.weight);
+    wsum += cands[i]!.weight;
+  });
+  translation.divideScalar(wsum);
   return {
     worldFromMat: new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1)),
-    used: inliers.map((c) => c.id),
+    used: cands.map((c) => c.id),
     rejected,
+    method: 'average',
   };
+}
+
+export interface ConventionScore {
+  convention: ImageConvention;
+  /** mean angle between observed and predicted marker orientations, degrees */
+  meanErrorDeg: number;
+}
+
+/**
+ * Which axis convention does the tracker use? Given a pose fitted from marker
+ * centres (convention-independent), compare each tracked marker's reported
+ * orientation with what each convention predicts. Best first.
+ */
+export function detectImageConvention(
+  observations: MarkerObservation[],
+  markers: Pickable[],
+  worldFromMat: Matrix4,
+): ConventionScore[] {
+  const byId = new Map(markers.map((m) => [m.id, m]));
+  const matFromWorld = worldFromMat.clone().invert();
+  const tracked = observations.filter((o) => o.state === 'tracked' && byId.has(o.markerId));
+  if (tracked.length === 0) return [];
+  return IMAGE_CONVENTIONS.map((convention) => {
+    let sum = 0;
+    for (const o of tracked) {
+      const observed = decompose(matFromWorld.clone().multiply(o.worldFromImage)).quaternion;
+      const predicted = decompose(matFromImage(byId.get(o.markerId)!, convention)).quaternion;
+      sum += (observed.angleTo(predicted) * 180) / Math.PI;
+    }
+    return { convention, meanErrorDeg: sum / tracked.length };
+  }).sort((a, b) => a.meanErrorDeg - b.meanErrorDeg);
 }
 
 // ---------------------------------------------------------------------------
