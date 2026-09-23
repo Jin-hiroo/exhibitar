@@ -34,13 +34,13 @@ change the viewer design.
 
 ## WS-A Geometry (`src/lib/geometry`, `src/workers`)
 
-- [ ] A1 STL parse (binary/ASCII) → indexed BufferGeometry; merge verts; normals
-- [ ] A2 Unit/scale handling; bounds in mm
-- [ ] A3 Resting-face candidates (convex hull + stability); apply chosen orientation;
+- [x] A1 STL parse (binary/ASCII) → indexed BufferGeometry; merge verts; normals
+- [x] A2 Unit/scale handling; bounds in mm
+- [x] A3 Resting-face candidates (convex hull + stability); apply chosen orientation;
       drop to y=0; centre footprint → returns `objectToMat`
-- [ ] A4 Simplify with meshoptimizer to target; export GLB (meshopt compression); size check
-- [ ] A5 Contact outline + shadow outline (clipper2) in mat mm
-- [ ] A6 Worker wrappers with progress events + cancellation
+- [x] A4 Simplify with meshoptimizer to target; export GLB (meshopt compression); size check
+- [x] A5 Contact outline + shadow outline (clipper2) in mat mm
+- [x] A6 Worker wrappers with progress events + cancellation
 
 **Tests:** cube → contact = square of side length; tripod → 3 contact islands;
 orientation of L-block picks the large face; GLB under budget.
