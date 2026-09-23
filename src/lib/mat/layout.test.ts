@@ -1,0 +1,128 @@
+import { describe, expect, it } from 'vitest';
+import { cube, lBlock, sphereOnFlat, toBinaryStl, tripod } from '../../../tests/fixtures/shapes';
+import { computeFootprint } from '../geometry/footprint';
+import { applyOrientation, findRestingCandidates, restingRotation } from '../geometry/orient';
+import { parseStl } from '../geometry/parse-stl';
+import * as poly from '../geometry/polygons';
+import type { Rect } from './display-list';
+import { layoutMat, MARKER_QUIET_MM, SHADOW_CLEARANCE_MM, type MatLayout } from './layout';
+import { planTiles, PRINTER_MARGIN_MM, tileLabel } from './paper';
+
+async function footprintOf(t: Float32Array, normal?: [number, number, number]) {
+  const mesh = parseStl(toBinaryStl(t)).mesh;
+  const n = normal ?? findRestingCandidates(mesh)[0]!.normal;
+  return computeFootprint(applyOrientation(mesh, restingRotation(n)).oriented);
+}
+
+function markerRects(l: MatLayout): Rect[] {
+  return l.markers.map((m) => ({
+    x: m.center[0] - m.widthMm / 2,
+    y: m.center[1] - m.widthMm / 2,
+    w: m.widthMm,
+    h: m.widthMm,
+  }));
+}
+
+const toPoly = (r: Rect) => [poly.rect(r.x, r.y, r.x + r.w, r.y + r.h)];
+const shadowOnPage = (l: MatLayout, shadow: poly.Polygons) =>
+  shadow.map((ring) =>
+    ring.map(([x, y]) => [x + l.originMm[0], y + l.originMm[1]] as [number, number]),
+  );
+
+function assertValid(l: MatLayout, shadow: poly.Polygons) {
+  const page = shadowOnPage(l, shadow);
+  const clear = poly.offset(page, SHADOW_CLEARANCE_MM - 0.5);
+  const elements = [...markerRects(l), l.qr, l.ruler, l.front, ...(l.title ? [l.title.rect] : [])];
+  expect(l.markers.length).toBeGreaterThanOrEqual(3);
+  for (const r of elements) {
+    // never under (or too close to) the object's shadow
+    expect(poly.area(poly.intersect(toPoly(r), clear))).toBeLessThan(1e-6);
+    // on the paper
+    expect(r.x).toBeGreaterThanOrEqual(0);
+    expect(r.y).toBeGreaterThanOrEqual(0);
+    expect(r.x + r.w).toBeLessThanOrEqual(l.sizeMm[0]);
+    expect(r.y + r.h).toBeLessThanOrEqual(l.sizeMm[1]);
+  }
+  // markers keep their quiet zone from everything else
+  const all = [...markerRects(l), l.qr, l.ruler, l.front, ...(l.title ? [l.title.rect] : [])];
+  markerRects(l).forEach((m, i) => {
+    const grown = { x: m.x - MARKER_QUIET_MM, y: m.y - MARKER_QUIET_MM, w: m.w + 8, h: m.h + 8 };
+    all.forEach((o, j) => {
+      if (i === j) return;
+      expect(poly.area(poly.intersect(toPoly(grown), toPoly(o)))).toBeLessThan(1e-6);
+    });
+  });
+  // FRONT arrow is on the front (page-bottom) side of the object
+  expect(l.front.y).toBeGreaterThanOrEqual(poly.bounds(page).maxY);
+}
+
+describe('layoutMat', () => {
+  it('fits a 60 mm cube on one A4 sheet with 4 corner markers', async () => {
+    const fp = await footprintOf(cube());
+    const l = layoutMat({ shadowOutlineMm: fp.shadowOutlineMm, title: 'Cube' });
+    expect(l.paper).toBe('A4');
+    expect(l.tiles).toEqual({ cols: 1, rows: 1 });
+    expect(l.sizeMm).toEqual([297, 210]);
+    expect(l.markers).toHaveLength(4);
+    expect(l.title).toBeDefined();
+    assertValid(l, fp.shadowOutlineMm);
+    // markers hug the printable corners
+    const xs = l.markers.map((m) => m.center[0]);
+    expect(Math.min(...xs) - 34).toBeCloseTo(PRINTER_MARGIN_MM, 0);
+  });
+
+  it('never puts markers or elements under the shadow for any fixture', async () => {
+    for (const [t, n] of [
+      [cube(), undefined],
+      [lBlock(), undefined],
+      [tripod(), [0, 0, -1]],
+      [sphereOnFlat(), undefined],
+    ] as const) {
+      const fp = await footprintOf(t, n as [number, number, number] | undefined);
+      const l = layoutMat({ shadowOutlineMm: fp.shadowOutlineMm, title: 'Fixture' });
+      assertValid(l, fp.shadowOutlineMm);
+    }
+  });
+
+  it('picks a larger sheet for a larger object', () => {
+    const shadow = [poly.rect(-80, -60, 80, 60)]; // 160 × 120 mm
+    const l = layoutMat({ shadowOutlineMm: shadow, title: 'Bigger' });
+    expect(l.paper).toBe('A3');
+    expect(l.tiles).toEqual({ cols: 1, rows: 1 });
+    assertValid(l, shadow);
+  });
+
+  it('uses Letter/Tabloid for the US preference', () => {
+    const l = layoutMat({
+      shadowOutlineMm: [poly.rect(-30, -30, 30, 30)],
+      title: 'US',
+      paperPreference: 'us',
+    });
+    expect(l.paper).toBe('Letter');
+  });
+
+  it('tiles an oversized mat over several sheets', () => {
+    const shadow = [poly.rect(-200, -150, 200, 150)]; // 400 × 300 mm object
+    const l = layoutMat({ shadowOutlineMm: shadow, title: 'Huge' });
+    expect(l.tilePlan).toBeDefined();
+    expect(l.tiles.cols * l.tiles.rows).toBeGreaterThan(1);
+    expect(l.sizeMm[0]).toBeGreaterThan(400);
+    assertValid(l, shadow);
+    // windows cover the whole mat
+    const plan = l.tilePlan!;
+    const last = plan.windows[plan.windows.length - 1]!;
+    expect(last.x + last.w).toBeGreaterThanOrEqual(l.sizeMm[0]);
+    expect(last.y + last.h).toBeGreaterThanOrEqual(l.sizeMm[1]);
+  });
+});
+
+describe('planTiles', () => {
+  it('uses one sheet when the mat fits and labels tiles A1, B1, …', () => {
+    expect(planTiles([150, 200], 'iso')).toMatchObject({ paper: 'A4', cols: 1, rows: 1 });
+    const p = planTiles([500, 300], 'iso');
+    expect(p.windows).toHaveLength(p.cols * p.rows);
+    expect(tileLabel(1, 0)).toBe('B1');
+    // neighbours overlap
+    if (p.cols > 1) expect(p.windows[1]!.x).toBeLessThan(p.windows[0]!.w);
+  });
+});
