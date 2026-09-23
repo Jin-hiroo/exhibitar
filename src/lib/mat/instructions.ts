@@ -1,8 +1,11 @@
-import type { MatLayout } from './layout';
+import type { Project } from '../types';
 import { tileLabel, TILE_OVERLAP_MM } from './paper';
 
 /** Plain-text printing and setup checklist shown on publish and included in downloads. */
-export function printInstructions(layout: MatLayout, title: string): string {
+export function printInstructions(
+  layout: Pick<Project['mat'], 'paper' | 'orientation' | 'tiles'>,
+  title: string,
+): string {
   const { paper, orientation, tiles } = layout;
   const sheets = tiles.cols * tiles.rows;
   const lines = [
@@ -15,7 +18,11 @@ export function printInstructions(layout: MatLayout, title: string): string {
     '   If it is not, fix the printer settings and print again. Tracking depends on it.',
   ];
   if (sheets > 1) {
-    const labels = layout.tilePlan!.windows.map((w) => tileLabel(w.col, w.row)).join(', ');
+    const labels = Array.from({ length: tiles.rows }, (_, row) =>
+      Array.from({ length: tiles.cols }, (_, col) => tileLabel(col, row)),
+    )
+      .flat()
+      .join(', ');
     lines.push(
       '',
       'Assembling the sheets',

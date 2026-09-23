@@ -173,6 +173,20 @@
   overflow: hidden;
 }
 
+.guide {
+  display: none;
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffc400;
+  color: #111;
+  font-size: 26px;
+  line-height: 44px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+}
+
 .tour {
   position: absolute;
   left: 50%;
@@ -275,4 +289,37 @@
   display: grid;
   place-items: center;
   color: #6b7280;
+}
+
+/* ---- calibration ------------------------------------------------------- */
+
+.calPanel {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 6px;
+  background: rgb(18 18 22 / 0.78);
+  border-radius: 16px;
+  padding: 10px;
+}
+
+.calRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.calRow > span {
+  flex: 1;
+  font-size: 13px;
+  min-width: 90px;
+}
+
+.calRow b {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }

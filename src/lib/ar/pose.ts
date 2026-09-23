@@ -53,146 +53,230 @@ export function matFromImage(
 }
 
 // ---------------------------------------------------------------------------
-// Multi-marker fusion
+// Multi-image fusion
+
+/**
+ * Anything the tracker is given as a reference image: the corner markers and,
+ * optionally, the whole printed mat. Poses are in the mat frame (mm, page-aligned
+ * image rotated `rotationDeg` clockwise on the page).
+ */
+export interface TrackTarget {
+  id: string;
+  centerMm: [number, number];
+  rotationDeg: number;
+  widthMm: number;
+  /** defaults to `widthMm` (square markers) */
+  heightMm?: number;
+}
+
+/** Id of the whole-mat tracking image. */
+export const MAT_TARGET_ID = 'mat';
+
+/**
+ * Tracking targets in `trackedImages` order: the markers, then (if present
+ * and enabled) the whole-mat image.
+ */
+export function trackTargets(
+  mat: Pick<Project['mat'], 'markers' | 'trackImage'>,
+  { includeMatImage = true }: { includeMatImage?: boolean } = {},
+): TrackTarget[] {
+  const targets: TrackTarget[] = mat.markers.map((m) => ({
+    id: m.id,
+    centerMm: m.centerMm,
+    rotationDeg: m.rotationDeg,
+    widthMm: m.widthMm,
+  }));
+  if (includeMatImage && mat.trackImage) {
+    targets.push({
+      id: MAT_TARGET_ID,
+      centerMm: mat.trackImage.centerMm,
+      rotationDeg: 0,
+      widthMm: mat.trackImage.widthMm,
+      heightMm: mat.trackImage.heightMm,
+    });
+  }
+  return targets;
+}
 
 export interface MarkerObservation {
+  /** a TrackTarget id */
   markerId: string;
   /** XRPose.transform.matrix of the tracked image, as a Matrix4 */
   worldFromImage: Matrix4;
   /** XRImageTrackingResult.trackingState */
   state: 'tracked' | 'emulated';
-  /** extra confidence in 0..1 (e.g. from image size on screen); default 1 */
+  /** extra confidence in 0..1; default 1 */
   weight?: number;
+  /** XRImageTrackingResult.measuredWidthInMeters (0 / undefined if unknown) */
+  measuredWidthM?: number;
 }
 
 export interface FusedPose {
   worldFromMat: Matrix4;
   used: string[];
   rejected: string[];
-  /** 'fit': rigid fit on ≥ 3 marker centres (convention-independent); 'average': per-marker poses */
-  method: 'fit' | 'average';
-  /** RMS distance between fitted and observed marker centres, metres ('fit' only) */
-  residualM?: number;
+  /** the tracker axis convention that fitted best this frame */
+  convention: ImageConvention;
+  /**
+   * Why that convention: it explained more images ('inliers'), fitted clearly
+   * better ('residual'), put the mat flat on a table ('gravity'), or the frame
+   * could not tell ('preferred', e.g. one image seen head-on).
+   */
+  decidedBy: 'inliers' | 'residual' | 'gravity' | 'preferred';
+  /** RMS distance between fitted and observed image corners/centres, metres */
+  residualM: number;
+  /** residual of each convention (the loser is typically centimetres off) */
+  residualByConvention: Record<ImageConvention, number>;
+  inliersByConvention: Record<ImageConvention, number>;
 }
 
 /** Weight of an 'emulated' (not currently seen, extrapolated) image vs a 'tracked' one. */
 export const EMULATED_WEIGHT = 0.2;
-/** A marker centre further than this from the rigid fit is an outlier. */
+/** A target whose points sit further than this from the fit is an outlier. */
 export const OUTLIER_DISTANCE_M = 0.02;
-
-type Pickable = Pick<Marker, 'id' | 'centerMm' | 'rotationDeg'>;
+/** Keep the preferred convention unless the other fits this much better. */
+const CONVENTION_SWITCH_RATIO = 0.5;
+/** Residual differences below this are tracker noise, not evidence. */
+const RESIDUAL_NOISE_M = 0.001;
+/** Gravity tie-break: the mats lie on tables, and WebXR's reference spaces are Y-up. */
+const WORLD_UP = new Vector3(0, 1, 0);
+const GRAVITY_MARGIN = 0.3;
 
 /**
- * Estimate the mat's pose in the world from every tracked marker.
- * With ≥ 3 markers the pose comes from the marker *centres* alone (a rigid
- * fit over the wide corner baseline): steadier than any single image's
- * orientation and independent of the tracker's axis convention. Outliers are
- * dropped one at a time while ≥ 3 remain. With 1–2 markers the per-marker
- * poses are averaged, which needs the right `convention`.
+ * Estimate the mat's pose in the world from every tracked image.
+ *
+ * Each image contributes 5 point correspondences — its centre and 4 corners —
+ * between the mat frame (known exactly from the layout) and the world (its
+ * tracked pose). One rigid fit over all points uses both the orientation of
+ * each image and the wide baseline between images, and works from a single
+ * image upwards. The fit is run for both tracker axis conventions; a wrong
+ * convention puts the corners out of the paper plane, so its residual is
+ * obviously larger. Outlier images are dropped while more than one remains.
  */
 export function estimateWorldFromMat(
   observations: MarkerObservation[],
-  markers: Pickable[],
-  convention: ImageConvention = DEFAULT_IMAGE_CONVENTION,
+  targets: TrackTarget[],
+  preferred: ImageConvention = DEFAULT_IMAGE_CONVENTION,
 ): FusedPose | null {
-  const byId = new Map(markers.map((m) => [m.id, m]));
-  let cands = observations.flatMap((o) => {
-    const m = byId.get(o.markerId);
-    if (!m) return [];
-    const matFromImg = matFromImage(m, convention);
-    return [
-      {
-        id: o.markerId,
-        obs: o,
-        matFromImg,
-        weight: (o.state === 'tracked' ? 1 : EMULATED_WEIGHT) * (o.weight ?? 1),
-        matPoint: new Vector3().setFromMatrixPosition(matFromImg),
-        worldPoint: new Vector3().setFromMatrixPosition(o.worldFromImage),
-      },
-    ];
-  });
-  if (cands.length === 0) return null;
+  const byId = new Map(targets.map((t) => [t.id, t]));
+  const obs = observations.filter((o) => byId.has(o.markerId));
+  if (obs.length === 0) return null;
 
-  const rejected: string[] = [];
-  if (cands.length >= 3) {
-    for (;;) {
-      const { rotation, translation } = rigidFit(
-        cands.map((c) => c.matPoint),
-        cands.map((c) => c.worldPoint),
-        cands.map((c) => c.weight),
-      );
-      const residuals = cands.map((c) =>
-        c.matPoint.clone().applyQuaternion(rotation).add(translation).distanceTo(c.worldPoint),
-      );
-      const worst = residuals.indexOf(Math.max(...residuals));
-      if (residuals[worst]! > OUTLIER_DISTANCE_M && cands.length > 3) {
-        rejected.push(cands[worst]!.id);
-        cands = cands.filter((_, i) => i !== worst);
-        continue;
-      }
-      const rms = Math.sqrt(residuals.reduce((s, r) => s + r * r, 0) / residuals.length);
-      return {
-        worldFromMat: new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1)),
-        used: cands.map((c) => c.id),
-        rejected,
-        method: 'fit',
-        residualM: rms,
-      };
+  const fits = IMAGE_CONVENTIONS.map((c) => fitConvention(obs, byId, c));
+  const byConv = Object.fromEntries(fits.map((f) => [f.convention, f])) as Record<
+    ImageConvention,
+    (typeof fits)[number]
+  >;
+  const other: ImageConvention = preferred === 'spec' ? 'arcore' : 'spec';
+  const [p, o] = [byConv[preferred], byConv[other]];
+  let chosen = p;
+  let decidedBy: FusedPose['decidedBy'] = 'preferred';
+  if (p.used.length !== o.used.length) {
+    // A wrong convention can only "fit" by rejecting images as outliers.
+    chosen = p.used.length > o.used.length ? p : o;
+    decidedBy = 'inliers';
+  } else if (clearlyBetter(o.residualM, p.residualM)) {
+    chosen = o;
+    decidedBy = 'residual';
+  } else if (clearlyBetter(p.residualM, o.residualM)) {
+    decidedBy = 'residual';
+  } else {
+    // Ambiguous (e.g. a single image): the two candidates differ by a 90° tilt.
+    const up = (f: typeof p) =>
+      new Vector3(0, 1, 0).transformDirection(f.worldFromMat).dot(WORLD_UP);
+    if (up(o) > up(p) + GRAVITY_MARGIN) {
+      chosen = o;
+      decidedBy = 'gravity';
+    } else if (up(p) > up(o) + GRAVITY_MARGIN) {
+      decidedBy = 'gravity';
     }
   }
-
-  // 1–2 markers: average the per-marker estimates of worldFromMat
-  const poses = cands.map((c) =>
-    decompose(c.obs.worldFromImage.clone().multiply(c.matFromImg.clone().invert())),
-  );
-  const rotation = averageQuaternions(
-    poses.map((p) => p.quaternion),
-    cands.map((c) => c.weight),
-  );
-  const translation = new Vector3();
-  let wsum = 0;
-  poses.forEach((p, i) => {
-    translation.addScaledVector(p.position, cands[i]!.weight);
-    wsum += cands[i]!.weight;
-  });
-  translation.divideScalar(wsum);
   return {
-    worldFromMat: new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1)),
-    used: cands.map((c) => c.id),
-    rejected,
-    method: 'average',
+    worldFromMat: chosen.worldFromMat,
+    used: chosen.used,
+    rejected: chosen.rejected,
+    convention: chosen.convention,
+    decidedBy,
+    residualM: chosen.residualM,
+    residualByConvention: { spec: byConv.spec.residualM, arcore: byConv.arcore.residualM },
+    inliersByConvention: { spec: byConv.spec.used.length, arcore: byConv.arcore.used.length },
   };
 }
 
-export interface ConventionScore {
-  convention: ImageConvention;
-  /** mean angle between observed and predicted marker orientations, degrees */
-  meanErrorDeg: number;
+/** Residual `a` beats `b` by a clear ratio *and* by more than tracker noise. */
+function clearlyBetter(a: number, b: number): boolean {
+  return a < b * CONVENTION_SWITCH_RATIO && b - a > RESIDUAL_NOISE_M;
+}
+
+function fitConvention(
+  observations: MarkerObservation[],
+  targets: Map<string, TrackTarget>,
+  convention: ImageConvention,
+): Omit<FusedPose, 'residualByConvention' | 'inliersByConvention' | 'decidedBy'> {
+  let cands = observations.map((o) => {
+    const t = targets.get(o.markerId)!;
+    const local = targetPoints(t, convention);
+    const matFromImg = matFromImage(t, convention);
+    return {
+      id: o.markerId,
+      weight: (o.state === 'tracked' ? 1 : EMULATED_WEIGHT) * (o.weight ?? 1),
+      matPts: local.map((p) => p.clone().applyMatrix4(matFromImg)),
+      worldPts: local.map((p) => p.clone().applyMatrix4(o.worldFromImage)),
+    };
+  });
+  const rejected: string[] = [];
+  for (;;) {
+    const a = cands.flatMap((c) => c.matPts);
+    const b = cands.flatMap((c) => c.worldPts);
+    const w = cands.flatMap((c) => c.matPts.map(() => c.weight));
+    const { rotation, translation } = rigidFit(a, b, w);
+    const errs = cands.map((c) =>
+      c.matPts.map((p, i) =>
+        p.clone().applyQuaternion(rotation).add(translation).distanceTo(c.worldPts[i]!),
+      ),
+    );
+    const perTarget = errs.map((e) => e.reduce((s, x) => s + x, 0) / e.length);
+    const worst = perTarget.indexOf(Math.max(...perTarget));
+    if (perTarget[worst]! > OUTLIER_DISTANCE_M && cands.length > 1) {
+      rejected.push(cands[worst]!.id);
+      cands = cands.filter((_, i) => i !== worst);
+      continue;
+    }
+    const all = errs.flat();
+    return {
+      worldFromMat: new Matrix4().compose(translation, rotation, new Vector3(1, 1, 1)),
+      used: cands.map((c) => c.id),
+      rejected,
+      convention,
+      residualM: Math.sqrt(all.reduce((s, x) => s + x * x, 0) / all.length),
+    };
+  }
+}
+
+/** Centre + 4 corners of a target, in the tracker's image frame for `convention` (metres). */
+function targetPoints(t: TrackTarget, convention: ImageConvention): Vector3[] {
+  const hw = mmToM(t.widthMm) / 2;
+  const hh = mmToM(t.heightMm ?? t.widthMm) / 2;
+  // 'spec': image plane is XY (+Y = top); 'arcore': image plane is XZ (+Z = bottom)
+  const p = (x: number, v: number) =>
+    convention === 'spec' ? new Vector3(x, v, 0) : new Vector3(x, 0, -v);
+  return [p(0, 0), p(-hw, hh), p(hw, hh), p(hw, -hh), p(-hw, -hh)];
 }
 
 /**
- * Which axis convention does the tracker use? Given a pose fitted from marker
- * centres (convention-independent), compare each tracked marker's reported
- * orientation with what each convention predicts. Best first.
+ * Print-scale check: measured / expected width of each tracked image whose
+ * size the tracker reported. ≈ 1 when the mat was printed at 100 %.
  */
-export function detectImageConvention(
+export function printScales(
   observations: MarkerObservation[],
-  markers: Pickable[],
-  worldFromMat: Matrix4,
-): ConventionScore[] {
-  const byId = new Map(markers.map((m) => [m.id, m]));
-  const matFromWorld = worldFromMat.clone().invert();
-  const tracked = observations.filter((o) => o.state === 'tracked' && byId.has(o.markerId));
-  if (tracked.length === 0) return [];
-  return IMAGE_CONVENTIONS.map((convention) => {
-    let sum = 0;
-    for (const o of tracked) {
-      const observed = decompose(matFromWorld.clone().multiply(o.worldFromImage)).quaternion;
-      const predicted = decompose(matFromImage(byId.get(o.markerId)!, convention)).quaternion;
-      sum += (observed.angleTo(predicted) * 180) / Math.PI;
-    }
-    return { convention, meanErrorDeg: sum / tracked.length };
-  }).sort((a, b) => a.meanErrorDeg - b.meanErrorDeg);
+  targets: TrackTarget[],
+): { id: string; scale: number }[] {
+  const byId = new Map(targets.map((t) => [t.id, t]));
+  return observations.flatMap((o) => {
+    const t = byId.get(o.markerId);
+    if (!t || !o.measuredWidthM || o.state !== 'tracked') return [];
+    return [{ id: o.markerId, scale: o.measuredWidthM / mmToM(t.widthMm) }];
+  });
 }
 
 // ---------------------------------------------------------------------------

@@ -81,9 +81,16 @@ interface Project {
     contactOutlineMm: [number, number][][];  // polygons, mat XZ plane
     shadowOutlineMm: [number, number][][];
     markers: Marker[];
+    trackImage?: TrackImage;          // the whole printed page as one extra tracking image
   };
 
   annotations: Annotation[];
+}
+
+interface TrackImage {                // rendered from the same drawing as the SVG
+  imagePath: string;
+  widthMm: number; heightMm: number;
+  centerMm: [number, number];         // page centre in mat XZ (page-aligned, unrotated)
 }
 
 interface Marker {
@@ -110,12 +117,18 @@ type Annotation = {
 ```
 
 Postgres: `projects` table with scalar columns + `jsonb` for `model`, `mat`,
-`calibration`, `annotations`. Row Level Security: owner can read/write;
-anyone can read `status = 'published'` rows via a public view that exposes only
-Viewer-needed fields.
+`calibration`, `annotations` (`supabase/migrations/`). Row Level Security: owner
+can read/write. The public reads published projects through the security-definer
+function `get_published_project(id)`, which returns only Viewer fields
+(`ViewerProject`). A trigger keeps `id`/`owner_id` immutable and makes
+`geometry_version` monotonic, bumping it whenever `model` or `object_to_mat`
+change. `record_view(id)` counts views.
 
-Storage buckets: `models/` (GLB), `mats/` (SVG, PDF, marker PNGs, QR),
-`annotation-media/`. Published assets are publicly readable.
+Storage buckets: `models/` (GLB), `mats/` (SVG, PDF, marker PNGs, track PNG,
+QR), `annotation-media/`, all public-read. Object paths are
+`<bucket>/<projectId>/<file>` with the geometry version in the file name
+(immutable, cacheable); only the project's owner may write under its folder
+(storage RLS). Project fields store these paths.
 
 ## 4. Studio pipeline (client-side, Web Workers)
 
@@ -140,7 +153,8 @@ Storage buckets: `models/` (GLB), `mats/` (SVG, PDF, marker PNGs, QR),
    Output both SVG (for the mat) and PNG (for the tracker) from the same
    seed. Include a quality check (feature/corner count, no rotational symmetry).
 8. **SVG** in mm units (`width="297mm" viewBox="0 0 297 210"`). Also offer PDF.
-9. **Publish**: upload GLB, SVG/PDF, PNGs, QR; write project row.
+9. **Publish**: upload GLB, SVG/PDF, PNGs (markers, whole-mat track image), QR
+   directly from the browser (storage RLS); write the project row.
 
 ## 5. Viewer (AR)
 
@@ -150,10 +164,20 @@ Storage buckets: `models/` (GLB), `mats/` (SVG, PDF, marker PNGs, QR),
   (`trackedImages: [{ image: ImageBitmap, widthInMeters }]`), `hit-test` optional,
   `dom-overlay` for UI. iPhone runs the same code inside Needle Go App Clip.
   (Verify both in Task D0.)
-- **Pose estimation**: while any marker is tracked, compute `worldFromMat`
-  from each tracked marker and fuse (weighted by tracking state/confidence,
-  low-pass filter). When no marker is tracked, keep last pose (world
-  tracking maintains it). Re-snap smoothly when markers return.
+- **Tracked images**: the corner markers **and the whole printed page**
+  (`mat.trackImage`). The page is a large target, so it is detected sooner and
+  stays actively tracked at normal viewing distance, where the small markers
+  often drop to "emulated".
+- **Pose estimation** (`src/lib/ar/pose.ts`): each tracked image contributes its
+  centre + 4 corners as point correspondences (mat frame ↔ world); one weighted
+  rigid fit over all of them gives `worldFromMat` (works from a single image;
+  large images and wide baselines dominate). The tracker's image axis convention
+  (spec: +Y = image top, +Z = normal; ARCore: +Y = normal) is not assumed: both
+  are fitted every frame and chosen by inliers → residual → gravity (the mat lies
+  flat) → remembered preference; the device's convention is learned from
+  decisive frames. Outlier images are dropped. Emulated (last known) poses are
+  followed at low weight; a frame-rate-independent low-pass filter smooths and
+  re-snaps quickly after jumps.
 - **Occlusion**: render the GLB first with `colorWrite = false`,
   `depthWrite = true`, so labels/effects behind the real object are hidden.
 - **Labels**: billboarded sprites/HTML at `anchor.position + normal * offset`.
@@ -167,19 +191,22 @@ Storage buckets: `models/` (GLB), `mats/` (SVG, PDF, marker PNGs, QR),
 
 `/studio/[id]/calibrate` (auth, phone). Same AR runtime, but the model is
 drawn semi-transparent. On-screen controls: ±1 mm / ±5 mm on X/Z, ±0.5°/±2° yaw,
-optional Y. Save writes `calibration`. Show a "reset" button.
+optional Y. Save writes `calibration`. Show a "reset" button. Calibration is
+applied about the mat origin (+yaw = counter-clockwise seen from above).
 
 ## 7. Routes
 
 ```text
 /                         marketing/landing
-/login                    Supabase auth
+/login                    Supabase auth (email magic link)
+/auth/callback            magic-link landing (PKCE code or token hash)
+/auth/signout             POST: sign out
 /studio                   project list
 /studio/new               upload → wizard
 /studio/[id]              editor tabs: Setup · Mat · Annotate · Preview · Publish
 /studio/[id]/calibrate    phone calibration AR
 /v/[id]                   public Viewer
-/api/**                   project CRUD, signed upload URLs
+(no /api: the browser talks to Supabase directly; RLS enforces ownership)
 ```
 
 ## 8. Directory layout

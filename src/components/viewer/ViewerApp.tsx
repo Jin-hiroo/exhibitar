@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { sanitizeLink } from '@/lib/annotations/list';
 import type { ArCapabilities } from '@/lib/ar/capabilities';
 import type { ArRuntime, ArStatus, OrbitViewer, PreparedExhibit } from '@/lib/ar/launch';
 import type { ViewerProject } from '@/lib/types';
@@ -31,6 +32,7 @@ export function ViewerApp({ project, assetBase }: Props) {
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'),
   );
   const overlayRef = useRef<HTMLDivElement>(null);
+  const guideRef = useRef<HTMLDivElement>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
   const arRef = useRef<ArRuntime | null>(null);
   const orbitViewerRef = useRef<OrbitViewer | null>(null);
@@ -43,6 +45,23 @@ export function ViewerApp({ project, assetBase }: Props) {
     [project.annotations],
   );
   const selectedAnnotation = tour.find((a) => a.id === selected) ?? null;
+  // project data is untrusted here: only http(s) links, whatever was stored
+  const safeLink = selectedAnnotation?.link ? sanitizeLink(selectedAnnotation.link) : undefined;
+
+  // E5: count one view per page load for published (database) exhibits
+  useEffect(() => {
+    if (assetBase === '/') return; // bundled demo fixtures
+    const key = `exhibitar.viewed.${project.id}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch {
+      // storage unavailable: count anyway
+    }
+    import('@/lib/db/client')
+      .then(({ getBrowserDb }) => getBrowserDb()?.rpc('record_view', { p_id: project.id }))
+      .catch(() => {});
+  }, [project.id, assetBase]);
 
   // Capabilities + prefetch the runtime, GLB and marker images (ARCHITECTURE §5).
   useEffect(() => {
@@ -85,9 +104,21 @@ export function ViewerApp({ project, assetBase }: Props) {
       project,
       exhibit,
       markerBitmaps: prepared.assets.markerBitmaps,
+      // ?mattrack=0 tracks the corner markers only (to compare on a device)
+      matBitmap: params.get('mattrack') === '0' ? null : prepared.assets.matBitmap,
       overlayRoot: overlay,
       onStatus: setStatus,
       onSelect: setSelected,
+      onGuide: (g) => {
+        const el = guideRef.current;
+        if (!el) return;
+        el.style.display = g ? 'block' : 'none';
+        if (g) {
+          el.style.left = `${g.x * 100}%`;
+          el.style.top = `${g.y * 100}%`;
+          el.style.transform = `translate(-50%, -50%) rotate(${g.angleDeg}deg)`;
+        }
+      },
       onEnd: () => {
         arRef.current = null;
         exhibit.dispose();
@@ -167,8 +198,8 @@ export function ViewerApp({ project, assetBase }: Props) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`${assetBase.replace(/\/+$/, '')}/${selectedAnnotation.imagePath}`} alt="" />
       )}
-      {selectedAnnotation.link && (
-        <a href={selectedAnnotation.link} target="_blank" rel="noopener noreferrer">
+      {safeLink && (
+        <a href={safeLink} target="_blank" rel="noopener noreferrer">
           Learn more ↗
         </a>
       )}
@@ -195,13 +226,20 @@ export function ViewerApp({ project, assetBase }: Props) {
             <span className={styles.eyebrow}>AR exhibit</span>
             <h1 className={styles.title}>{project.title}</h1>
             {project.description && <p className={styles.description}>{project.description}</p>}
-            <button
-              className={styles.primary}
-              onClick={startAr}
-              disabled={!prepared || !caps?.immersiveAr}
-            >
-              {!prepared ? 'Loading…' : 'Start AR'}
-            </button>
+            {caps && !caps.immersiveAr && caps.ios ? (
+              // iPhone/iPad: WebXR runs inside the Needle Go App Clip (same page, ARKit tracking)
+              <a className={styles.primary} href={appClipUrl()} style={{ textAlign: 'center' }}>
+                Start AR
+              </a>
+            ) : (
+              <button
+                className={styles.primary}
+                onClick={startAr}
+                disabled={!prepared || !caps?.immersiveAr}
+              >
+                {!prepared ? 'Loading…' : 'Start AR'}
+              </button>
+            )}
             <button
               className={styles.secondary}
               onClick={() => setMode('orbit')}
@@ -251,7 +289,10 @@ export function ViewerApp({ project, assetBase }: Props) {
                 Keep the square markers in view, 30–60 cm away.
               </div>
             )}
-            {debug && status && <pre className={styles.debug}>{debugText(status, project)}</pre>}
+            {debug && status && <pre className={styles.debug}>{debugText(status)}</pre>}
+            <div ref={guideRef} className={styles.guide} aria-hidden>
+              ➜
+            </div>
             {tourBar}
             {sheet}
           </>
@@ -276,17 +317,28 @@ export function ViewerApp({ project, assetBase }: Props) {
   );
 }
 
+/** Needle Go App Clip: WebXR (incl. image tracking) on iOS for any public HTTPS page. */
+function appClipUrl(): string {
+  return `https://appclip.needle.tools/ar?url=${encodeURIComponent(window.location.href)}`;
+}
+
 function CapabilityNote({ caps }: { caps: ArCapabilities }) {
   const cls = styles.note;
   if (!caps.secureContext) {
     return <p className={cls}>AR needs a secure connection (https:// or localhost).</p>;
   }
+  if ((!caps.webxr || !caps.immersiveAr) && caps.ios) {
+    return (
+      <p className={styles.fine}>
+        On iPhone, AR opens in the Needle Go App Clip (nothing to install).
+      </p>
+    );
+  }
   if (!caps.webxr || !caps.immersiveAr) {
     return (
       <p className={cls}>
         AR isn&apos;t available in this browser. On Android, open this page in Chrome (with Google
-        Play Services for AR). iPhone support comes via App Clip. You can still explore the exhibit
-        in 3D.
+        Play Services for AR); on iPhone, in Safari. You can still explore the exhibit in 3D.
       </p>
     );
   }
@@ -310,20 +362,18 @@ function statusText(s: ArStatus | null): string {
   return `Tracking · ${n} marker${n === 1 ? '' : 's'}`;
 }
 
-function debugText(s: ArStatus, project: ViewerProject): string {
-  const ids = project.mat.markers.map((m) => m.id);
+function debugText(s: ArStatus): string {
   const state = (id: string) =>
     s.tracked.includes(id) ? 'T' : s.emulated.includes(id) ? 'e' : '·';
-  const scores = s.conventionScores
-    .map((c) => `${c.convention} ${c.meanErrorDeg.toFixed(1)}°`)
-    .join('  ');
+  const res = s.residualByConventionMm;
   return [
     `phase      ${s.phase}   fps ${s.fps.toFixed(0)}`,
-    `markers    ${ids.map((id) => `${id}:${state(id)}`).join(' ')}`,
-    `trackable  ${s.trackability ? s.trackability.map((t, i) => `${ids[i]}:${t === 'trackable' ? 'ok' : 'NO'}`).join(' ') : 'n/a'}`,
-    `pose       ${s.method ?? '-'}${s.residualMm != null ? `  residual ${s.residualMm.toFixed(1)} mm` : ''}${s.rejected.length ? `  rejected ${s.rejected.join(',')}` : ''}`,
-    `convention ${s.convention} (${s.conventionSource})`,
-    `  scores   ${scores || 'need ≥3 tracked markers'}`,
+    `images     ${s.targets.map((id) => `${id}:${state(id)}`).join(' ')}`,
+    `trackable  ${s.trackability ? s.trackability.map((t, i) => `${s.targets[i]}:${t === 'trackable' ? 'ok' : 'NO'}`).join(' ') : 'n/a'}`,
+    `fit        ${s.residualMm != null ? `${s.residualMm.toFixed(1)} mm` : '-'}${s.rejected.length ? `  rejected ${s.rejected.join(',')}` : ''}`,
+    `axes       ${s.frameConvention ?? '-'}${s.decidedBy ? ` (${s.decidedBy})` : ''} · saved ${s.convention} (${s.conventionSource})`,
+    `  residual ${res ? `spec ${res.spec.toFixed(1)}  arcore ${res.arcore.toFixed(1)} mm` : '-'}`,
+    `print      ${s.printScale != null ? `${(s.printScale * 100).toFixed(1)} % of expected size` : 'n/a'}`,
   ].join('\n');
 }
 

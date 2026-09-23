@@ -25,12 +25,15 @@ Open `http://localhost:3000/v/mockcube01?debug` on the phone → **Start AR** �
 - [ ] Landing card shows no capability warning (otherwise follow its instructions).
 - [ ] Session starts; the hint "Point your camera at the mat" appears.
 - [ ] HUD `trackable` shows `ok` for m0–m3 (a `NO` means ARCore rejected that marker image).
-- [ ] Pointing at the mat: status becomes "Tracking · N markers"; HUD `markers` shows `T`.
-- [ ] Green squares (Debug) sit exactly on the printed markers; the orange square on the
-      contact outline; blue axis points to FRONT.
+- [ ] Pointing at the mat: status becomes "Tracking · N markers"; HUD `images` shows `T`.
+- [ ] Debug overlay: green squares sit exactly on the printed markers, the cyan rectangle on
+      the page edges, orange on the contact outline; blue axis points to FRONT.
 - [ ] **Model** on: the translucent 60 mm cube stands on the contact outline.
-- [ ] HUD `pose fit residual` < ~5 mm with all 4 markers visible.
-- [ ] HUD `convention` switches from `(default)` to `(detected)` → record the value in D0-FINDINGS.
+- [ ] HUD `images` lists `mat` too; from 40–60 cm the `mat` image shows `T` (actively tracked).
+- [ ] HUD `fit` < ~5 mm; `print` ≈ 100 % (otherwise the mat was not printed at actual size).
+- [ ] Compare alignment with `?mattrack=0` (markers only) vs default (markers + page).
+- [ ] HUD `axes … saved <x> (detected)` appears after a few seconds with several images
+      tracked → record the value in D0-FINDINGS.
 - [ ] Walk a full circle: content stays put; covering markers → "Mat out of view" but
       content holds; uncovering re-snaps smoothly.
 - [ ] Tap "Front face" label or the front face → yellow highlight + detail sheet.
@@ -42,3 +45,11 @@ Open `http://localhost:3000/v/mockcube01?debug` on the phone → **Start AR** �
 
 - [ ] Scan the mat's QR with the phone camera → opens `https://exhibitar.vercel.app/v/mockcube01`
       (works once this branch is deployed to production).
+
+## Calibration (owner)
+
+Requires a published exhibit (Studio → Publish) and being signed in on the phone.
+
+- [ ] Studio → Publish → **Calibrate on phone** (or `/studio/<id>/calibrate`) → Start.
+- [ ] Ghost model visible; nudging X/Z/Turn moves it immediately.
+- [ ] Save → reopen the public Viewer: labels use the new alignment.

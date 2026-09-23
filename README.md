@@ -9,6 +9,19 @@ markers; visitors scan a QR code and see labels registered onto the real object.
 - Tasks / workstreams: [docs/TASKS.md](docs/TASKS.md)
 - Agent/contributor rules: [CLAUDE.md](CLAUDE.md)
 
+## What works
+
+- **Studio** (`/studio`): upload an STL (or a sample), pick how it stands and which side is
+  FRONT, generate the model + printable mat, annotate (points, painted regions, text, links,
+  images), preview, publish. Works without an account as an in-tab draft; publishing needs
+  sign-in (email magic link).
+- **Viewer** (`/v/<id>`): Android Chrome WebXR AR with image tracking (markers + whole page),
+  labels occluded by the real object, tap for details, guided tour, 3D fallback; iPhone via
+  the Needle Go App Clip. `?debug` shows the tracking HUD.
+- **Calibration** (`/studio/<id>/calibrate`): nudge the ghost model onto the real object on a
+  phone; saved for all visitors.
+- Demo exhibit without any backend: `/v/mockcube01` (print `/fixtures/mock-cube-mat.pdf`).
+
 ## Setup
 
 ```bash
@@ -63,6 +76,13 @@ WebXR only runs in a secure context. Three options, easiest first:
 3. **Vercel preview deployment.** Every pushed branch gets an HTTPS preview URL.
    Previews are behind Vercel Authentication, so sign in on the phone first
    (or use the production domain for public audience tests).
+
+## Supabase
+
+Schema, RLS, storage buckets and functions live in `supabase/migrations/` (applied to the
+`exhibitar` project). One manual setting: **Auth → URL Configuration** — Site URL
+`https://exhibitar.vercel.app`, Redirect URLs `https://exhibitar.vercel.app/**` and
+`http://localhost:3000/**`, otherwise magic links from the live site redirect to localhost.
 
 ## Deployment
 

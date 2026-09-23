@@ -118,6 +118,12 @@ export class ExhibitScene {
     this.root.add(this.debug);
   }
 
+  /** Live calibration (D5): re-place the model in the mat frame. */
+  setCalibration(calibration: ViewerProject['calibration']): void {
+    this.model.matrix.copy(matFromModel(calibration, this.project.objectToMat));
+    this.model.matrixWorldNeedsUpdate = true;
+  }
+
   /** Show the model itself (translucent), e.g. without the printed object or for calibration. */
   setGhost(visible: boolean, opacity = 0.45): void {
     const mat = this.ghost.material as MeshStandardMaterial;
@@ -155,6 +161,12 @@ export class ExhibitScene {
       this.highlight = this.buildHighlight(a.triangles);
       this.model.add(this.highlight);
     }
+  }
+
+  /** World position of an annotation's label (after the latest `update`). */
+  labelWorldPosition(id: string): Vector3 | null {
+    const l = this.labels.find((x) => x.annotation.id === id);
+    return l ? l.labelPos.clone().applyMatrix4(this.model.matrixWorld) : null;
   }
 
   /** Per frame: scale labels to a steady on-screen size and fade the ones seen from behind. */
@@ -300,6 +312,24 @@ export class ExhibitScene {
           ),
       );
       this.debug.add(new LineLoop(new BufferGeometry().setFromPoints(pts), green));
+    }
+    const track = this.project.mat.trackImage;
+    if (track) {
+      const [cx, cz] = track.centerMm;
+      const hw = track.widthMm / 2;
+      const hh = track.heightMm / 2;
+      const pts = [
+        [cx - hw, cz - hh],
+        [cx + hw, cz - hh],
+        [cx + hw, cz + hh],
+        [cx - hw, cz + hh],
+      ].map(([x, z]) => new Vector3(mmToM(x!), y, mmToM(z!)));
+      this.debug.add(
+        new LineLoop(
+          new BufferGeometry().setFromPoints(pts),
+          new LineBasicMaterial({ color: 0x00b8d4 }),
+        ),
+      );
     }
     const orange = new LineBasicMaterial({ color: 0xff6d00 });
     for (const ring of this.project.mat.contactOutlineMm) {

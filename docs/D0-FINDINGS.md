@@ -1,6 +1,6 @@
 # D0 — AR tracking spike: findings
 
-Status: **desk research done; on-device results pending** (fill in §4).
+Status: **Android works** (first device run, 2026-09-24); iPhone / Needle Go not tested yet.
 
 ## 1. WebXR Image Tracking (Android Chrome)
 
@@ -25,28 +25,56 @@ Source: W3C draft "WebXR Image Tracking" — https://immersive-web.github.io/ima
 
 - `src/lib/ar/xr-image-tracking.ts` is the only place that knows API names; both spellings
   are handled.
-- With ≥ 3 markers tracked, the mat pose comes from a rigid fit on marker **centres only**
-  (`estimateWorldFromMat`, method `fit`): independent of the axis convention.
-- While ≥ 3 markers are tracked, `detectImageConvention` compares each marker's reported
-  orientation with both conventions; after 20 consistent frames the winner is locked and
-  saved in `localStorage` (used when only 1–2 markers are visible). The Debug HUD shows it.
-  Override for testing: `/v/<id>?debug&convention=arcore` (or `spec`).
+- Since the first device run, every tracked image contributes centre + corners to one
+  rigid fit, evaluated for **both** conventions each frame (chosen by inliers → residual →
+  gravity → saved preference). The convention the device uses is learned from decisive
+  frames and saved in `localStorage`; the Debug HUD shows it (`axes …`). Override for
+  testing: `/v/<id>?debug&convention=arcore` (or `spec`).
 
 ## 2. iPhone (Needle Go App Clip)
 
-Not investigated yet. Next step: read engine.needle.tools docs on image tracking in
-Needle Go and how a plain three.js page hooks in. Until then iPhones get the 3D fallback.
+Desk research (not yet device-tested):
+
+- Any public **HTTPS** WebXR page — plain three.js included — opens in the Needle Go App
+  Clip via `https://appclip.needle.tools/ar?url=<page URL>`; iOS 14+, nothing to install
+  (https://engine.needle.tools/docs/how-to-guides/xr/ios-webxr-app-clip.html).
+- Supported inside the App Clip: WebXR sessions, hit-test/planes, DOM overlay and **image
+  tracking** (ARKit-backed); anchors and lighting estimation are work in progress
+  (https://engine.needle.tools/docs/how-to-guides/xr/image-tracking.html).
+- Integration: on iPhone/iPad without WebXR, the Viewer's **Start AR** links to the App Clip
+  with the current `/v/<id>` URL; inside it the same runtime runs. The printed QR keeps
+  pointing at our own URL (Android and desktop are unaffected). Localhost cannot be used —
+  test iPhones against a deployed URL.
+- Unknown until tested: whether Needle reports image poses in the spec or ARKit axis
+  convention (the fusion detects either), and `getImageTrackability` support.
 
 ## 3. Fallback option if Android image tracking fails
 
 Evaluate the open-source 8th Wall engine image targets (TASKS.md D0).
 
-## 4. On-device results (fill in)
+## 4. On-device results
 
 Procedure: see `docs/DEVICE-TESTS.md` → "AR smoke test". Read the values off the Debug HUD.
 
-| Date | Device | Android / Chrome | Flag on? | Session starts? | Trackability m0–m3 | Tracks? | Detected convention (scores) | Fit residual | FPS | Notes |
-| ---- | ------ | ---------------- | -------- | --------------- | ------------------ | ------- | ---------------------------- | ------------ | --- | ----- |
-|      |        |                  |          |                 |                    |         |                              |              |     |       |
+| Date | Device | Android / Chrome | Flag on? | Session starts? | Trackability m0–m3 | Tracks? | Detected convention | Fit residual | FPS | Notes |
+| ---- | ------ | ---------------- | -------- | --------------- | ------------------ | ------- | ------------------- | ------------ | --- | ----- |
+| 2026-09-24 | Galaxy S25 Edge (SM-S937B), ARCore 1.56 | 16 / 153 | required¹ | yes | all `ok` | yes | not yet (HUD showed `spec (default)`) | 4.5 mm | 24 | markers fell to `emulated` at ~50 cm; content 1.5–2.5 cm off² |
 
-Decision after the test: record here whether the viewer design (ARCHITECTURE.md §5) stands.
+¹ Without `#webxr-incubations` the page is a secure context with `immersive-ar` supported, but
+`XRFrame.getImageTrackingResults` does not exist: **the flag is still required on Chrome 153.**
+
+² Diagnosis: at a distance where the whole A4 mat is in view, each 60 mm marker covers only
+~20 % of the frame (ARCore recommends ≥ 25 % for reliable detection), so ARCore stopped
+actively tracking them and the pose went stale. Response: the whole page is now tracked as an
+additional large image, all images contribute corners to one fit, emulated poses are followed
+instead of frozen, and the HUD reports print scale. Compare on the device with and without
+`?mattrack=0`.
+
+**Plain QR codes as markers?** Not with ARCore image tracking: it needs distinctive natural
+features, and QR codes are grids of identical squares (poor, self-similar features). Square
+fiducials (ArUco/AprilTag) would be more precise and faster to detect, but need our own
+detector running on camera frames (WebXR Raw Camera Access) — a possible later upgrade.
+
+Decision after the first test: the viewer design stands (WebXR image tracking on Android);
+tracking robustness improved as described. Next device run: record the detected
+convention, residual with/without the page image (`?mattrack=0`), and print scale.

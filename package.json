@@ -19,7 +19,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "demo": "tsx scripts/demo-pipeline.ts",
-    "mock": "tsx scripts/make-mock-project.ts"
+    "mock": "tsx scripts/make-mock-project.ts",
+    "samples": "tsx scripts/make-samples.ts"
   },
   "dependencies": {
     "@countertype/clipper2-ts": "1.5.4-3.9a869ba",
@@ -38,6 +39,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "three": "^0.186.0",
     "three-mesh-bvh": "^0.9.15"
   },

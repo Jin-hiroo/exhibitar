@@ -9,6 +9,7 @@ import {
 } from './orient';
 import { parseStl, type StlStats } from './parse-stl';
 import { applySourceScale } from './scale';
+import { simplifyMesh } from './simplify';
 
 export type PipelineStage = 'parse' | 'scale' | 'orient' | 'simplify' | 'footprint';
 export type ProgressFn = (stage: PipelineStage, fraction: number) => void;
@@ -23,7 +24,11 @@ export interface LoadedModel {
   boundsMm: Bounds;
   /** best first */
   candidates: RestingCandidate[];
+  /** ≤ 60k-triangle copy of `meshMm` for interactive previews */
+  previewMm: IndexedMesh;
 }
+
+const PREVIEW_TRIANGLES = 60_000;
 
 /** Studio step 1–3: parse, scale, suggest resting faces. */
 export async function loadModel(
@@ -37,6 +42,8 @@ export async function loadModel(
   const meshMm = applySourceScale(mesh, sourceScale);
   onProgress('orient', 0.5);
   const candidates = findRestingCandidates(meshMm);
+  onProgress('orient', 0.8);
+  const { mesh: previewMm } = await simplifyMesh(meshMm, PREVIEW_TRIANGLES);
   onProgress('orient', 1);
   return {
     meshMm,
@@ -45,6 +52,7 @@ export async function loadModel(
     warnings,
     boundsMm: computeBounds(meshMm.positions),
     candidates,
+    previewMm,
   };
 }
 

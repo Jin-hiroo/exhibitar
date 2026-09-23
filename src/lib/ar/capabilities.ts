@@ -9,6 +9,8 @@ export interface ArCapabilities {
   immersiveAr: boolean;
   /** the image tracking API is exposed (Chrome: #webxr-incubations flag) */
   imageTracking: boolean;
+  /** iPhone / iPad (Safari has no WebXR AR: use the Needle Go App Clip) */
+  ios: boolean;
 }
 
 export async function detectArCapabilities(): Promise<ArCapabilities> {
@@ -22,5 +24,18 @@ export async function detectArCapabilities(): Promise<ArCapabilities> {
       immersiveAr = false;
     }
   }
-  return { secureContext, webxr: !!xr, immersiveAr, imageTracking: hasImageTrackingApi() };
+  return {
+    secureContext,
+    webxr: !!xr,
+    immersiveAr,
+    imageTracking: hasImageTrackingApi(),
+    ios: isIOS(),
+  };
+}
+
+function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  // iPadOS reports a Mac user agent; a touch screen gives it away
+  return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
