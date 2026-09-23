@@ -229,13 +229,17 @@ function tileMarks(l: MatLayout): DrawItem[] {
     );
   };
   const o = TILE_OVERLAP_MM / 2;
+  const [W, H] = l.sizeMm;
   for (const win of plan.windows) {
+    // the last row/column of sheets may extend past the mat: only mark the mat itself
+    const w = Math.min(win.x + win.w, W) - win.x;
+    const h = Math.min(win.y + win.h, H) - win.y;
     // centre line of each overlap strip, along the shared edge
     if (win.col > 0) {
-      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + o, win.y + win.h * f);
+      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + o, win.y + h * f);
     }
     if (win.row > 0) {
-      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + win.w * f, win.y + o);
+      for (const f of [0.1, 0.5, 0.9]) addCross(win.x + w * f, win.y + o);
     }
   }
   const items: DrawItem[] = [];
@@ -251,12 +255,14 @@ function tileMarks(l: MatLayout): DrawItem[] {
   for (const win of plan.windows) {
     const label = tileLabel(win.col, win.row);
     const inset = TILE_OVERLAP_MM + 2;
+    const w = Math.min(win.x + win.w, W) - win.x;
+    const h = Math.min(win.y + win.h, H) - win.y;
     const spots: [number, number][] = [
       [win.x + inset, win.y + inset],
-      [win.x + win.w - inset - 12, win.y + inset],
-      [win.x + inset, win.y + win.h - inset - 6],
-      [win.x + win.w - inset - 12, win.y + win.h - inset - 6],
-      [win.x + win.w / 2 - 6, win.y + win.h / 2 - 3],
+      [win.x + w - inset - 12, win.y + inset],
+      [win.x + inset, win.y + h - inset - 6],
+      [win.x + w - inset - 12, win.y + h - inset - 6],
+      [win.x + w / 2 - 6, win.y + h / 2 - 3],
     ];
     const spot = spots.find(([x, y]) => clear({ x, y, w: 12, h: 6 }));
     if (spot) {

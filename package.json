@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "fixtures": "tsx tests/fixtures/make.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo": "tsx scripts/demo-pipeline.ts"
   },
   "dependencies": {
     "@countertype/clipper2-ts": "1.5.4-3.9a869ba",
