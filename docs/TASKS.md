@@ -75,6 +75,7 @@ computed mat size; same seed → identical output.
       engine image targets as fallback and propose a decision.
 - [ ] D1 Session setup, dom-overlay UI, capability detection, non-AR fallback viewer
 - [ ] D2 Multi-marker pose fusion → `worldFromMat`; smoothing; loss/re-snap
+      _(math + tests done in `src/lib/ar/pose.ts`; wiring to XR frames pending D0/D1)_
 - [ ] D3 Occluder GLB; labels; region highlights; tap selection
 - [ ] D4 Guided tour + off-screen arrow
 - [ ] D5 Calibration mode UI (ghost, nudge controls, save)
