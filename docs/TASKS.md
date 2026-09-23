@@ -22,13 +22,13 @@ change the viewer design.
 
 ## WS-0 Foundation (sequential, do first)
 
-- [ ] Next.js App Router + TS strict + pnpm + ESLint/Prettier + Vitest + Playwright
-- [ ] `src/lib/types.ts` exactly as in ARCHITECTURE.md §3; `src/lib/units.ts`
-- [ ] Directory skeleton (§8) with README stubs per folder
-- [ ] Test fixture generator: `tests/fixtures/make.ts` writes cube, L-block,
+- [x] Next.js App Router + TS strict + pnpm + ESLint/Prettier + Vitest + Playwright
+- [x] `src/lib/types.ts` exactly as in ARCHITECTURE.md §3; `src/lib/units.ts`
+- [x] Directory skeleton (§8) with README stubs per folder
+- [x] Test fixture generator: `tests/fixtures/make.ts` writes cube, L-block,
       tripod (3 small feet), sphere-on-flat STLs (binary + ASCII)
-- [ ] Vercel project + preview deploys; HTTPS local dev documented
-- [ ] Mock project JSON in `tests/fixtures/project.mock.json` for WS-C/D/F to build against
+- [x] Vercel project + preview deploys; HTTPS local dev documented
+- [x] Mock project JSON in `tests/fixtures/project.mock.json` for WS-C/D/F to build against
 
 **Done when:** `pnpm lint typecheck test` pass, empty pages render on Vercel preview.
 
