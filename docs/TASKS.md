@@ -22,36 +22,36 @@ change the viewer design.
 
 ## WS-0 Foundation (sequential, do first)
 
-- [ ] Next.js App Router + TS strict + pnpm + ESLint/Prettier + Vitest + Playwright
-- [ ] `src/lib/types.ts` exactly as in ARCHITECTURE.md §3; `src/lib/units.ts`
-- [ ] Directory skeleton (§8) with README stubs per folder
-- [ ] Test fixture generator: `tests/fixtures/make.ts` writes cube, L-block,
+- [x] Next.js App Router + TS strict + pnpm + ESLint/Prettier + Vitest + Playwright
+- [x] `src/lib/types.ts` exactly as in ARCHITECTURE.md §3; `src/lib/units.ts`
+- [x] Directory skeleton (§8) with README stubs per folder
+- [x] Test fixture generator: `tests/fixtures/make.ts` writes cube, L-block,
       tripod (3 small feet), sphere-on-flat STLs (binary + ASCII)
-- [ ] Vercel project + preview deploys; HTTPS local dev documented
-- [ ] Mock project JSON in `tests/fixtures/project.mock.json` for WS-C/D/F to build against
+- [x] Vercel project + preview deploys; HTTPS local dev documented
+- [x] Mock project JSON in `tests/fixtures/project.mock.json` for WS-C/D/F to build against
 
 **Done when:** `pnpm lint typecheck test` pass, empty pages render on Vercel preview.
 
 ## WS-A Geometry (`src/lib/geometry`, `src/workers`)
 
-- [ ] A1 STL parse (binary/ASCII) → indexed BufferGeometry; merge verts; normals
-- [ ] A2 Unit/scale handling; bounds in mm
-- [ ] A3 Resting-face candidates (convex hull + stability); apply chosen orientation;
+- [x] A1 STL parse (binary/ASCII) → indexed BufferGeometry; merge verts; normals
+- [x] A2 Unit/scale handling; bounds in mm
+- [x] A3 Resting-face candidates (convex hull + stability); apply chosen orientation;
       drop to y=0; centre footprint → returns `objectToMat`
-- [ ] A4 Simplify with meshoptimizer to target; export GLB (meshopt compression); size check
-- [ ] A5 Contact outline + shadow outline (clipper2) in mat mm
-- [ ] A6 Worker wrappers with progress events + cancellation
+- [x] A4 Simplify with meshoptimizer to target; export GLB (meshopt compression); size check
+- [x] A5 Contact outline + shadow outline (clipper2) in mat mm
+- [x] A6 Worker wrappers with progress events + cancellation
 
 **Tests:** cube → contact = square of side length; tripod → 3 contact islands;
 orientation of L-block picks the large face; GLB under budget.
 
 ## WS-B Mat & Markers (`src/lib/mat`)
 
-- [ ] B1 Seeded marker generator → SVG fragment + PNG; quality check (corners, asymmetry)
-- [ ] B2 Layout: markers in free space around shadow, QR, ruler, FRONT arrow, title
-- [ ] B3 Paper selection + tiling with alignment marks
-- [ ] B4 SVG writer in mm units; PDF export (actual size); print instructions text
-- [ ] B5 QR generation for `/v/[id]`
+- [x] B1 Seeded marker generator → SVG fragment + PNG; quality check (corners, asymmetry)
+- [x] B2 Layout: markers in free space around shadow, QR, ruler, FRONT arrow, title
+- [x] B3 Paper selection + tiling with alignment marks
+- [x] B4 SVG writer in mm units; PDF export (actual size); print instructions text
+- [x] B5 QR generation for `/v/[id]`
 
 **Tests:** markers never overlap shadow polygon; SVG physical size equals
 computed mat size; same seed → identical output.
@@ -75,6 +75,7 @@ computed mat size; same seed → identical output.
       engine image targets as fallback and propose a decision.
 - [ ] D1 Session setup, dom-overlay UI, capability detection, non-AR fallback viewer
 - [ ] D2 Multi-marker pose fusion → `worldFromMat`; smoothing; loss/re-snap
+      _(math + tests done in `src/lib/ar/pose.ts`; wiring to XR frames pending D0/D1)_
 - [ ] D3 Occluder GLB; labels; region highlights; tap selection
 - [ ] D4 Guided tour + off-screen arrow
 - [ ] D5 Calibration mode UI (ghost, nudge controls, save)

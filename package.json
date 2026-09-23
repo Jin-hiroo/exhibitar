@@ -17,9 +17,12 @@
     "test:e2e": "playwright test",
     "fixtures": "tsx tests/fixtures/make.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo": "tsx scripts/demo-pipeline.ts",
+    "mock": "tsx scripts/make-mock-project.ts"
   },
   "dependencies": {
+    "@countertype/clipper2-ts": "1.5.4-3.9a869ba",
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
@@ -27,7 +30,6 @@
     "@react-three/fiber": "^9.8.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.1",
-    "clipper2-js": "^1.2.4",
     "fflate": "^0.8.3",
     "jspdf": "^4.2.1",
     "meshoptimizer": "^1.2.0",
