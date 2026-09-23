@@ -1,12 +1,17 @@
 # Device test checklist
 
-## Setup (Android, over USB)
+## Setup (Android)
 
 1. On the phone: Chrome up to date, "Google Play Services for AR" installed.
 2. `chrome://flags/#webxr-incubations` → **Enabled** → Relaunch.
-3. On the Mac: `pnpm dev`, phone connected with USB debugging, then
-   `adb reverse tcp:3000 tcp:3000` (the phone now reaches the Mac at `http://localhost:3000`,
-   which counts as a secure context).
+3. Either use the live site (`https://exhibitar.vercel.app`, simplest: scan the mat's QR), or
+   for local development: `pnpm dev`, USB debugging on, `adb reverse tcp:3000 tcp:3000`, and
+   open `http://localhost:3000` on the phone (a secure context).
+
+## iPhone
+
+Open the exhibit URL in Safari → **Start AR** opens the Needle Go App Clip (live site only;
+the App Clip cannot reach localhost). Record what happens in D0-FINDINGS §2.
 
 ## Get a mat
 
@@ -20,7 +25,8 @@ The mock exhibit (`mockcube01`) has its own markers — use *its* mat:
 
 ## AR smoke test
 
-Open `http://localhost:3000/v/mockcube01?debug` on the phone → **Start AR** → allow the camera.
+Open `https://exhibitar.vercel.app/v/mockcube01?debug` (or the localhost URL) on the phone →
+**Start AR** → allow the camera.
 
 - [ ] Landing card shows no capability warning (otherwise follow its instructions).
 - [ ] Session starts; the hint "Point your camera at the mat" appears.
@@ -43,8 +49,7 @@ Open `http://localhost:3000/v/mockcube01?debug` on the phone → **Start AR** �
 
 ## QR check
 
-- [ ] Scan the mat's QR with the phone camera → opens `https://exhibitar.vercel.app/v/mockcube01`
-      (works once this branch is deployed to production).
+- [ ] Scan the mat's QR with the phone camera → opens `https://exhibitar.vercel.app/v/mockcube01`.
 
 ## Calibration (owner)
 
