@@ -21,7 +21,13 @@ export type GeometryApi = {
 export const geometryHandlers: RpcHandlers<GeometryApi> = {
   async load({ stl, sourceScale }, ctx) {
     const result = await loadModel(stl, sourceScale, ctx.progress);
-    return { result, transfer: [result.meshMm.positions.buffer, result.meshMm.indices.buffer] };
+    const buffers = new Set<ArrayBufferLike>([
+      result.meshMm.positions.buffer,
+      result.meshMm.indices.buffer,
+      result.previewMm.positions.buffer,
+      result.previewMm.indices.buffer,
+    ]);
+    return { result, transfer: [...buffers] as Transferable[] };
   },
   async prepare({ meshMm, rotation, targetTriangles }, ctx) {
     const result = await prepareModel(meshMm, rotation, { targetTriangles }, ctx.progress);
