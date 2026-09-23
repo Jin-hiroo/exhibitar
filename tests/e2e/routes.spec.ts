@@ -67,3 +67,21 @@ test('editing a saved exhibit requires signing in', async ({ page }) => {
     /\/login\?next=%2Fstudio%2Fabc123def0|\/login\?next=\/studio\/abc123def0/,
   );
 });
+
+test.describe('on iPhone', () => {
+  test.use({
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+  });
+
+  test('Start AR opens the exhibit in the Needle Go App Clip', async ({ page }) => {
+    await page.goto('/v/mockcube01');
+    const start = page.getByRole('link', { name: 'Start AR' });
+    await expect(start).toBeVisible({ timeout: 15_000 });
+    const href = await start.getAttribute('href');
+    expect(href).toMatch(/^https:\/\/appclip\.needle\.tools\/ar\?url=/);
+    expect(decodeURIComponent(href!.split('url=')[1]!)).toMatch(/\/v\/mockcube01$/);
+  });
+});

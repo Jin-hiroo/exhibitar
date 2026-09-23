@@ -223,13 +223,20 @@ export function ViewerApp({ project, assetBase }: Props) {
             <span className={styles.eyebrow}>AR exhibit</span>
             <h1 className={styles.title}>{project.title}</h1>
             {project.description && <p className={styles.description}>{project.description}</p>}
-            <button
-              className={styles.primary}
-              onClick={startAr}
-              disabled={!prepared || !caps?.immersiveAr}
-            >
-              {!prepared ? 'Loading…' : 'Start AR'}
-            </button>
+            {caps && !caps.immersiveAr && caps.ios ? (
+              // iPhone/iPad: WebXR runs inside the Needle Go App Clip (same page, ARKit tracking)
+              <a className={styles.primary} href={appClipUrl()} style={{ textAlign: 'center' }}>
+                Start AR
+              </a>
+            ) : (
+              <button
+                className={styles.primary}
+                onClick={startAr}
+                disabled={!prepared || !caps?.immersiveAr}
+              >
+                {!prepared ? 'Loading…' : 'Start AR'}
+              </button>
+            )}
             <button
               className={styles.secondary}
               onClick={() => setMode('orbit')}
@@ -307,17 +314,28 @@ export function ViewerApp({ project, assetBase }: Props) {
   );
 }
 
+/** Needle Go App Clip: WebXR (incl. image tracking) on iOS for any public HTTPS page. */
+function appClipUrl(): string {
+  return `https://appclip.needle.tools/ar?url=${encodeURIComponent(window.location.href)}`;
+}
+
 function CapabilityNote({ caps }: { caps: ArCapabilities }) {
   const cls = styles.note;
   if (!caps.secureContext) {
     return <p className={cls}>AR needs a secure connection (https:// or localhost).</p>;
   }
+  if ((!caps.webxr || !caps.immersiveAr) && caps.ios) {
+    return (
+      <p className={styles.fine}>
+        On iPhone, AR opens in the Needle Go App Clip (nothing to install).
+      </p>
+    );
+  }
   if (!caps.webxr || !caps.immersiveAr) {
     return (
       <p className={cls}>
         AR isn&apos;t available in this browser. On Android, open this page in Chrome (with Google
-        Play Services for AR). iPhone support comes via App Clip. You can still explore the exhibit
-        in 3D.
+        Play Services for AR); on iPhone, in Safari. You can still explore the exhibit in 3D.
       </p>
     );
   }

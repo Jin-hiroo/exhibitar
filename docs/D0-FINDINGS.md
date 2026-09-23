@@ -33,8 +33,20 @@ Source: W3C draft "WebXR Image Tracking" — https://immersive-web.github.io/ima
 
 ## 2. iPhone (Needle Go App Clip)
 
-Not investigated yet. Next step: read engine.needle.tools docs on image tracking in
-Needle Go and how a plain three.js page hooks in. Until then iPhones get the 3D fallback.
+Desk research (not yet device-tested):
+
+- Any public **HTTPS** WebXR page — plain three.js included — opens in the Needle Go App
+  Clip via `https://appclip.needle.tools/ar?url=<page URL>`; iOS 14+, nothing to install
+  (https://engine.needle.tools/docs/how-to-guides/xr/ios-webxr-app-clip.html).
+- Supported inside the App Clip: WebXR sessions, hit-test/planes, DOM overlay and **image
+  tracking** (ARKit-backed); anchors and lighting estimation are work in progress
+  (https://engine.needle.tools/docs/how-to-guides/xr/image-tracking.html).
+- Integration: on iPhone/iPad without WebXR, the Viewer's **Start AR** links to the App Clip
+  with the current `/v/<id>` URL; inside it the same runtime runs. The printed QR keeps
+  pointing at our own URL (Android and desktop are unaffected). Localhost cannot be used —
+  test iPhones against a deployed URL.
+- Unknown until tested: whether Needle reports image poses in the spec or ARKit axis
+  convention (the fusion detects either), and `getImageTrackability` support.
 
 ## 3. Fallback option if Android image tracking fails
 
