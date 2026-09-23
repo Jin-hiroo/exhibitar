@@ -9,6 +9,9 @@ import styles from './viewer.module.css';
 
 type Mode = 'landing' | 'ar' | 'orbit';
 
+// Start fetching the 3D runtime as soon as this module runs (before hydration finishes).
+const runtimeImport = typeof window !== 'undefined' ? import('@/lib/ar/launch') : null;
+
 interface Props {
   project: ViewerProject;
   /** base URL for project storage paths */
@@ -69,7 +72,7 @@ export function ViewerApp({ project, assetBase }: Props) {
     import('@/lib/ar/capabilities')
       .then((m) => m.detectArCapabilities())
       .then((c) => !cancelled && setCaps(c));
-    import('@/lib/ar/launch')
+    (runtimeImport ?? import('@/lib/ar/launch'))
       .then(async (m) => {
         runtimeModule.current = m;
         const p = await m.prepareExhibit(project, assetBase);
