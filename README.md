@@ -27,6 +27,15 @@ pnpm dev
 | `pnpm demo`                   | runs the full geometry + mat pipeline on every fixture → `tests/fixtures/out/demo/` (GLB, mat SVG/PDF, marker PNGs, QR) |
 | `pnpm mock`                   | regenerates `tests/fixtures/project.mock.json` + `public/fixtures/*` from the real pipeline                             |
 
+## Try the AR viewer (Android)
+
+1. Phone: Chrome + "Google Play Services for AR"; enable `chrome://flags/#webxr-incubations`.
+2. Print `http://localhost:3000/fixtures/mock-cube-mat.pdf` at **Actual size** (A4 landscape).
+3. `pnpm dev`, connect the phone by USB, `adb reverse tcp:3000 tcp:3000`.
+4. On the phone open `http://localhost:3000/v/mockcube01?debug` → **Start AR** → point at the mat.
+
+Full checklist: [docs/DEVICE-TESTS.md](docs/DEVICE-TESTS.md). Findings: [docs/D0-FINDINGS.md](docs/D0-FINDINGS.md).
+
 ## Testing WebXR on a phone (HTTPS)
 
 WebXR only runs in a secure context. Three options, easiest first:
