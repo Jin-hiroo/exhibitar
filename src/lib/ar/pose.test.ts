@@ -5,10 +5,12 @@ import type { MarkerArt } from '../mat/markers';
 import type { Marker } from '../types';
 import {
   composeWorldFromModel,
+  detectImageConvention,
   estimateWorldFromMat,
   matFromImage,
   PoseFilter,
   rigidFit,
+  type ImageConvention,
   type MarkerObservation,
 } from './pose';
 
@@ -43,10 +45,11 @@ function observe(
   worldFromMat: Matrix4,
   markers: Marker[],
   noise?: { posM: number; angleDeg: number; seed: number },
+  convention?: ImageConvention,
 ): MarkerObservation[] {
   const r = rng(noise?.seed ?? 1);
   return markers.map((m) => {
-    const worldFromImage = worldFromMat.clone().multiply(matFromImage(m));
+    const worldFromImage = worldFromMat.clone().multiply(matFromImage(m, convention));
     if (noise) {
       const q = new Quaternion().setFromAxisAngle(
         new Vector3(r(), r(), r()).normalize(),
@@ -95,19 +98,32 @@ describe('matFromImage', () => {
         },
       ],
     };
-    for (const rotationDeg of [0, 90, 30]) {
-      const m = { centerMm: [40, -25] as [number, number], rotationDeg };
-      const [item] = markerItems(art, m.centerMm, 60, rotationDeg, 't');
-      if (item?.kind !== 'shape') throw new Error();
-      // image-frame points (metres): right edge centre (+X) and bottom edge centre (+Z)
-      const right = new Vector3(0.03, 0, 0).applyMatrix4(matFromImage(m));
-      const bottom = new Vector3(0, 0, 0.03).applyMatrix4(matFromImage(m));
-      expect(right.x * 1000).toBeCloseTo(item.rings[0]![0]![0], 6);
-      expect(right.z * 1000).toBeCloseTo(item.rings[0]![0]![1], 6);
-      expect(bottom.x * 1000).toBeCloseTo(item.rings[0]![1]![0], 6);
-      expect(bottom.z * 1000).toBeCloseTo(item.rings[0]![1]![1], 6);
-      expect(right.y).toBeCloseTo(0, 9);
+    // image-frame points (metres) at the right-edge centre and the bottom-edge centre
+    const conventions: [ImageConvention, Vector3, Vector3][] = [
+      ['arcore', new Vector3(0.03, 0, 0), new Vector3(0, 0, 0.03)], // +Z toward the bottom
+      ['spec', new Vector3(0.03, 0, 0), new Vector3(0, -0.03, 0)], // +Y toward the top
+    ];
+    for (const [convention, rightPt, bottomPt] of conventions) {
+      for (const rotationDeg of [0, 90, 30]) {
+        const m = { centerMm: [40, -25] as [number, number], rotationDeg };
+        const [item] = markerItems(art, m.centerMm, 60, rotationDeg, 't');
+        if (item?.kind !== 'shape') throw new Error();
+        const right = rightPt.clone().applyMatrix4(matFromImage(m, convention));
+        const bottom = bottomPt.clone().applyMatrix4(matFromImage(m, convention));
+        expect(right.x * 1000).toBeCloseTo(item.rings[0]![0]![0], 6);
+        expect(right.z * 1000).toBeCloseTo(item.rings[0]![0]![1], 6);
+        expect(bottom.x * 1000).toBeCloseTo(item.rings[0]![1]![0], 6);
+        expect(bottom.z * 1000).toBeCloseTo(item.rings[0]![1]![1], 6);
+        expect(right.y).toBeCloseTo(0, 9);
+        expect(bottom.y).toBeCloseTo(0, 9);
+      }
     }
+  });
+
+  it('puts the image normal along mat +Y in both conventions', () => {
+    const m = { centerMm: [0, 0] as [number, number], rotationDeg: 0 };
+    expect(new Vector3(0, 0, 1).transformDirection(matFromImage(m, 'spec')).y).toBeCloseTo(1, 9);
+    expect(new Vector3(0, 1, 0).transformDirection(matFromImage(m, 'arcore')).y).toBeCloseTo(1, 9);
   });
 });
 
@@ -149,7 +165,19 @@ describe('estimateWorldFromMat', () => {
     obs[2]!.worldFromImage.premultiply(new Matrix4().makeTranslation(0.1, 0, 0));
     const est = estimateWorldFromMat(obs, MARKERS)!;
     expect(est.rejected).toEqual(['m2']);
+    expect(est.method).toBe('fit');
     expect(poseError(est.worldFromMat, TRUE_POSE).mm).toBeLessThan(1e-3);
+  });
+
+  it('with ≥ 3 markers does not depend on the tracker axis convention', () => {
+    for (const truth of ['spec', 'arcore'] as const) {
+      const obs = observe(TRUE_POSE, MARKERS, undefined, truth);
+      for (const assumed of ['spec', 'arcore'] as const) {
+        const est = estimateWorldFromMat(obs, MARKERS, assumed)!;
+        expect(poseError(est.worldFromMat, TRUE_POSE).mm).toBeLessThan(1e-3);
+        expect(est.residualM).toBeLessThan(1e-6);
+      }
+    }
   });
 
   it('trusts tracked images more than emulated ones', () => {
@@ -167,6 +195,19 @@ describe('estimateWorldFromMat', () => {
     const obs = observe(TRUE_POSE, MARKERS.slice(0, 1));
     obs[0]!.markerId = 'nope';
     expect(estimateWorldFromMat(obs, MARKERS)).toBeNull();
+  });
+});
+
+describe('detectImageConvention', () => {
+  it('identifies the convention the tracker used, even with noise', () => {
+    for (const truth of ['spec', 'arcore'] as const) {
+      const obs = observe(TRUE_POSE, MARKERS, { posM: 0.002, angleDeg: 3, seed: 7 }, truth);
+      const fit = estimateWorldFromMat(obs, MARKERS)!;
+      const [best, other] = detectImageConvention(obs, MARKERS, fit.worldFromMat);
+      expect(best!.convention).toBe(truth);
+      expect(best!.meanErrorDeg).toBeLessThan(6);
+      expect(other!.meanErrorDeg).toBeGreaterThan(60);
+    }
   });
 });
 
