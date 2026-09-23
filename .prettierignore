@@ -1,0 +1,10 @@
+.next
+node_modules
+pnpm-lock.yaml
+public
+tests/fixtures/out
+test-results
+playwright-report
+docs
+CLAUDE.md
+AGENTS.md
