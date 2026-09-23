@@ -67,6 +67,8 @@ interface Pending {
   resolve(v: unknown): void;
   reject(e: unknown): void;
   onProgress?: CallOptions['onProgress'];
+  /** detaches the abort listener once the call settles */
+  done(): void;
 }
 
 /** Main-thread side. `spawn` creates a fresh worker (or port) on demand. */
@@ -86,8 +88,15 @@ export class RpcClient<A extends RpcApi> {
     const port = this.ensurePort();
     const id = this.nextId++;
     return new Promise<A[K]['result']>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject, onProgress });
-      signal?.addEventListener('abort', () => this.cancelAll(), { once: true });
+      // Aborting terminates the worker, so every in-flight call is cancelled.
+      const onAbort = () => this.cancelAll();
+      signal?.addEventListener('abort', onAbort, { once: true });
+      this.pending.set(id, {
+        resolve: resolve as (v: unknown) => void,
+        reject,
+        onProgress,
+        done: () => signal?.removeEventListener('abort', onAbort),
+      });
       port.postMessage({ id, op, payload } satisfies RpcRequest, transfer);
     });
   }
@@ -96,8 +105,12 @@ export class RpcClient<A extends RpcApi> {
   cancelAll(): void {
     this.port?.terminate?.();
     this.port = null;
-    for (const p of this.pending.values()) p.reject(abortError());
+    const pending = [...this.pending.values()];
     this.pending.clear();
+    for (const p of pending) {
+      p.done();
+      p.reject(abortError());
+    }
   }
 
   dispose(): void {
@@ -115,9 +128,11 @@ export class RpcClient<A extends RpcApi> {
         p.onProgress?.(msg.stage, msg.fraction);
       } else if (msg.type === 'result') {
         this.pending.delete(msg.id);
+        p.done();
         p.resolve(msg.result);
       } else {
         this.pending.delete(msg.id);
+        p.done();
         const err = new Error(msg.message);
         err.name = msg.name;
         p.reject(err);

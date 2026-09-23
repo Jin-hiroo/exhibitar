@@ -77,4 +77,14 @@ describe('geometry worker protocol', () => {
     await expect(p).rejects.toMatchObject({ name: 'AbortError' });
     expect(terminatedCount()).toBe(1);
   });
+
+  it("does not cancel later calls when a finished call's signal aborts", async () => {
+    const { client, terminatedCount, close } = connect();
+    cleanup = close;
+    const ac = new AbortController();
+    const stl = toBinaryStl(cube());
+    await client.call('load', { stl, sourceScale: 1 }, { signal: ac.signal, transfer: [stl] });
+    ac.abort();
+    expect(terminatedCount()).toBe(0);
+  });
 });
