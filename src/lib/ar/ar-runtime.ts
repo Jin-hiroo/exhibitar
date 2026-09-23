@@ -1,5 +1,6 @@
 import {
   AmbientLight,
+  type ArrayCamera,
   DirectionalLight,
   HemisphereLight,
   Matrix4,
@@ -32,6 +33,14 @@ import {
 } from './xr-image-tracking';
 
 export type TrackingPhase = 'starting' | 'searching' | 'tracking' | 'holding';
+
+export interface OffscreenGuide {
+  /** arrow position as fractions of the screen (0,0 = top-left) */
+  x: number;
+  y: number;
+  /** direction to the target, degrees clockwise from "right" */
+  angleDeg: number;
+}
 
 export interface ArStatus {
   phase: TrackingPhase;
@@ -68,6 +77,11 @@ export interface ArRuntimeOptions {
   overlayRoot: HTMLElement;
   onStatus(status: ArStatus): void;
   onSelect(annotationId: string | null): void;
+  /**
+   * Every frame while an annotation is selected: where to point an edge arrow
+   * when it is off-screen (screen fractions 0..1 and a clockwise angle), else null.
+   */
+  onGuide?(guide: OffscreenGuide | null): void;
   onEnd(): void;
   /** force a tracker axis convention (debug: ?convention=arcore) */
   conventionOverride?: ImageConvention;
@@ -223,6 +237,7 @@ export class ArRuntime {
 
     const xrCamera = renderer.xr.getCamera();
     this.o.exhibit.update(xrCamera);
+    this.o.onGuide?.(this.guideTo(xrCamera));
     renderer.render(this.scene, this.camera);
     this.emitStatus(phase, tracked, emulated, fused, observations);
   };
@@ -252,6 +267,32 @@ export class ArRuntime {
     this.session = null;
     this.o.onEnd();
   };
+
+  /** Edge arrow toward the selected annotation when it is outside the view. */
+  private guideTo(xrCamera: ArrayCamera): OffscreenGuide | null {
+    const id = this.o.exhibit.selected;
+    if (!id || !this.o.exhibit.root.visible) return null;
+    const world = this.o.exhibit.labelWorldPosition(id);
+    const cam = xrCamera.cameras[0] ?? xrCamera;
+    if (!world) return null;
+    const ndc = world.clone().project(cam);
+    const camPos = new Vector3().setFromMatrixPosition(cam.matrixWorld);
+    const behind =
+      new Vector3().subVectors(world, camPos).dot(cam.getWorldDirection(new Vector3())) < 0;
+    let { x, y } = ndc;
+    if (behind) {
+      x = -x;
+      y = -y;
+    }
+    if (!behind && Math.abs(x) <= 0.95 && Math.abs(y) <= 0.95) return null;
+    const angle = Math.atan2(y, x);
+    const k = 0.85 / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
+    return {
+      x: 0.5 + 0.5 * Math.cos(angle) * k,
+      y: 0.5 - 0.5 * Math.sin(angle) * k,
+      angleDeg: (-angle * 180) / Math.PI,
+    };
+  }
 
   /**
    * The fit tries both tracker axis conventions every frame; remember the one

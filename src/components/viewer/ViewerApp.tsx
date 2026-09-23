@@ -31,6 +31,7 @@ export function ViewerApp({ project, assetBase }: Props) {
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'),
   );
   const overlayRef = useRef<HTMLDivElement>(null);
+  const guideRef = useRef<HTMLDivElement>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
   const arRef = useRef<ArRuntime | null>(null);
   const orbitViewerRef = useRef<OrbitViewer | null>(null);
@@ -90,6 +91,16 @@ export function ViewerApp({ project, assetBase }: Props) {
       overlayRoot: overlay,
       onStatus: setStatus,
       onSelect: setSelected,
+      onGuide: (g) => {
+        const el = guideRef.current;
+        if (!el) return;
+        el.style.display = g ? 'block' : 'none';
+        if (g) {
+          el.style.left = `${g.x * 100}%`;
+          el.style.top = `${g.y * 100}%`;
+          el.style.transform = `translate(-50%, -50%) rotate(${g.angleDeg}deg)`;
+        }
+      },
       onEnd: () => {
         arRef.current = null;
         exhibit.dispose();
@@ -254,6 +265,9 @@ export function ViewerApp({ project, assetBase }: Props) {
               </div>
             )}
             {debug && status && <pre className={styles.debug}>{debugText(status)}</pre>}
+            <div ref={guideRef} className={styles.guide} aria-hidden>
+              ➜
+            </div>
             {tourBar}
             {sheet}
           </>

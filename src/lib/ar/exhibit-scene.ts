@@ -157,6 +157,12 @@ export class ExhibitScene {
     }
   }
 
+  /** World position of an annotation's label (after the latest `update`). */
+  labelWorldPosition(id: string): Vector3 | null {
+    const l = this.labels.find((x) => x.annotation.id === id);
+    return l ? l.labelPos.clone().applyMatrix4(this.model.matrixWorld) : null;
+  }
+
   /** Per frame: scale labels to a steady on-screen size and fade the ones seen from behind. */
   update(camera: Camera): void {
     this.root.updateMatrixWorld(true);
