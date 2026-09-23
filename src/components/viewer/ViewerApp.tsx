@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { sanitizeLink } from '@/lib/annotations/list';
 import type { ArCapabilities } from '@/lib/ar/capabilities';
 import type { ArRuntime, ArStatus, OrbitViewer, PreparedExhibit } from '@/lib/ar/launch';
 import type { ViewerProject } from '@/lib/types';
@@ -44,6 +45,8 @@ export function ViewerApp({ project, assetBase }: Props) {
     [project.annotations],
   );
   const selectedAnnotation = tour.find((a) => a.id === selected) ?? null;
+  // project data is untrusted here: only http(s) links, whatever was stored
+  const safeLink = selectedAnnotation?.link ? sanitizeLink(selectedAnnotation.link) : undefined;
 
   // E5: count one view per page load for published (database) exhibits
   useEffect(() => {
@@ -195,8 +198,8 @@ export function ViewerApp({ project, assetBase }: Props) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`${assetBase.replace(/\/+$/, '')}/${selectedAnnotation.imagePath}`} alt="" />
       )}
-      {selectedAnnotation.link && (
-        <a href={selectedAnnotation.link} target="_blank" rel="noopener noreferrer">
+      {safeLink && (
+        <a href={safeLink} target="_blank" rel="noopener noreferrer">
           Learn more ↗
         </a>
       )}
