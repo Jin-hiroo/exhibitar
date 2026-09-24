@@ -80,14 +80,12 @@ WebXR only runs in a secure context. Three options, easiest first:
 ## Supabase
 
 Schema, RLS, storage buckets and functions live in `supabase/migrations/` (applied to the
-`exhibitar` project). Manual dashboard settings:
+`exhibitar` project). The app sends no email. Manual dashboard settings:
 
-- **Auth → URL Configuration**: Site URL `https://exhibitar.vercel.app`, Redirect URLs
-  `https://exhibitar.vercel.app/**` and `http://localhost:3000/**`. Otherwise sign-up
-  confirmation and password-reset links from the live site redirect to localhost.
-- **Auth → Sign In / Providers → Email**: enabled. Signing in sends no email. Sign-up and
-  password reset do, and the built-in mailer allows only a few emails per hour. Turn
-  **Confirm email** off, or set up custom SMTP (**Auth → SMTP**), before real users sign up.
+- **Auth → Sign In / Providers → Email**: enabled, with **Confirm email** off. Otherwise
+  sign-up sends a confirmation email, and the built-in mailer allows only a few per hour.
+  There is no "forgot password": sign in with a passkey and change the password at
+  `/studio/account`, or reset the user from the dashboard.
 - **Auth → Passkeys**: enabled, RP ID `exhibitar.vercel.app`, origin
   `https://exhibitar.vercel.app`. Passkeys therefore work only on the production domain, not on
   Vercel previews or localhost (password sign-in works everywhere). Don't change the RP ID

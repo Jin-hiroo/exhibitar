@@ -66,9 +66,8 @@ test('studio list and login render', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Create account' })).toBeVisible();
   await expect(page.getByLabel('Password')).toHaveAttribute('autocomplete', 'new-password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await page.getByRole('button', { name: 'Forgot password?' }).click();
-  await expect(page.getByRole('button', { name: 'Email me a reset link' })).toBeVisible();
-  await expect(page.getByLabel('Password')).toHaveCount(0);
+  await expect(page.getByLabel('Password')).toHaveAttribute('autocomplete', 'current-password');
+  await expect(page.getByRole('button', { name: /Forgot password/ })).toHaveCount(0);
 });
 
 test('account settings require signing in', async ({ page }) => {

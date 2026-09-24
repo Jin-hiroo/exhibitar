@@ -6,12 +6,12 @@ import { authErrorCode, authErrorMessage } from '@/lib/db/auth-errors';
 import { getBrowserDb } from '@/lib/db/client';
 import styles from '@/app/studio/studio.module.css';
 
-/** Account settings: passkeys (add / remove) and password (set / change / reset). */
-export function AccountPanel({ welcome, reset }: { welcome: boolean; reset: boolean }) {
+/** Account settings: passkeys (add / remove) and password (change). */
+export function AccountPanel({ welcome }: { welcome: boolean }) {
   return (
     <>
       <Passkeys welcome={welcome} />
-      <Password reset={reset} />
+      <Password />
     </>
   );
 }
@@ -147,7 +147,7 @@ function Passkeys({ welcome }: { welcome: boolean }) {
   );
 }
 
-function Password({ reset }: { reset: boolean }) {
+function Password() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -172,10 +172,7 @@ function Password({ reset }: { reset: boolean }) {
 
   return (
     <section className={styles.form}>
-      <h2>{reset ? 'Choose a new password' : 'Password'}</h2>
-      {reset && !notice && (
-        <p className={styles.warning}>You signed in from a reset link. Set a new password now.</p>
-      )}
+      <h2>Password</h2>
       <form onSubmit={submit} className={styles.form}>
         <label className={styles.field}>
           <span>New password</span>

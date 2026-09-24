@@ -206,10 +206,9 @@ applied about the mat origin (+yaw = counter-clockwise seen from above).
 ```text
 /                         marketing/landing
 /login                    Supabase auth (email + password, passkey)
-/auth/callback            email-link landing: sign-up confirmation, password reset (PKCE code or token hash)
 /auth/signout             POST: sign out
 /studio                   project list
-/studio/account           passkeys (add/remove), password (set/change/reset)
+/studio/account           passkeys (add/remove), change password
 /studio/new               upload → wizard
 /studio/[id]              editor tabs: Setup · Mat · Annotate · Preview · Publish
 /studio/[id]/calibrate    phone calibration AR

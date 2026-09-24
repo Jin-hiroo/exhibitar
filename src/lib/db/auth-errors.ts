@@ -24,11 +24,9 @@ export function isPasskeyCancel(err: unknown): boolean {
 
 const MESSAGES: Record<string, string> = {
   invalid_credentials: 'Wrong email or password.',
-  email_not_confirmed: 'Confirm your email address first: open the link we sent you.',
+  email_not_confirmed: 'This email address is not confirmed yet.',
   user_already_exists: 'An account with this email already exists. Sign in instead.',
   email_exists: 'An account with this email already exists. Sign in instead.',
-  over_email_send_rate_limit:
-    'Too many emails were sent recently. Try again later, or sign in with your password or a passkey.',
   over_request_rate_limit: 'Too many attempts. Wait a moment and try again.',
   same_password: 'That is already your password.',
   passkey_disabled: 'Passkeys are not enabled for this site yet. Use your email and password.',
