@@ -6,6 +6,7 @@ import type { ProjectRow } from '@/lib/db/database.types';
 import { restingRotation } from '@/lib/geometry/orient';
 import { loadModel, prepareModel } from '@/lib/geometry/pipeline';
 import { generateMat } from '@/lib/mat/generate';
+import { rebuildMatInput } from '@/lib/mat/rebuild';
 import { newStudioProject } from './draft';
 import type { PreparedSession } from './Editor';
 import { saveToCloud } from './publish';
@@ -143,6 +144,38 @@ describe('saveToCloud', () => {
     ).toBe(true);
     expect(mat.trackImage.imagePath).toBe('mats/cube000001/track-v2.png');
     expect(saved.annotations[0]!.imagePath).toMatch(/^annotation-media\/cube000001\//);
+  });
+
+  it('rebuilds the mat for a new link without re-uploading the model', async () => {
+    const { db, rows, uploads } = fakeDb();
+    const project = { ...newStudioProject('cube000005', 'owner'), title: 'Cube' };
+    const first = await saveToCloud(
+      db,
+      project,
+      await readySession('cube000005', 2),
+      'published',
+      () => {},
+    );
+    const before = uploads.length;
+
+    const input = rebuildMatInput({ ...first, mat: first.mat! }, 'https://exhibit.example');
+    const saved = await saveToCloud(
+      db,
+      first,
+      { geometryVersion: input.geometryVersion, mat: generateMat(input) },
+      'published',
+      () => {},
+    );
+
+    const paths = uploads.slice(before).map((u) => `${u.bucket}/${u.path}`);
+    expect(paths.some((p) => p.endsWith('.glb'))).toBe(false);
+    expect(paths).toContain('mats/cube000005/qr-v3.png');
+    expect(paths).toContain('mats/cube000005/mat-v3.pdf');
+    const row = rows.get('cube000005')!;
+    expect(row.geometry_version).toBe(3);
+    expect((row.model as { glbPath: string }).glbPath).toBe('models/cube000005/model-v2.glb');
+    expect(saved.mat!.qrUrl).toBe('https://exhibit.example/v/cube000005');
+    expect(saved.mat!.svgPath).toBe('mats/cube000005/mat-v3.svg');
   });
 
   it('saves text-only edits without re-uploading geometry', async () => {

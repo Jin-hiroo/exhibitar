@@ -82,7 +82,7 @@ interface Project {
     shadowOutlineMm: [number, number][][];
     markers: Marker[];
     trackImage?: TrackImage;          // the whole printed page as one extra tracking image
-    qrUrl?: string;                   // Viewer URL in the printed QR (Studio warns if it drifts)
+    qrUrl?: string;                   // Viewer URL in the printed QR (Studio offers a rebuild if it drifts)
   };
 
   annotations: Annotation[];
@@ -130,6 +130,12 @@ QR), `annotation-media/`, all public-read. Object paths are
 `<bucket>/<projectId>/<file>` with the geometry version in the file name
 (immutable, cacheable); only the project's owner may write under its folder
 (storage RLS). Project fields store these paths.
+
+A mat can be rebuilt without the STL (e.g. when its printed QR link is out of
+date: `mat.qrUrl` ≠ current Viewer URL). `rebuildMatInput` (`src/lib/mat/rebuild.ts`)
+regenerates it from the stored outlines and paper family under the next
+geometry version, so its files get new names; the stored GLB (and thus region
+triangle indices) is kept as is.
 
 ## 4. Studio pipeline (client-side, Web Workers)
 
