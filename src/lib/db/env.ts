@@ -5,9 +5,12 @@ export function supabaseEnv(): { url: string; key: string } | null {
   return url && key ? { url, key } : null;
 }
 
-/** Canonical public origin for Viewer links and QR codes (never a preview URL). */
+/**
+ * Canonical public origin for Viewer links and QR codes (never a preview URL).
+ * Defaults to production even in local dev: a printed mat must scan from any phone.
+ */
 export function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://exhibitar.vercel.app';
 }
 
 /** Public URL prefix for storage paths like "models/<id>/model-v2.glb". */
