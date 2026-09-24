@@ -2,18 +2,10 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Keeps the Supabase session cookie fresh for the Studio and auth routes, and
- * routes email-link codes that land on the Site URL root to /auth/callback.
+ * Keeps the Supabase session cookie fresh for the Studio and auth routes.
  * Authorization itself happens in the pages (RLS in the database).
  */
 export async function proxy(request: NextRequest) {
-  const { searchParams, pathname } = request.nextUrl;
-  if (pathname === '/' && (searchParams.has('code') || searchParams.has('token_hash'))) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth/callback';
-    return NextResponse.redirect(url);
-  }
-
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return NextResponse.next();
@@ -35,5 +27,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/studio/:path*', '/login', '/auth/:path*'],
+  matcher: ['/studio/:path*', '/login', '/auth/:path*'],
 };

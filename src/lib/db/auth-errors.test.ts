@@ -10,7 +10,7 @@ describe('authErrorMessage', () => {
     });
     expect(authErrorCode(err)).toBe('invalid_credentials');
     expect(authErrorMessage(err)).toBe('Wrong email or password.');
-    expect(authErrorMessage({ code: 'over_email_send_rate_limit' })).toMatch(/Too many emails/);
+    expect(authErrorMessage({ code: 'user_already_exists' })).toMatch(/already exists/);
     expect(authErrorMessage({ code: 'passkey_disabled' })).toMatch(/not enabled/);
   });
 

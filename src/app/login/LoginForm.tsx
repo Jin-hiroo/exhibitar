@@ -6,7 +6,7 @@ import { authErrorCode, authErrorMessage } from '@/lib/db/auth-errors';
 import { getBrowserDb } from '@/lib/db/client';
 import styles from '../studio/studio.module.css';
 
-type Mode = 'signin' | 'signup' | 'reset';
+type Mode = 'signin' | 'signup';
 
 const NOT_CONFIGURED = 'Sign-in is not configured (missing Supabase env vars).';
 
@@ -17,7 +17,6 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState<'password' | 'passkey' | null>(null);
   const [message, setMessage] = useState<string | null>(error);
-  const [sent, setSent] = useState<string | null>(null);
 
   // Passkey autofill: the browser offers saved passkeys in the email field's suggestions.
   useEffect(() => {
@@ -64,31 +63,17 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
     }
     setBusy('password');
     setMessage(null);
-    const callback = (then: string) =>
-      `${window.location.origin}/auth/callback?next=${encodeURIComponent(then)}`;
     try {
       if (mode === 'signin') {
         const { error: err } = await db.auth.signInWithPassword({ email, password });
         if (err) setMessage(authErrorMessage(err));
         else continueTo(next);
-      } else if (mode === 'signup') {
-        const { data, error: err } = await db.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: callback(next) },
-        });
-        if (err) setMessage(authErrorMessage(err));
-        else if (data.session) continueTo(`/studio/account?new=1`);
-        else
-          setSent(
-            `Check ${email} for a link to confirm your account. If you already have one, sign in instead.`,
-          );
       } else {
-        const { error: err } = await db.auth.resetPasswordForEmail(email, {
-          redirectTo: callback('/studio/account?reset=1'),
-        });
+        // no email: "Confirm email" is off in Supabase, so sign-up returns a session
+        const { data, error: err } = await db.auth.signUp({ email, password });
         if (err) setMessage(authErrorMessage(err));
-        else setSent(`If ${email} has an account, we sent it a link to choose a new password.`);
+        else if (data.session) continueTo('/studio/account?new=1');
+        else setMessage('Account created, but Supabase still requires email confirmation.');
       }
     } finally {
       setBusy(null);
@@ -115,28 +100,9 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
     setMessage(null);
   };
 
-  if (sent) {
-    return (
-      <div className={styles.form}>
-        <p className={styles.notice}>{sent}</p>
-        <button
-          type="button"
-          className={styles.secondary}
-          onClick={() => {
-            setSent(null);
-            switchTo('signin');
-          }}
-        >
-          Back to sign in
-        </button>
-      </div>
-    );
-  }
-
   const submitLabel = {
     signin: busy === 'password' ? 'Signing in…' : 'Sign in',
     signup: busy === 'password' ? 'Creating account…' : 'Create account',
-    reset: busy === 'password' ? 'Sending…' : 'Email me a reset link',
   }[mode];
 
   return (
@@ -154,21 +120,19 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
             placeholder="you@museum.org"
           />
         </label>
-        {mode !== 'reset' && (
-          <label className={styles.field}>
-            <span>Password</span>
-            <input
-              type="password"
-              name="password"
-              required
-              minLength={mode === 'signup' ? 8 : undefined}
-              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {mode === 'signup' && <small className={styles.small}>At least 8 characters.</small>}
-          </label>
-        )}
+        <label className={styles.field}>
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            required
+            minLength={mode === 'signup' ? 8 : undefined}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {mode === 'signup' && <small className={styles.small}>At least 8 characters.</small>}
+        </label>
         <button className={styles.primary} disabled={busy !== null}>
           {submitLabel}
         </button>
@@ -196,15 +160,11 @@ export function LoginForm({ next, error }: { next: string; error: string | null 
             New here?{' '}
             <button type="button" className={styles.link} onClick={() => switchTo('signup')}>
               Create an account
-            </button>{' '}
-            ·{' '}
-            <button type="button" className={styles.link} onClick={() => switchTo('reset')}>
-              Forgot password?
             </button>
           </>
         ) : (
           <>
-            {mode === 'signup' ? 'Already have an account? ' : 'Remembered it? '}
+            Already have an account?{' '}
             <button type="button" className={styles.link} onClick={() => switchTo('signin')}>
               Sign in
             </button>
