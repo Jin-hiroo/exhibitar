@@ -134,8 +134,10 @@ describe('saveToCloud', () => {
       svgPath: string;
       markers: { imagePath: string }[];
       trackImage: { imagePath: string };
+      qrUrl: string;
     };
     expect(mat.svgPath).toBe('mats/cube000001/mat-v2.svg');
+    expect(mat.qrUrl).toBe('https://exhibitar.vercel.app/v/cube000001');
     expect(
       mat.markers.every((m) => /^mats\/cube000001\/marker-v2-m\d\.png$/.test(m.imagePath)),
     ).toBe(true);

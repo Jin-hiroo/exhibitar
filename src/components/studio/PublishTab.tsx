@@ -17,6 +17,8 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const viewerUrl = `${siteUrl()}/v/${project.id}`;
+  // the QR was baked into the mat when it was generated; the site URL may have changed since
+  const printedUrl = project.mat?.qrUrl;
   const hasGeometry = !!(ready || project.model?.glbPath);
   const qrUrl =
     ready?.urls.qr ??
@@ -76,6 +78,12 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {qrUrl && <img className={styles.qr} src={qrUrl} alt="QR code for the Viewer" />}
+            {printedUrl && printedUrl !== viewerUrl && (
+              <p className={styles.warning}>
+                The QR code on this mat opens {printedUrl}, not the link above. Generate the mat
+                again in Setup, update the published exhibit, and print the new mat.
+              </p>
+            )}
           </>
         )}
         {ready && project.status === 'published' && (

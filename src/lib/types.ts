@@ -55,6 +55,8 @@ export interface Project {
      * corner markers; it is rendered from the same drawing as the SVG.
      */
     trackImage?: TrackImage;
+    /** Viewer URL encoded in the printed QR code (absent on mats made before it was recorded). */
+    qrUrl?: string;
   };
 
   annotations: Annotation[];
