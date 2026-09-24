@@ -1,4 +1,5 @@
 import { findContactTriangles } from './contact';
+import { footprintStats, type FootprintStats } from './footprint-stats';
 import { faceNormalsAndAreas, triangleCount, type IndexedMesh } from './mesh';
 import * as poly from './polygons';
 import type { Polygons } from './polygons';
@@ -10,16 +11,11 @@ const SIMPLIFY_MM = 0.1;
 const MIN_ISLAND_MM2 = 1;
 const SHADOW_TARGET_TRIANGLES = 5_000;
 
-export interface Footprint {
+export interface Footprint extends FootprintStats {
   /** where the object touches the paper (mat XZ, mm) — solid line on the mat */
   contactOutlineMm: Polygons;
   /** top-down silhouette (mat XZ, mm) — dashed line on the mat */
   shadowOutlineMm: Polygons;
-  contactAreaMm2: number;
-  shadowAreaMm2: number;
-  contactIslands: number;
-  /** contact is tiny or fragmented: the mat should emphasise the shadow outline */
-  contactWeak: boolean;
 }
 
 /**
@@ -40,17 +36,10 @@ export async function computeFootprint(orientedMm: IndexedMesh): Promise<Footpri
   shadow = poly.offset(poly.union([...shadow, ...contact]), GAP_CLOSE_MM + coarse.error);
   shadow = poly.dropSmall(poly.simplify(shadow, SIMPLIFY_MM), MIN_ISLAND_MM2);
 
-  const contactAreaMm2 = poly.area(contact);
-  const shadowAreaMm2 = poly.area(shadow);
-  const contactIslands = poly.outerRingCount(contact);
   return {
     contactOutlineMm: contact,
     shadowOutlineMm: shadow,
-    contactAreaMm2,
-    shadowAreaMm2,
-    contactIslands,
-    contactWeak:
-      contactAreaMm2 < 25 || contactAreaMm2 < 0.05 * shadowAreaMm2 || contactIslands > 12,
+    ...footprintStats(contact, shadow),
   };
 }
 

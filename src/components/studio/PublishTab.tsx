@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getBrowserDb } from '@/lib/db/client';
 import { siteUrl } from '@/lib/db/env';
+import { rebuildMatInput } from '@/lib/mat/rebuild';
 import styles from '@/app/studio/studio.module.css';
 import type { EditorContext } from './Editor';
-import { saveToCloud } from './publish';
+import { saveToCloud, type NewGeometry } from './publish';
 
 /** F5: upload + publish, Viewer URL + QR, printing checklist, geometry warnings. */
 export function PublishTab({ ctx }: { ctx: EditorContext }) {
@@ -24,15 +25,21 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
     ready?.urls.qr ??
     (storageBase ? `${storageBase}/mats/${project.id}/qr-v${project.geometryVersion}.png` : null);
 
-  const run = async (status: 'draft' | 'published') => {
+  const run = async (
+    status: 'draft' | 'published',
+    newGeometry: NewGeometry | null = ready,
+  ): Promise<boolean> => {
     const db = getBrowserDb();
-    if (!db) return setError('Supabase is not configured.');
+    if (!db) {
+      setError('Supabase is not configured.');
+      return false;
+    }
     setError(null);
     try {
       const saved = await saveToCloud(
         db,
         project,
-        ready,
+        newGeometry,
         status,
         (m, f) => {
           setBusy(m);
@@ -42,9 +49,32 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
       );
       ctx.markSaved(saved);
       if (isNew) router.replace(`/studio/${saved.id}`);
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      return false;
     } finally {
+      setBusy(null);
+    }
+  };
+
+  // a new mat for the current link from the stored outlines: no STL needed, same GLB
+  const remakeMat = async () => {
+    const mat = project.mat;
+    if (!mat) return;
+    setError(null);
+    setBusy('Generating the new mat…');
+    setProgress(0.02);
+    try {
+      const input = rebuildMatInput({ ...project, mat }, siteUrl());
+      const generated = await ctx.matClient.call('generate', input);
+      const saved = await run(project.status, {
+        geometryVersion: input.geometryVersion,
+        mat: generated,
+      });
+      if (saved) ctx.setTab('mat');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
       setBusy(null);
     }
   };
@@ -78,11 +108,23 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {qrUrl && <img className={styles.qr} src={qrUrl} alt="QR code for the Viewer" />}
-            {printedUrl && printedUrl !== viewerUrl && (
-              <p className={styles.warning}>
-                The QR code on this mat opens {printedUrl}, not the link above. Generate the mat
-                again in Setup, update the published exhibit, and print the new mat.
-              </p>
+            {project.mat && printedUrl !== viewerUrl && !ready && (
+              <div className={styles.warning}>
+                <p>
+                  {printedUrl
+                    ? `The QR code on this mat opens ${printedUrl}, not the link above.`
+                    : 'This mat was made before the Studio recorded its QR link. If scanning it does not open the link above, replace it.'}{' '}
+                  Make a new mat, then print it and throw the old one away: it also gets new
+                  markers.
+                </p>
+                <button
+                  className={styles.primary}
+                  disabled={!!busy}
+                  onClick={() => void remakeMat()}
+                >
+                  Make a new mat with this link
+                </button>
+              </div>
             )}
           </>
         )}
