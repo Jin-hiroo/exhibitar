@@ -10,7 +10,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
     <main className={styles.narrow}>
       <h1>Sign in</h1>
       <p className={styles.muted}>
-        Exhibitors sign in to publish exhibits. No password: we email you a link.
+        Exhibitors sign in to publish exhibits, with email and password or a passkey.
       </p>
       <LoginForm next={next} error={error} />
       <p className={styles.muted}>

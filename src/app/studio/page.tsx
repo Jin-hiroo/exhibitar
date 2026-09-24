@@ -15,6 +15,9 @@ export default async function StudioPage() {
         {user ? (
           <>
             <span className={styles.small}>{user.email}</span>
+            <Link className={styles.ghost} href="/studio/account">
+              Account
+            </Link>
             <form action="/auth/signout" method="post">
               <button className={styles.ghost}>Sign out</button>
             </form>

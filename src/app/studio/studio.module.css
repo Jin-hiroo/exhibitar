@@ -109,6 +109,32 @@
   color: #991b1b;
 }
 
+.link {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+}
+
 .primary:disabled,
 .secondary:disabled {
   opacity: 0.45;
