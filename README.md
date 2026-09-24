@@ -14,7 +14,7 @@ markers; visitors scan a QR code and see labels registered onto the real object.
 - **Studio** (`/studio`): upload an STL (or a sample), pick how it stands and which side is
   FRONT, generate the model + printable mat, annotate (points, painted regions, text, links,
   images), preview, publish. Works without an account as an in-tab draft; publishing needs
-  sign-in (email magic link).
+  sign-in (email + password, or a passkey; manage passkeys at `/studio/account`).
 - **Viewer** (`/v/<id>`): Android Chrome WebXR AR with image tracking (markers + whole page),
   labels occluded by the real object, tap for details, guided tour, 3D fallback; iPhone via
   the Needle Go App Clip. `?debug` shows the tracking HUD.
@@ -80,9 +80,18 @@ WebXR only runs in a secure context. Three options, easiest first:
 ## Supabase
 
 Schema, RLS, storage buckets and functions live in `supabase/migrations/` (applied to the
-`exhibitar` project). One manual setting: **Auth → URL Configuration** — Site URL
-`https://exhibitar.vercel.app`, Redirect URLs `https://exhibitar.vercel.app/**` and
-`http://localhost:3000/**`, otherwise magic links from the live site redirect to localhost.
+`exhibitar` project). Manual dashboard settings:
+
+- **Auth → URL Configuration**: Site URL `https://exhibitar.vercel.app`, Redirect URLs
+  `https://exhibitar.vercel.app/**` and `http://localhost:3000/**`. Otherwise sign-up
+  confirmation and password-reset links from the live site redirect to localhost.
+- **Auth → Sign In / Providers → Email**: enabled. Signing in sends no email. Sign-up and
+  password reset do, and the built-in mailer allows only a few emails per hour. Turn
+  **Confirm email** off, or set up custom SMTP (**Auth → SMTP**), before real users sign up.
+- **Auth → Passkeys**: enabled, RP ID `exhibitar.vercel.app`, origin
+  `https://exhibitar.vercel.app`. Passkeys therefore work only on the production domain, not on
+  Vercel previews or localhost (password sign-in works everywhere). Don't change the RP ID
+  once people have passkeys: that invalidates all of them.
 
 ## Deployment
 

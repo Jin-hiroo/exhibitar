@@ -58,7 +58,22 @@ test('studio list and login render', async ({ page }) => {
   await page.goto('/studio');
   await expect(page.getByRole('link', { name: '+ New exhibit' })).toBeVisible();
   await page.goto('/login');
-  await expect(page.getByRole('button', { name: 'Email me a sign-in link' })).toBeVisible();
+  await expect(page.getByLabel('Email')).toHaveAttribute('autocomplete', 'username webauthn');
+  await expect(page.getByLabel('Password')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in with a passkey' })).toBeVisible();
+  await page.getByRole('button', { name: 'Create an account' }).click();
+  await expect(page.getByRole('button', { name: 'Create account' })).toBeVisible();
+  await expect(page.getByLabel('Password')).toHaveAttribute('autocomplete', 'new-password');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Forgot password?' }).click();
+  await expect(page.getByRole('button', { name: 'Email me a reset link' })).toBeVisible();
+  await expect(page.getByLabel('Password')).toHaveCount(0);
+});
+
+test('account settings require signing in', async ({ page }) => {
+  await page.goto('/studio/account');
+  await expect(page).toHaveURL(/\/login\?next=%2Fstudio%2Faccount|\/login\?next=\/studio\/account/);
 });
 
 test('editing a saved exhibit requires signing in', async ({ page }) => {

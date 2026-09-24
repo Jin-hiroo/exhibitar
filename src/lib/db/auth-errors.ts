@@ -1,0 +1,55 @@
+/**
+ * Short UI messages for Supabase Auth failures (password, sign-up, passkeys).
+ * Errors are either `AuthError`s (server `code` such as "invalid_credentials") or
+ * `WebAuthnError`s from the browser ceremony (`code` such as "ERROR_CEREMONY_ABORTED").
+ */
+
+type ErrorLike = { code?: unknown; name?: unknown; message?: unknown; cause?: unknown };
+
+function asErrorLike(err: unknown): ErrorLike | null {
+  return typeof err === 'object' && err !== null ? (err as ErrorLike) : null;
+}
+
+export function authErrorCode(err: unknown): string | undefined {
+  const code = asErrorLike(err)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+/** The user dismissed the passkey prompt, or a newer ceremony replaced this one. */
+export function isPasskeyCancel(err: unknown): boolean {
+  if (authErrorCode(err) === 'ERROR_CEREMONY_ABORTED') return true;
+  const cause = asErrorLike(asErrorLike(err)?.cause);
+  return cause?.name === 'NotAllowedError' || cause?.name === 'AbortError';
+}
+
+const MESSAGES: Record<string, string> = {
+  invalid_credentials: 'Wrong email or password.',
+  email_not_confirmed: 'Confirm your email address first: open the link we sent you.',
+  user_already_exists: 'An account with this email already exists. Sign in instead.',
+  email_exists: 'An account with this email already exists. Sign in instead.',
+  over_email_send_rate_limit:
+    'Too many emails were sent recently. Try again later, or sign in with your password or a passkey.',
+  over_request_rate_limit: 'Too many attempts. Wait a moment and try again.',
+  same_password: 'That is already your password.',
+  passkey_disabled: 'Passkeys are not enabled for this site yet. Use your email and password.',
+  webauthn_credential_not_found:
+    'This passkey is not registered here any more. Sign in with your password and add it again.',
+  webauthn_challenge_expired: 'The passkey prompt timed out. Try again.',
+  webauthn_challenge_not_found: 'The passkey prompt timed out. Try again.',
+  webauthn_credential_exists: 'This device already has a passkey for your account.',
+  ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED: 'This device already has a passkey for your account.',
+  too_many_passkeys: 'You have the maximum number of passkeys. Remove one first.',
+  ERROR_INVALID_RP_ID:
+    'Passkeys are not set up for this web address. Use your password here, or the main site.',
+  ERROR_INVALID_DOMAIN:
+    'Passkeys are not set up for this web address. Use your password here, or the main site.',
+};
+
+/** Message to show for a failed auth call, or null when there is nothing to report (cancelled). */
+export function authErrorMessage(err: unknown): string | null {
+  if (isPasskeyCancel(err)) return null;
+  const code = authErrorCode(err);
+  if (code && MESSAGES[code]) return MESSAGES[code];
+  const message = asErrorLike(err)?.message;
+  return typeof message === 'string' && message ? message : 'Something went wrong. Try again.';
+}

@@ -2,7 +2,10 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getServerDb } from '@/lib/db/server';
 
-/** Magic-link landing: exchange the code (PKCE) or verify the token hash, then continue. */
+/**
+ * Email-link landing (sign-up confirmation, password reset): exchange the code (PKCE) or
+ * verify the token hash, then continue.
+ */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const next = safeNext(searchParams.get('next'));

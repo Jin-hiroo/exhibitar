@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * Keeps the Supabase session cookie fresh for the Studio and auth routes, and
- * routes magic-link codes that land on the Site URL root to /auth/callback.
+ * routes email-link codes that land on the Site URL root to /auth/callback.
  * Authorization itself happens in the pages (RLS in the database).
  */
 export async function proxy(request: NextRequest) {
