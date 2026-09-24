@@ -82,6 +82,7 @@ interface Project {
     shadowOutlineMm: [number, number][][];
     markers: Marker[];
     trackImage?: TrackImage;          // the whole printed page as one extra tracking image
+    qrUrl?: string;                   // Viewer URL in the printed QR (Studio warns if it drifts)
   };
 
   annotations: Annotation[];

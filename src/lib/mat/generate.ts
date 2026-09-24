@@ -135,6 +135,7 @@ export function generateMat(input: MatInput): GeneratedMat {
       shadowOutlineMm: input.shadowOutlineMm,
       markers: markerSpecs,
       trackImage,
+      qrUrl,
     },
     svg,
     tileSvgs,

@@ -84,6 +84,8 @@ describe('generateMat', () => {
       expect(poly.area(poly.intersect(square, mat.meta.shadowOutlineMm))).toBe(0);
     }
     expect(mat.qrUrl).toBe('https://exhibitar.vercel.app/v/abc123');
+    // recorded with the project, so the Studio can tell when the printed QR no longer matches
+    expect(mat.meta.qrUrl).toBe(mat.qrUrl);
     // the whole page as one tracking image, centred on the page
     expect(mat.meta.trackImage).toEqual({ widthMm: 297, heightMm: 210, centerMm: [0, 0] });
     const v = new DataView(mat.trackPng.buffer, mat.trackPng.byteOffset);
