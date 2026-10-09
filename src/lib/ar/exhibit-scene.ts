@@ -23,10 +23,13 @@ import type { Annotation, Vec3, ViewerProject } from '../types';
 import { mmToM } from '../units';
 import { createLabelPlacer, type MatAxes, type PlacementMesh } from './label-placement';
 import { createLabelSprite, drawLabel } from './labels';
+import { createOcclusionTest } from './occlusion';
 import { matFromModel } from './pose';
 
 /** On-screen label height as a fraction of the distance to the camera. */
 const LABEL_HEIGHT_PER_M = 0.045;
+/** A label fades out / in over this long when the model starts / stops hiding it (s). */
+const LABEL_FADE_S = 0.15;
 const PICK_POINT_RADIUS_M = 0.03;
 
 interface LabelEntry {
@@ -38,6 +41,10 @@ interface LabelEntry {
   anchor: Vector3;
   normal: Vector3;
   labelPos: Vector3;
+  /** `labelPos` as a tuple, for the line-of-sight test */
+  labelAt: Vec3;
+  /** 1 = in view, 0 = behind the model; eases towards the line-of-sight result */
+  visibility: number;
 }
 
 /**
@@ -45,12 +52,14 @@ interface LabelEntry {
  *
  *   root  (mat frame; AR sets its matrix to worldFromMat)
  *   └─ model  (matrix = calibration ∘ objectToMat; children in model coords)
- *      ├─ occluder   depth-only copy of the model: the real object hides labels
+ *      ├─ occluder   depth-only copy of the model: the real object hides leader
+ *      │             lines, dots and highlights behind it
  *      ├─ ghost      translucent model + edges (calibration / "show model")
  *      ├─ highlight  selected region's triangles
- *      └─ labels
+ *      └─ labels     drawn on top of the model, hidden as a whole while the model
+ *                    is between them and the camera (see `update`)
  *
- * Used by the AR runtime, the fallback 3D viewer and (later) the Studio preview.
+ * Used by the AR runtime, the fallback 3D viewer and the Studio preview.
  */
 export class ExhibitScene {
   readonly root = new Group();
@@ -61,6 +70,10 @@ export class ExhibitScene {
   private readonly labels: LabelEntry[] = [];
   private readonly debug = new Group();
   private readonly regionOfTriangle = new Map<number, string>();
+  /** does the model stand between two points (model coords)? */
+  private readonly blocked: (from: Vec3, to: Vec3) => boolean;
+  /** `performance.now()` at the previous `update`, null before the first */
+  private lastUpdate: number | null = null;
   private highlight: Mesh | null = null;
   private selectedId: string | null = null;
 
@@ -111,8 +124,10 @@ export class ExhibitScene {
       if (a.kind === 'region') for (const t of a.triangles) this.regionOfTriangle.set(t, a.id);
     }
     const ordered = [...project.annotations].sort((a, b) => a.order - b.order);
-    const placeLabel = createLabelPlacer(placementMesh(geometry), matAxes(project.objectToMat));
+    const mesh = placementMesh(geometry);
+    const placeLabel = createLabelPlacer(mesh, matAxes(project.objectToMat));
     ordered.forEach((a, i) => this.labels.push(this.buildLabel(a, i + 1, placeLabel)));
+    this.blocked = createOcclusionTest(mesh);
 
     this.buildDebug();
     this.debug.visible = false;
@@ -170,34 +185,57 @@ export class ExhibitScene {
     return l ? l.labelPos.clone().applyMatrix4(this.model.matrixWorld) : null;
   }
 
-  /** Per frame: scale labels to a steady on-screen size and fade the ones seen from behind. */
-  update(camera: Camera): void {
+  /**
+   * Per frame: scale labels to a steady on-screen size, hide the ones the model
+   * stands in front of and fade the ones seen from behind. Labels are drawn on
+   * top of the model, so it never cuts into one; instead a label disappears as a
+   * whole while the line from the camera to it passes through the model.
+   * Returns true while a label is still fading in or out (render another frame).
+   */
+  update(camera: Camera): boolean {
     this.root.updateMatrixWorld(true);
+    const now = performance.now();
+    // the first frame shows each label as it is; later ones fade towards it
+    const step =
+      this.lastUpdate === null ? 1 : Math.min(0.1, (now - this.lastUpdate) / 1000) / LABEL_FADE_S;
+    this.lastUpdate = now;
     const camPos = new Vector3().setFromMatrixPosition(camera.matrixWorld);
+    const camInModel = this.model.worldToLocal(camPos.clone()).toArray() as Vec3;
     const world = new Vector3();
     const n = new Vector3();
     const toCam = new Vector3();
+    let fading = false;
     for (const l of this.labels) {
       world.copy(l.labelPos).applyMatrix4(this.model.matrixWorld);
       const dist = Math.max(0.05, world.distanceTo(camPos));
       const h = Math.min(0.05, Math.max(0.006, dist * LABEL_HEIGHT_PER_M));
       l.sprite.scale.set(h * (l.sprite.userData.aspect as number), h, 1);
 
+      const target = this.blocked(camInModel, l.labelAt) ? 0 : 1;
+      l.visibility =
+        target > l.visibility
+          ? Math.min(target, l.visibility + step)
+          : Math.max(target, l.visibility - step);
+      if (l.visibility !== target) fading = true;
+
       n.copy(l.normal).transformDirection(this.model.matrixWorld);
       toCam.copy(camPos).sub(world).normalize();
       const facing = n.dot(toCam); // 1 = facing the viewer, <0 = from behind
       const selected = l.annotation.id === this.selectedId;
       // full strength until the surface turns away (grazing views stay readable), faint from behind
-      const opacity = selected ? 1 : Math.min(1, Math.max(0.12, (facing + 0.35) / 0.45));
+      const facingOpacity = selected ? 1 : Math.min(1, Math.max(0.12, (facing + 0.35) / 0.45));
+      const opacity = facingOpacity * l.visibility;
+      l.group.visible = opacity > 0;
       (l.sprite.material as { opacity: number }).opacity = opacity;
       (l.dot.material as MeshBasicMaterial).opacity = opacity;
       (l.line.material as LineBasicMaterial).opacity = opacity * 0.9;
     }
+    return fading;
   }
 
-  /** What did the user tap? Labels first, then the region/point under the ray. */
+  /** What did the user tap? Labels in view first, then the region/point under the ray. */
   pick(raycaster: Raycaster): string | null {
-    const sprites = this.labels.map((l) => l.sprite);
+    const sprites = this.labels.filter((l) => l.visibility >= 0.5).map((l) => l.sprite);
     const hitLabel = raycaster.intersectObjects(sprites, false)[0];
     if (hitLabel) {
       return this.labels.find((l) => l.sprite === hitLabel.object)!.annotation.id;
@@ -243,7 +281,8 @@ export class ExhibitScene {
   ): LabelEntry {
     const anchor = new Vector3(...a.anchor.position);
     const normal = new Vector3(...a.anchor.normal).normalize();
-    const labelPos = new Vector3(...place(a.anchor.position, a.anchor.normal));
+    const labelAt = place(a.anchor.position, a.anchor.normal);
+    const labelPos = new Vector3(...labelAt);
     const group = new Group();
     group.name = `label:${a.id}`;
 
@@ -262,7 +301,18 @@ export class ExhibitScene {
     sprite.position.copy(labelPos);
     group.add(line, dot, sprite);
     this.model.add(group);
-    return { annotation: a, group, sprite, dot, line, anchor, normal, labelPos };
+    return {
+      annotation: a,
+      group,
+      sprite,
+      dot,
+      line,
+      anchor,
+      normal,
+      labelPos,
+      labelAt,
+      visibility: 1,
+    };
   }
 
   private buildHighlight(triangles: number[]): Mesh {

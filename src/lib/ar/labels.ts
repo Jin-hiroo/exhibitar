@@ -14,12 +14,16 @@ export interface LabelStyle {
   selected: boolean;
 }
 
-/** A pill with a numbered badge and the annotation title. Bottom-centre anchored. */
+/**
+ * A pill with a numbered badge and the annotation title. Bottom-centre anchored.
+ * Drawn on top of everything, so the model never cuts into it: the scene hides
+ * the whole label instead while the model is in front of it (ExhibitScene.update).
+ */
 export function createLabelSprite(number: number, title: string): Sprite {
   const material = new SpriteMaterial({
     transparent: true,
     depthWrite: false,
-    depthTest: true,
+    depthTest: false,
   });
   const sprite = new Sprite(material);
   sprite.center.set(0.5, 0);

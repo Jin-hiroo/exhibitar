@@ -186,13 +186,18 @@ triangle indices) is kept as is.
   followed at low weight; a frame-rate-independent low-pass filter smooths and
   re-snaps quickly after jumps.
 - **Occlusion**: render the GLB first with `colorWrite = false`,
-  `depthWrite = true`, so labels/effects behind the real object are hidden.
+  `depthWrite = true`, so leader lines, dots and region highlights behind the
+  real object are hidden.
 - **Labels**: billboarded sprites/HTML at `anchor.position + normal * offset`
   (25 mm), unless the model is in the way there (an anchor deep in a recess such
   as an eye socket): then the label moves out until nothing within 25 mm of its
   leader line is in front of it, escaping along the normal, outward, FRONT or up,
   preferring an unobstructed line, then the shortest (`src/lib/ar/label-placement.ts`).
-  Fade by `dot(normal, toCamera)` and occlusion.
+  Labels are drawn on top of the model (no depth test), so nearby surfaces never
+  cut into one; instead a label is hidden as a whole while the line from the
+  camera to it passes through the model (BVH line-of-sight test against the same
+  GLB, `src/lib/ar/occlusion.ts`), fading over 0.15 s. Also fade by
+  `dot(normal, toCamera)`.
 - **Region highlight**: sub-geometry from `triangles`, emissive/rim shader,
   slight polygon offset.
 - **Tap**: raycast against the occluder mesh → nearest annotation / region.
