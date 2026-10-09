@@ -40,7 +40,8 @@ install (Android: browser; iPhone: App Clip opens automatically).
 5. **Annotate.**
    - *Point*: click on the model surface → a point with surface normal.
    - *Region*: brush-paint triangles on the (simplified) model.
-   - Each annotation: title, body text, optional image, optional link.
+   - Each annotation: title, body text, optional image, optional link, and how
+     far its label floats off the model (default 25 mm; live while dragging).
    - Reorder list; order doubles as the guided-tour order.
 6. **Preview.** Orbit the model on the virtual mat; see labels as the audience
    will (including back-facing fade and occlusion).

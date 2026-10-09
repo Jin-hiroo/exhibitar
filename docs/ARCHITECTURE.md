@@ -111,6 +111,7 @@ type Annotation = {
   imagePath?: string;
   link?: string;
   anchor: { position: Vec3; normal: Vec3 };   // model coords
+  labelOffsetMm?: number;     // label distance off the anchor; absent = 25 mm
 } & (
   | { kind: 'point' }
   | { kind: 'region'; triangles: number[] }   // indices into the stored GLB
@@ -189,8 +190,9 @@ triangle indices) is kept as is.
   `depthWrite = true`, so leader lines, dots and region highlights behind the
   real object are hidden.
 - **Labels**: billboarded sprites/HTML at `anchor.position + normal * offset`
-  (25 mm), unless the model is in the way there (an anchor deep in a recess such
-  as an eye socket): then the label moves out until nothing within 25 mm of its
+  (`labelOffsetMm`, 5–150 mm, default 25 mm; set per annotation in the Studio),
+  unless the model is in the way there (an anchor deep in a recess such as an
+  eye socket): then the label moves out until nothing within 25 mm of its
   leader line is in front of it, escaping along the normal, outward, FRONT or up,
   preferring an unobstructed line, then the shortest (`src/lib/ar/label-placement.ts`).
   Labels are drawn on top of the model (no depth test), so nearby surfaces never

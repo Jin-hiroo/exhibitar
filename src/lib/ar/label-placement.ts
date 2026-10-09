@@ -1,7 +1,13 @@
 import type { Vec3 } from '../types';
+import { mmToM } from '../units';
 
-/** Labels float at least this far off the surface (metres). */
-export const LABEL_OFFSET_M = 0.025;
+/** How far a label floats off its anchor unless the annotation sets its own (`labelOffsetMm`). */
+export const DEFAULT_LABEL_OFFSET_MM = 25;
+/** The range an exhibitor can pick a label distance from (mm). */
+export const MIN_LABEL_OFFSET_MM = 5;
+export const MAX_LABEL_OFFSET_MM = 150;
+/** The default label distance (metres). */
+export const LABEL_OFFSET_M = mmToM(DEFAULT_LABEL_OFFSET_MM);
 /** Around the leader line, this radius must be clear of the model in front of the label (metres). */
 export const LABEL_CLEAR_RADIUS_M = 0.025;
 /** Gap between the label and the furthest part of the model it has to clear (metres). */
@@ -51,22 +57,31 @@ interface Option {
 }
 
 /**
+ * An annotation's label distance (mm): its own `labelOffsetMm`, else the default,
+ * kept within the range the Studio offers (stored values are not trusted).
+ */
+export function labelOffsetMm(annotation: { labelOffsetMm?: number }): number {
+  const mm = annotation.labelOffsetMm;
+  if (typeof mm !== 'number' || !Number.isFinite(mm)) return DEFAULT_LABEL_OFFSET_MM;
+  return Math.min(MAX_LABEL_OFFSET_MM, Math.max(MIN_LABEL_OFFSET_MM, mm));
+}
+
+/**
  * Label positions that are never buried in the model.
  *
- * A label sits `LABEL_OFFSET_M` off its anchor along the surface normal. When the
- * model is in the way there (an anchor deep in an eye socket or a pocket), the label
- * moves further out, past everything within `LABEL_CLEAR_RADIUS_M` of the leader
- * line. It escapes along the normal, the horizontal outward direction, the mat's
- * FRONT, mat up, or a blend with the normal: preferring a leader line that does not
- * pass through the model, then the shortest one. Labels stay depth-tested, so the
- * object still hides labels on its far side.
+ * A label sits `offset` (default `LABEL_OFFSET_M`) off its anchor along the surface
+ * normal. When the model is in the way there (an anchor deep in an eye socket or a
+ * pocket), the label moves further out, past everything within `LABEL_CLEAR_RADIUS_M`
+ * of the leader line. It escapes along the normal, the horizontal outward direction,
+ * the mat's FRONT, mat up, or a blend with the normal: preferring a leader line that
+ * does not pass through the model, then the shortest one.
  *
  * All coordinates are model coords (metres).
  */
 export function createLabelPlacer(
   mesh: PlacementMesh,
   axes: MatAxes,
-): (anchor: Vec3, normal: Vec3) => Vec3 {
+): (anchor: Vec3, normal: Vec3, offset?: number) => Vec3 {
   const pos = mesh.positions;
   const vertexCount = Math.floor(pos.length / 3);
   const index = mesh.index;
@@ -80,7 +95,7 @@ export function createLabelPlacer(
   const pz = new Float32Array(vertexCount);
 
   /** Where a label along `d` from `a` (normal `n`) has to go to clear the model, and whether the line is blocked. */
-  const option = (a: Vec3, n: Vec3, d: Vec3): Option => {
+  const option = (a: Vec3, n: Vec3, d: Vec3, offset: number): Option => {
     const [e1, e2] = perpendicularBasis(d);
     // the leader line, lifted off the surface, in the probe frame
     const lx = LINE_LIFT_M * dot(n, e1);
@@ -124,15 +139,16 @@ export function createLabelPlacer(
         blocked = crossing(lx, ly, x0, y0, z0, x1, y1, z1, x2, y2, z2, det) > lz + OWN_SURFACE_M;
       }
     }
-    return { d, t: Math.max(LABEL_OFFSET_M, far + LABEL_CLEARANCE_M), blocked };
+    // `far` stays 0 when nothing is in front of the label
+    return { d, t: Math.max(offset, far > 0 ? far + LABEL_CLEARANCE_M : 0), blocked };
   };
 
   const better = (a: Option, b: Option) => (a.blocked !== b.blocked ? !a.blocked : a.t < b.t);
 
-  return (anchor, normal) => {
+  return (anchor, normal, offset = LABEL_OFFSET_M) => {
     const n = normalize(normal) ?? u;
-    let best = option(anchor, n, n);
-    if (best.blocked || best.t > LABEL_OFFSET_M) {
+    let best = option(anchor, n, n, offset);
+    if (best.blocked || best.t > offset) {
       const fromCenter = sub(anchor, center);
       const outward = normalize(sub(fromCenter, scale(u, dot(fromCenter, u))));
       for (const e of [outward, front, u]) {
@@ -140,7 +156,7 @@ export function createLabelPlacer(
         for (const c of [add(n, e), e]) {
           const d = normalize(c);
           if (!d || dot(d, n) < MIN_NORMAL_DOT) continue;
-          const o = option(anchor, n, d);
+          const o = option(anchor, n, d, offset);
           if (better(o, best)) best = o;
         }
       }

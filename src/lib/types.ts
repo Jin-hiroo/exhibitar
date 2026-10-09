@@ -87,6 +87,8 @@ export type Annotation = {
   imagePath?: string;
   link?: string;
   anchor: { position: Vec3; normal: Vec3 }; // model coords (metres)
+  /** how far the label floats off the anchor (mm); absent = 25 mm */
+  labelOffsetMm?: number;
 } & (
   | { kind: 'point' }
   | { kind: 'region'; triangles: number[] } // indices into the stored GLB

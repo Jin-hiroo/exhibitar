@@ -16,6 +16,12 @@ import {
   regionAnchor,
   trianglesTouchingSphere,
 } from '@/lib/annotations/region';
+import {
+  DEFAULT_LABEL_OFFSET_MM,
+  labelOffsetMm,
+  MAX_LABEL_OFFSET_MM,
+  MIN_LABEL_OFFSET_MM,
+} from '@/lib/ar/label-placement';
 import { toProject } from '@/lib/db/mapping';
 import type { Annotation, Vec3 } from '@/lib/types';
 import { mmToM } from '@/lib/units';
@@ -32,6 +38,8 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
   const [brushMm, setBrushMm] = useState(8);
   const [erase, setErase] = useState(false);
   const [stroke, setStroke] = useState<number[] | null>(null);
+  // label distance while its slider drags: moves the label live, saved on release
+  const [offsetDraft, setOffsetDraft] = useState<{ id: string; mm: number } | null>(null);
   const strokeRef = useRef<number[]>([]);
 
   const arrays = useMemo(() => (geometry ? geometryArrays(geometry) : null), [geometry]);
@@ -82,6 +90,13 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
 
   const paintTriangles = stroke ?? (selectedAnn?.kind === 'region' ? selectedAnn.triangles : []);
 
+  const setLabelOffset = (a: Annotation, mm: number | undefined) => {
+    setOffsetDraft(null);
+    if (mm === a.labelOffsetMm || (mm === labelOffsetMm(a) && a.labelOffsetMm === undefined))
+      return;
+    setList(update(project.annotations, a.id, { labelOffsetMm: mm }));
+  };
+
   return (
     <div className={styles.split}>
       <div className={styles.viewport}>
@@ -91,6 +106,7 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
           tool={tool}
           selected={selected}
           paintTriangles={paintTriangles}
+          labelOffset={offsetDraft}
           onPick={onPick}
           onPaint={onPaint}
           onSelect={setSelected}
@@ -226,6 +242,12 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
                       }
                     />
                   </label>
+                  <LabelDistance
+                    value={offsetDraft?.id === a.id ? offsetDraft.mm : labelOffsetMm(a)}
+                    custom={a.labelOffsetMm !== undefined}
+                    onDrag={(mm) => setOffsetDraft({ id: a.id, mm })}
+                    onCommit={(mm) => setLabelOffset(a, mm)}
+                  />
                   <AnnotationImage
                     file={ctx.media[a.id] ?? null}
                     storedUrl={
@@ -253,6 +275,56 @@ export function AnnotateTab({ ctx }: { ctx: EditorContext }) {
           ))}
         </ul>
       </aside>
+    </div>
+  );
+}
+
+/** How far the label floats off the model: live while dragging, saved on release. */
+function LabelDistance({
+  value,
+  custom,
+  onDrag,
+  onCommit,
+}: {
+  value: number;
+  /** set on this annotation (else the default) */
+  custom: boolean;
+  onDrag(mm: number): void;
+  /** undefined = back to the default */
+  onCommit(mm: number | undefined): void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  // React's onChange fires on every step; the native change event once, on release
+  useEffect(() => {
+    const el = input.current;
+    if (!el) return;
+    const commit = () => onCommit(Number(el.value));
+    el.addEventListener('change', commit);
+    return () => el.removeEventListener('change', commit);
+  }, [onCommit]);
+  return (
+    <div className={styles.field}>
+      <label className={styles.field}>
+        <span>Label distance · {value} mm</span>
+        <input
+          ref={input}
+          type="range"
+          min={MIN_LABEL_OFFSET_MM}
+          max={MAX_LABEL_OFFSET_MM}
+          step={1}
+          value={value}
+          onChange={(e) => onDrag(Number(e.target.value))}
+        />
+      </label>
+      {custom && (
+        <button
+          className={styles.ghost}
+          style={{ justifySelf: 'start' }}
+          onClick={() => onCommit(undefined)}
+        >
+          Reset to {DEFAULT_LABEL_OFFSET_MM} mm
+        </button>
+      )}
     </div>
   );
 }

@@ -63,6 +63,7 @@ computed mat size; same seed → identical output.
 - [x] C3 Annotation list: edit title/body/image/link, reorder (tour order), delete _(images upload to `annotation-media` on save/publish)_
 - [x] C4 Label rendering shared with viewer (back-face fade, occlusion) — coordinate with WS-D, _(src/lib/ar/labels.ts, used by Viewer, Preview and the annotate view)_
       put the shared renderer in `src/lib/ar/labels.ts` owned by WS-D
+- [x] C5 Per-annotation label distance (`labelOffsetMm`, slider in the annotation panel; label moves live while dragging) _(placement in src/lib/ar/label-placement.ts)_
 
 **Tests:** painted triangle indices round-trip through GLB save/load unchanged.
 

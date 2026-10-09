@@ -48,7 +48,7 @@
   font-weight: 600;
 }
 
-.field input,
+.field input:not([type='range']),
 .field textarea,
 .field select {
   font: inherit;
@@ -57,6 +57,10 @@
   border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
   background: var(--bg);
   color: var(--fg);
+}
+
+.field input[type='range'] {
+  accent-color: var(--accent);
 }
 
 .field textarea {

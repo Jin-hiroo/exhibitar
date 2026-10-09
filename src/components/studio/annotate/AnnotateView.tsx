@@ -19,6 +19,8 @@ interface Props {
   selected: string | null;
   /** triangles being painted right now (shown live) */
   paintTriangles: readonly number[];
+  /** a label distance being dragged right now (shown live, not yet in `project`) */
+  labelOffset: { id: string; mm: number } | null;
   onPick(anchor: { position: Vec3; normal: Vec3 }): void;
   onPaint(point: Vec3, phase: 'start' | 'move' | 'end'): void;
   onSelect(id: string | null): void;
@@ -58,6 +60,7 @@ function Scene({
   tool,
   selected,
   paintTriangles,
+  labelOffset,
   onPick,
   onPaint,
   onSelect,
@@ -86,6 +89,11 @@ function Scene({
     exhibit.select(selected); // redraws label textures outside React
     invalidate();
   }, [exhibit, selected, invalidate]);
+  useEffect(() => {
+    if (!labelOffset) return;
+    exhibit.setLabelOffset(labelOffset.id, labelOffset.mm); // cheap: no scene rebuild per step
+    invalidate();
+  }, [exhibit, labelOffset, invalidate]);
   useFrame(({ camera }) => {
     if (exhibit.update(camera)) invalidate(); // a label is still fading in or out
   });
