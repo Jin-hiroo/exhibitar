@@ -1,7 +1,8 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { BufferGeometry } from 'three';
 import type { StudioProject } from '@/lib/db/mapping';
 import { storagePublicBase } from '@/lib/db/env';
@@ -11,12 +12,22 @@ import type { LengthUnit } from '@/lib/units';
 import { createGeometryClient } from '@/workers/geometry.client';
 import { createMatClient } from '@/workers/mat.client';
 import styles from '@/app/studio/studio.module.css';
-import { AnnotateTab } from './annotate/AnnotateTab';
-import { MatTab } from './MatTab';
-import { PreviewTab } from './PreviewTab';
-import { PublishTab } from './PublishTab';
 import { SetupTab } from './SetupTab';
-import { loadStoredGeometry, meshToGeometry } from './model-geometry';
+
+// The other tabs (three.js, the AR scene, Supabase, PDF) load when first opened.
+const loadingTab = () => <p className={styles.muted}>Loading…</p>;
+const MatTab = dynamic(() => import('./MatTab').then((m) => m.MatTab), { loading: loadingTab });
+const AnnotateTab = dynamic(() => import('./annotate/AnnotateTab').then((m) => m.AnnotateTab), {
+  ssr: false,
+  loading: loadingTab,
+});
+const PreviewTab = dynamic(() => import('./PreviewTab').then((m) => m.PreviewTab), {
+  ssr: false,
+  loading: loadingTab,
+});
+const PublishTab = dynamic(() => import('./PublishTab').then((m) => m.PublishTab), {
+  loading: loadingTab,
+});
 
 export type Tab = 'setup' | 'mat' | 'annotate' | 'preview' | 'publish';
 
@@ -105,7 +116,9 @@ export function Editor({
   useEffect(() => {
     if (!saved.model?.glbPath || !storageBase) return;
     let cancelled = false;
-    loadStoredGeometry(`${storageBase}/${saved.model.glbPath}`)
+    const url = `${storageBase}/${saved.model.glbPath}`;
+    import('./model-geometry')
+      .then((m) => m.loadStoredGeometry(url))
       .then((g) => !cancelled && setStoredGeometry(g))
       .catch(
         (e: unknown) => !cancelled && setLoadError(`Could not load the stored model: ${String(e)}`),
@@ -115,11 +128,25 @@ export function Editor({
     };
   }, [saved.model?.glbPath, storageBase]);
 
-  const readyGeometry = useMemo(
-    () => (ready ? meshToGeometry(ready.prepared.frozenMesh) : null),
-    [ready],
-  );
-  const geometry = readyGeometry ?? storedGeometry;
+  // three.js is imported lazily, so the prepared mesh becomes a BufferGeometry a tick later
+  const [readyGeometry, setReadyGeometry] = useState<{
+    from: PreparedSession;
+    geometry: BufferGeometry;
+  } | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    void import('./model-geometry').then((m) => {
+      if (!cancelled) {
+        setReadyGeometry({ from: ready, geometry: m.meshToGeometry(ready.prepared.frozenMesh) });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
+  const geometry =
+    (readyGeometry?.from === ready ? readyGeometry.geometry : null) ?? storedGeometry;
 
   const setReady = (r: PreparedSession | null) => {
     setReadyState((old) => {
@@ -169,6 +196,13 @@ export function Editor({
     preview: hasModel && hasMat,
     publish: true,
   };
+
+  // fetch the 3D tabs in the background once they have something to show
+  useEffect(() => {
+    if (!hasModel) return;
+    void import('./annotate/AnnotateTab');
+    void import('./PreviewTab');
+  }, [hasModel]);
 
   // warn before losing unsaved work (the STL is never stored anywhere)
   useEffect(() => {

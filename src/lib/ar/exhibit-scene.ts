@@ -10,6 +10,7 @@ import {
   LineBasicMaterial,
   LineLoop,
   LineSegments,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -18,13 +19,12 @@ import {
   Sprite,
   Vector3,
 } from 'three';
-import type { Annotation, ViewerProject } from '../types';
+import type { Annotation, Vec3, ViewerProject } from '../types';
 import { mmToM } from '../units';
+import { createLabelPlacer, type MatAxes, type PlacementMesh } from './label-placement';
 import { createLabelSprite, drawLabel } from './labels';
 import { matFromModel } from './pose';
 
-/** Labels float this far off the surface, along the anchor normal (metres). */
-const LABEL_OFFSET_M = 0.025;
 /** On-screen label height as a fraction of the distance to the camera. */
 const LABEL_HEIGHT_PER_M = 0.045;
 const PICK_POINT_RADIUS_M = 0.03;
@@ -111,7 +111,8 @@ export class ExhibitScene {
       if (a.kind === 'region') for (const t of a.triangles) this.regionOfTriangle.set(t, a.id);
     }
     const ordered = [...project.annotations].sort((a, b) => a.order - b.order);
-    ordered.forEach((a, i) => this.labels.push(this.buildLabel(a, i + 1)));
+    const placeLabel = createLabelPlacer(placementMesh(geometry), matAxes(project.objectToMat));
+    ordered.forEach((a, i) => this.labels.push(this.buildLabel(a, i + 1, placeLabel)));
 
     this.buildDebug();
     this.debug.visible = false;
@@ -235,10 +236,14 @@ export class ExhibitScene {
 
   // -------------------------------------------------------------------------
 
-  private buildLabel(a: Annotation, number: number): LabelEntry {
+  private buildLabel(
+    a: Annotation,
+    number: number,
+    place: (anchor: Vec3, normal: Vec3) => Vec3,
+  ): LabelEntry {
     const anchor = new Vector3(...a.anchor.position);
     const normal = new Vector3(...a.anchor.normal).normalize();
-    const labelPos = anchor.clone().addScaledVector(normal, LABEL_OFFSET_M);
+    const labelPos = new Vector3(...place(a.anchor.position, a.anchor.normal));
     const group = new Group();
     group.name = `label:${a.id}`;
 
@@ -351,4 +356,24 @@ export class ExhibitScene {
       );
     }
   }
+}
+
+/** Vertex positions and triangles for label placement (handles interleaved / quantized buffers). */
+function placementMesh(geometry: BufferGeometry): PlacementMesh {
+  const pos = geometry.getAttribute('position');
+  const positions = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    positions[i * 3] = pos.getX(i);
+    positions[i * 3 + 1] = pos.getY(i);
+    positions[i * 3 + 2] = pos.getZ(i);
+  }
+  return { positions, index: geometry.getIndex()?.array ?? null };
+}
+
+/** The mat's up and FRONT axes in model coordinates (calibration only nudges them). */
+function matAxes(objectToMat: number[]): MatAxes {
+  const modelFromMat = new Matrix4().fromArray(objectToMat).invert();
+  const axis = (x: number, y: number, z: number) =>
+    new Vector3(x, y, z).transformDirection(modelFromMat).toArray() as Vec3;
+  return { up: axis(0, 1, 0), front: axis(0, 0, 1) };
 }
