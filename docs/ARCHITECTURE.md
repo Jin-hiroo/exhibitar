@@ -187,7 +187,11 @@ triangle indices) is kept as is.
   re-snaps quickly after jumps.
 - **Occlusion**: render the GLB first with `colorWrite = false`,
   `depthWrite = true`, so labels/effects behind the real object are hidden.
-- **Labels**: billboarded sprites/HTML at `anchor.position + normal * offset`.
+- **Labels**: billboarded sprites/HTML at `anchor.position + normal * offset`
+  (25 mm), unless the model is in the way there (an anchor deep in a recess such
+  as an eye socket): then the label moves out until nothing within 25 mm of its
+  leader line is in front of it, escaping along the normal, outward, FRONT or up,
+  preferring an unobstructed line, then the shortest (`src/lib/ar/label-placement.ts`).
   Fade by `dot(normal, toCamera)` and occlusion.
 - **Region highlight**: sub-geometry from `triangles`, emissive/rim shader,
   slight polygon offset.
