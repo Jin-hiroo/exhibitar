@@ -21,7 +21,12 @@ import {
 } from 'three';
 import type { Annotation, Vec3, ViewerProject } from '../types';
 import { mmToM } from '../units';
-import { createLabelPlacer, type MatAxes, type PlacementMesh } from './label-placement';
+import {
+  createLabelPlacer,
+  labelOffsetMm,
+  type MatAxes,
+  type PlacementMesh,
+} from './label-placement';
 import { createLabelSprite, drawLabel } from './labels';
 import { createOcclusionTest } from './occlusion';
 import { matFromModel } from './pose';
@@ -70,6 +75,8 @@ export class ExhibitScene {
   private readonly labels: LabelEntry[] = [];
   private readonly debug = new Group();
   private readonly regionOfTriangle = new Map<number, string>();
+  /** where a label goes, `offset` metres off its anchor at least (model coords) */
+  private readonly placeLabel: (anchor: Vec3, normal: Vec3, offset?: number) => Vec3;
   /** does the model stand between two points (model coords)? */
   private readonly blocked: (from: Vec3, to: Vec3) => boolean;
   /** `performance.now()` at the previous `update`, null before the first */
@@ -125,8 +132,8 @@ export class ExhibitScene {
     }
     const ordered = [...project.annotations].sort((a, b) => a.order - b.order);
     const mesh = placementMesh(geometry);
-    const placeLabel = createLabelPlacer(mesh, matAxes(project.objectToMat));
-    ordered.forEach((a, i) => this.labels.push(this.buildLabel(a, i + 1, placeLabel)));
+    this.placeLabel = createLabelPlacer(mesh, matAxes(project.objectToMat));
+    ordered.forEach((a, i) => this.labels.push(this.buildLabel(a, i + 1)));
     this.blocked = createOcclusionTest(mesh);
 
     this.buildDebug();
@@ -138,6 +145,20 @@ export class ExhibitScene {
   setCalibration(calibration: ViewerProject['calibration']): void {
     this.model.matrix.copy(matFromModel(calibration, this.project.objectToMat));
     this.model.matrixWorldNeedsUpdate = true;
+  }
+
+  /**
+   * Move an annotation's label to a new distance off its anchor (mm), without
+   * rebuilding the scene (the Studio's label-distance slider, while it drags).
+   */
+  setLabelOffset(id: string, offsetMm: number): void {
+    const l = this.labels.find((x) => x.annotation.id === id);
+    if (!l) return;
+    l.labelAt = this.labelPoint(l.annotation, offsetMm);
+    l.labelPos.set(...l.labelAt);
+    l.sprite.position.copy(l.labelPos);
+    l.line.geometry.setFromPoints([l.anchor, l.labelPos]);
+    l.line.geometry.computeBoundingSphere();
   }
 
   /** Show the model itself (translucent), e.g. without the printed object or for calibration. */
@@ -274,14 +295,16 @@ export class ExhibitScene {
 
   // -------------------------------------------------------------------------
 
-  private buildLabel(
-    a: Annotation,
-    number: number,
-    place: (anchor: Vec3, normal: Vec3) => Vec3,
-  ): LabelEntry {
+  /** Where an annotation's label goes for a distance of `offsetMm` (model coords). */
+  private labelPoint(a: Annotation, offsetMm: number | undefined): Vec3 {
+    const offset = mmToM(labelOffsetMm({ labelOffsetMm: offsetMm }));
+    return this.placeLabel(a.anchor.position, a.anchor.normal, offset);
+  }
+
+  private buildLabel(a: Annotation, number: number): LabelEntry {
     const anchor = new Vector3(...a.anchor.position);
     const normal = new Vector3(...a.anchor.normal).normalize();
-    const labelAt = place(a.anchor.position, a.anchor.normal);
+    const labelAt = this.labelPoint(a, a.labelOffsetMm);
     const labelPos = new Vector3(...labelAt);
     const group = new Group();
     group.name = `label:${a.id}`;

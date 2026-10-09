@@ -35,7 +35,9 @@ export function normalizeOrder(list: readonly Annotation[]): Annotation[] {
 export function update(
   list: readonly Annotation[],
   id: string,
-  patch: Partial<Pick<Annotation, 'title' | 'body' | 'link' | 'imagePath' | 'anchor'>> & {
+  patch: Partial<
+    Pick<Annotation, 'title' | 'body' | 'link' | 'imagePath' | 'anchor' | 'labelOffsetMm'>
+  > & {
     triangles?: number[];
   },
 ): Annotation[] {

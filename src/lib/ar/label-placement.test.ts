@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import type { Vec3 } from '../types';
 import {
   createLabelPlacer,
+  DEFAULT_LABEL_OFFSET_MM,
   LABEL_CLEARANCE_M,
   LABEL_OFFSET_M,
+  labelOffsetMm,
+  MAX_LABEL_OFFSET_MM,
+  MIN_LABEL_OFFSET_MM,
   type PlacementMesh,
 } from './label-placement';
 
@@ -179,5 +183,33 @@ describe('createLabelPlacer', () => {
     const flat = Array.from(m.index!, (i) => [0, 1, 2].map((k) => m.positions[i * 3 + k]!)).flat();
     const place = createLabelPlacer({ positions: flat, index: null }, AXES);
     expect(place([0, 0.01, 0], [0, 1, 0])[1]).toBeCloseTo(0.01 + LABEL_OFFSET_M, 9);
+  });
+
+  it('puts a label at the distance the annotation asks for', () => {
+    const place = createLabelPlacer(sphere([0, 0.05, 0], 0.05), AXES);
+    for (const offset of [0.005, 0.06, 0.15]) {
+      const p = place([0.05, 0.05, 0], [1, 0, 0], offset);
+      expect(p[0]).toBeCloseTo(0.05 + offset, 9);
+      expect(p[1]).toBeCloseTo(0.05, 9);
+    }
+  });
+
+  it('still lifts a close label out of a pocket', () => {
+    const place = createLabelPlacer(POCKET, AXES);
+    const p = place([0, 0.005, 0], [0, 1, 0], 0.005);
+    expect(p[1]).toBeGreaterThanOrEqual(RIM_Y + LABEL_CLEARANCE_M - 1e-9);
+  });
+});
+
+describe('labelOffsetMm', () => {
+  it('defaults, keeps and clamps the stored distance', () => {
+    expect(labelOffsetMm({})).toBe(DEFAULT_LABEL_OFFSET_MM);
+    expect(labelOffsetMm({ labelOffsetMm: 40 })).toBe(40);
+    expect(labelOffsetMm({ labelOffsetMm: 0 })).toBe(MIN_LABEL_OFFSET_MM);
+    expect(labelOffsetMm({ labelOffsetMm: 1e6 })).toBe(MAX_LABEL_OFFSET_MM);
+    expect(labelOffsetMm({ labelOffsetMm: NaN })).toBe(DEFAULT_LABEL_OFFSET_MM);
+    expect(labelOffsetMm({ labelOffsetMm: '30' as unknown as number })).toBe(
+      DEFAULT_LABEL_OFFSET_MM,
+    );
   });
 });

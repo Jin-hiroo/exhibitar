@@ -78,6 +78,15 @@ describe('annotation list', () => {
     ]);
   });
 
+  it('sets a label distance and clears it back to the default', () => {
+    let list = [newPoint(anchor, 0)];
+    const id = list[0]!.id;
+    list = update(list, id, { labelOffsetMm: 60 });
+    expect(list[0]!.labelOffsetMm).toBe(60);
+    list = update(list, id, { labelOffsetMm: undefined });
+    expect(JSON.parse(JSON.stringify(list[0]))).not.toHaveProperty('labelOffsetMm');
+  });
+
   it('only accepts http(s) links', () => {
     expect(sanitizeLink('museum.org/skull')).toBe('https://museum.org/skull');
     expect(sanitizeLink('javascript:alert(1)')).toBeUndefined();
