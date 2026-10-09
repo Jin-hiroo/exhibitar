@@ -86,7 +86,9 @@ function Scene({
     exhibit.select(selected); // redraws label textures outside React
     invalidate();
   }, [exhibit, selected, invalidate]);
-  useFrame(({ camera }) => exhibit.update(camera));
+  useFrame(({ camera }) => {
+    if (exhibit.update(camera)) invalidate(); // a label is still fading in or out
+  });
 
   const paintGeometry = useMemo(() => {
     const pos = geometry.getAttribute('position');
