@@ -1,7 +1,7 @@
 'use client';
 
 import { OrbitControls } from '@react-three/drei';
-import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { BufferGeometry, Float32BufferAttribute, Matrix4, Raycaster, type Mesh } from 'three';
 import { anchorFromHit, enableFastRaycast } from '@/lib/annotations/picking';
@@ -28,8 +28,12 @@ interface Props {
 export function AnnotateView(props: Props) {
   const size = props.project.model.boundsMm.size.map(mmToM) as [number, number, number];
   const r = Math.max(0.08, Math.hypot(...size));
+  // render on demand: the controls and React updates invalidate; nothing animates on its own
   return (
-    <Canvas camera={{ position: [r * 0.6, r * 0.9, r * 1.7], fov: 40, near: 0.002, far: 20 }}>
+    <Canvas
+      frameloop="demand"
+      camera={{ position: [r * 0.6, r * 0.9, r * 1.7], fov: 40, near: 0.002, far: 20 }}
+    >
       <color attach="background" args={['#eef0f3']} />
       <hemisphereLight args={['#ffffff', '#8899aa', 1.3]} />
       <directionalLight position={[0.3, 1, 0.6]} intensity={1.3} />
@@ -77,7 +81,11 @@ function Scene({
     [project, geometry],
   );
   useEffect(() => () => exhibit.dispose(), [exhibit]);
-  useEffect(() => exhibit.select(selected), [exhibit, selected]);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    exhibit.select(selected); // redraws label textures outside React
+    invalidate();
+  }, [exhibit, selected, invalidate]);
   useFrame(({ camera }) => exhibit.update(camera));
 
   const paintGeometry = useMemo(() => {

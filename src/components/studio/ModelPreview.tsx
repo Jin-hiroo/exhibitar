@@ -41,7 +41,10 @@ export function ModelPreview({ mesh, rotation }: { mesh: IndexedMesh; rotation: 
 
   const r = Math.max(0.08, Math.hypot(...size));
   return (
-    <Canvas camera={{ position: [r * 0.7, r * 0.9, r * 1.6], fov: 40, near: 0.002, far: 20 }}>
+    <Canvas
+      frameloop="demand"
+      camera={{ position: [r * 0.7, r * 0.9, r * 1.6], fov: 40, near: 0.002, far: 20 }}
+    >
       <color attach="background" args={['#eef0f3']} />
       <hemisphereLight args={['#ffffff', '#8899aa', 1.4]} />
       <directionalLight position={[0.3, 1, 0.6]} intensity={1.4} />

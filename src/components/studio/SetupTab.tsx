@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { restingRotation } from '@/lib/geometry/orient';
 import { formatDimsMm, sourceScaleFor } from '@/lib/geometry/scale';
@@ -9,7 +10,11 @@ import { UNIT_TO_MM, type LengthUnit } from '@/lib/units';
 import type { Annotation } from '@/lib/types';
 import styles from '@/app/studio/studio.module.css';
 import type { EditorContext } from './Editor';
-import { ModelPreview } from './ModelPreview';
+
+// three.js / R3F load only once there is a model to show
+const ModelPreview = dynamic(() => import('./ModelPreview').then((m) => m.ModelPreview), {
+  ssr: false,
+});
 
 const SAMPLES = [
   { file: 'cube.stl', label: '60 mm cube' },
