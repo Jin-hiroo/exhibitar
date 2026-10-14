@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getBrowserDb } from '@/lib/db/client';
 import { siteUrl } from '@/lib/db/env';
-import { rebuildMatInput } from '@/lib/mat/rebuild';
+import { matDesignOutdated, rebuildMatInput } from '@/lib/mat/rebuild';
 import styles from '@/app/studio/studio.module.css';
 import type { EditorContext } from './Editor';
 import { saveToCloud, type NewGeometry } from './publish';
@@ -20,6 +20,9 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
   const viewerUrl = `${siteUrl()}/v/${project.id}`;
   // the QR was baked into the mat when it was generated; the site URL may have changed since
   const printedUrl = project.mat?.qrUrl;
+  const linkDrifted = !!project.mat && project.status === 'published' && printedUrl !== viewerUrl;
+  // made before the tracking texture: phones only find it from close up
+  const outdated = !!project.mat && matDesignOutdated(project.mat);
   const hasGeometry = !!(ready || project.model?.glbPath);
   const qrUrl =
     ready?.urls.qr ??
@@ -108,25 +111,24 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {qrUrl && <img className={styles.qr} src={qrUrl} alt="QR code for the Viewer" />}
-            {project.mat && printedUrl !== viewerUrl && !ready && (
-              <div className={styles.warning}>
-                <p>
-                  {printedUrl
-                    ? `The QR code on this mat opens ${printedUrl}, not the link above.`
-                    : 'This mat was made before the Studio recorded its QR link. If scanning it does not open the link above, replace it.'}{' '}
-                  Make a new mat, then print it and throw the old one away: it also gets new
-                  markers.
-                </p>
-                <button
-                  className={styles.primary}
-                  disabled={!!busy}
-                  onClick={() => void remakeMat()}
-                >
-                  Make a new mat with this link
-                </button>
-              </div>
-            )}
           </>
+        )}
+        {(linkDrifted || outdated) && !ready && (
+          <div className={styles.warning}>
+            <p>
+              {outdated &&
+                'This mat was made before the current mat design (tracking pattern, bigger markers), so phones only find it from close up. '}
+              {linkDrifted &&
+                (printedUrl
+                  ? `The QR code on this mat opens ${printedUrl}, not the link above. `
+                  : 'This mat was made before the Studio recorded its QR link. If scanning it does not open the link above, replace it. ')}
+              Make a new mat, then print it and throw the old one away: it also gets new markers.
+              Your annotations stay as they are.
+            </p>
+            <button className={styles.primary} disabled={!!busy} onClick={() => void remakeMat()}>
+              {linkDrifted && !outdated ? 'Make a new mat with this link' : 'Make a new mat'}
+            </button>
+          </div>
         )}
         {ready && project.status === 'published' && (
           <p className={styles.warning}>

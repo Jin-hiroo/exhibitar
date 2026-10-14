@@ -3,6 +3,22 @@ import type { Project } from '../types';
 import type { MatInput } from './generate';
 import type { PaperName, PaperPreference } from './paper';
 
+/**
+ * Generation of the mat design, stored as `mat.designVersion`. Bump it when a
+ * change makes existing prints track clearly worse than a rebuilt mat would:
+ * the Studio then offers to rebuild older mats.
+ *
+ * 2 (2026-10-14): tracking texture and bigger markers. ARCore rejects the
+ * whole-page image of older mats, so phones only find them from close up
+ * (docs/D0-FINDINGS.md §4).
+ */
+export const MAT_DESIGN_VERSION = 2;
+
+/** True when a stored mat was made with an older design than the current one. */
+export function matDesignOutdated(mat: Pick<Project['mat'], 'designVersion'>): boolean {
+  return (mat.designVersion ?? 1) < MAT_DESIGN_VERSION;
+}
+
 const PAPER_FAMILY: Record<PaperName, PaperPreference> = {
   A4: 'iso',
   A3: 'iso',

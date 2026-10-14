@@ -87,6 +87,7 @@
       "imagePath": "fixtures/mock-cube-mat-track.png"
     },
     "qrUrl": "https://exhibitar.vercel.app/v/mockcube01",
+    "designVersion": 2,
     "svgPath": "fixtures/mock-cube-mat.svg"
   },
   "annotations": [
