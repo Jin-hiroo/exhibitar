@@ -17,6 +17,13 @@ export const SHADOW_CLEARANCE_MM = 8;
 /** White border kept around each marker. */
 export const MARKER_QUIET_MM = 4;
 export const DEFAULT_MARKER_WIDTH_MM = 60;
+/**
+ * Bigger markers tried on the chosen sheet, largest first, capped at a third
+ * of the sheet's short side. ARCore only starts tracking an image that fills
+ * about a quarter of the camera frame, so a bigger marker locks on from further away.
+ */
+const BIG_MARKER_WIDTHS_MM = [100, 90, 80, 70];
+const MAX_MARKER_FRACTION = 0.33;
 const ELEMENT_GAP_MM = 3;
 const SEARCH_STEP_MM = 2.5;
 
@@ -66,7 +73,8 @@ export interface MatLayout {
 
 /**
  * Place markers, QR, ruler, FRONT arrow and title around the object's shadow.
- * Tries single sheets smallest-first; falls back to a custom-size mat tiled
+ * Tries single sheets smallest-first (with the default marker size, then as
+ * big markers as fit on that sheet); falls back to a custom-size mat tiled
  * over several sheets.
  */
 export function layoutMat(input: LayoutInput): MatLayout {
@@ -77,7 +85,14 @@ export function layoutMat(input: LayoutInput): MatLayout {
 
   for (const s of sheetCandidates(pref, aspect)) {
     const l = tryLayout(input, s.sizeMm, PRINTER_MARGIN_MM, markerW);
-    if (l) return { ...l, paper: s.paper, orientation: s.orientation, tiles: { cols: 1, rows: 1 } };
+    if (!l) continue;
+    const best = input.markerWidthMm === undefined ? (biggerMarkers(input, s.sizeMm, l) ?? l) : l;
+    return {
+      ...best,
+      paper: s.paper,
+      orientation: s.orientation,
+      tiles: { cols: 1, rows: 1 },
+    };
   }
 
   // Custom mat: shadow + clearance + a ring of markers, with room for the elements.
@@ -119,6 +134,26 @@ export function layoutMat(input: LayoutInput): MatLayout {
 }
 
 type Placed = Omit<MatLayout, 'paper' | 'orientation' | 'tiles' | 'tilePlan'>;
+
+/**
+ * The same sheet laid out with the largest marker width that still fits,
+ * keeping what the default layout placed: all its markers, and the title at
+ * the same size in the same row (not pushed down beside the object).
+ */
+function biggerMarkers(input: LayoutInput, size: [number, number], base: Placed): Placed | null {
+  const cap = Math.floor(MAX_MARKER_FRACTION * Math.min(...size));
+  const widths = [...new Set(BIG_MARKER_WIDTHS_MM.map((w) => Math.min(w, cap)))].filter(
+    (w) => w > base.markers[0]!.widthMm,
+  );
+  const keepsTitle = (t: Placed['title']) =>
+    !base.title ||
+    (!!t && t.sizeMm === base.title.sizeMm && Math.abs(t.rect.y - base.title.rect.y) < 1);
+  for (const w of widths) {
+    const l = tryLayout(input, size, PRINTER_MARGIN_MM, w);
+    if (l && l.markers.length >= base.markers.length && keepsTitle(l.title)) return l;
+  }
+  return null;
+}
 
 function tryLayout(
   input: LayoutInput,
