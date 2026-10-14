@@ -15,7 +15,8 @@ the App Clip cannot reach localhost). Record what happens in D0-FINDINGS §2.
 
 ## Get a mat
 
-The mock exhibit (`mockcube01`) has its own markers — use *its* mat:
+The mock exhibit (`mockcube01`) has its own markers — use *its* mat. Mats from before
+2026-10-14 (no black confetti texture, 60 mm markers) no longer match it: reprint.
 
 - **Print (recommended):** `http://localhost:3000/fixtures/mock-cube-mat.pdf`, A4 landscape,
   **Actual size / 100 %**. The black-and-white bar must measure 100 mm.
@@ -30,12 +31,17 @@ Open `https://exhibitar.vercel.app/v/mockcube01?debug` (or the localhost URL) on
 
 - [ ] Landing card shows no capability warning (otherwise follow its instructions).
 - [ ] Session starts; the hint "Point your camera at the mat" appears.
-- [ ] HUD `trackable` shows `ok` for m0–m3 (a `NO` means ARCore rejected that marker image).
+- [ ] HUD `trackable` shows `ok` for m0–m3 **and `mat`** (a `NO` means ARCore rejected that
+      image). The hint then reads "Keep the whole mat in view, 30–60 cm away".
+- [ ] **Old mats** (printed before the texture, `mat:NO`): the hint reads "Hold your phone about
+      20 cm above one corner marker…"; doing that locks within a few seconds, and stepping back
+      keeps tracking. Rebuild the mat in the Studio and reprint to get `mat:ok`.
 - [ ] Pointing at the mat: status becomes "Tracking · N markers"; HUD `images` shows `T`.
 - [ ] Debug overlay: green squares sit exactly on the printed markers, the cyan rectangle on
       the page edges, orange on the contact outline; blue axis points to FRONT.
 - [ ] **Model** on: the translucent 60 mm cube stands on the contact outline.
-- [ ] HUD `images` lists `mat` too; from 40–60 cm the `mat` image shows `T` (actively tracked).
+- [ ] HUD `images` lists `mat` too; from 40–60 cm the view locks and `mat` shows `T`
+      (actively tracked) without first going close to a marker.
 - [ ] HUD `fit` < ~5 mm; `print` ≈ 100 % (otherwise the mat was not printed at actual size).
 - [ ] Compare alignment with `?mattrack=0` (markers only) vs default (markers + page).
 - [ ] HUD `axes … saved <x> (detected)` appears after a few seconds with several images

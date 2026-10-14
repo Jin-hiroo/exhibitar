@@ -49,32 +49,32 @@
     "markers": [
       {
         "id": "m0",
-        "widthMm": 60,
-        "centerMm": [-104.5, -61],
+        "widthMm": 69,
+        "centerMm": [-100, -56.5],
         "rotationDeg": 0,
         "seed": 210856400,
         "imagePath": "fixtures/mock-cube-marker-m0.png"
       },
       {
         "id": "m1",
-        "widthMm": 60,
-        "centerMm": [104.5, -61],
+        "widthMm": 69,
+        "centerMm": [100, -56.5],
         "rotationDeg": 0,
         "seed": 210856401,
         "imagePath": "fixtures/mock-cube-marker-m1.png"
       },
       {
         "id": "m2",
-        "widthMm": 60,
-        "centerMm": [-104.5, 61],
+        "widthMm": 69,
+        "centerMm": [-100, 56.5],
         "rotationDeg": 0,
         "seed": 210856406,
         "imagePath": "fixtures/mock-cube-marker-m2.png"
       },
       {
         "id": "m3",
-        "widthMm": 60,
-        "centerMm": [104.5, 61],
+        "widthMm": 69,
+        "centerMm": [100, 56.5],
         "rotationDeg": 0,
         "seed": 210856409,
         "imagePath": "fixtures/mock-cube-marker-m3.png"
@@ -86,6 +86,7 @@
       "centerMm": [0, 0],
       "imagePath": "fixtures/mock-cube-mat-track.png"
     },
+    "qrUrl": "https://exhibitar.vercel.app/v/mockcube01",
     "svgPath": "fixtures/mock-cube-mat.svg"
   },
   "annotations": [
