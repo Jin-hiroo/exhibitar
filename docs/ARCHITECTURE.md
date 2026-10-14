@@ -88,7 +88,7 @@ interface Project {
   annotations: Annotation[];
 }
 
-interface TrackImage {                // rendered from the same drawing as the SVG
+interface TrackImage {                // rendered from the same drawing as the SVG (incl. texture)
   imagePath: string;
   widthMm: number; heightMm: number;
   centerMm: [number, number];         // page centre in mat XZ (page-aligned, unrotated)
@@ -155,11 +155,21 @@ triangle indices) is kept as is.
      also emphasise the shadow outline.
 6. **Mat layout**: bounding box of shadow + margin; place 3–4 markers in free
    space (corners preferred, never overlapping shadow), QR, ruler, FRONT
-   arrow, title. Choose paper/tiling.
+   arrow, title. Choose paper/tiling: the smallest sheet that fits with 60 mm
+   markers, then on that sheet the largest markers that still fit (up to a
+   third of its short side, title kept in place). Bigger markers lock on from
+   further away.
 7. **Markers**: procedurally generated, seeded, high-contrast, asymmetric,
    non-repeating art (e.g. random polygons/blobs/lines on a quiet border).
    Output both SVG (for the mat) and PNG (for the tracker) from the same
    seed. Include a quality check (feature/corner count, no rotational symmetry).
+   **Tracking texture** (`texture.ts`): black confetti (random triangles, bars,
+   stars, ~14–26 mm, one per 18 mm cell) over all free space, clear of the
+   placement area (shadow + 8 mm), markers, QR and text. Without it ARCore
+   rejects the whole-page image (features only in the corners, see
+   D0-FINDINGS §4); with it the page is a valid target. Drawn last, so SVG, PDF
+   and the page PNG all carry it; marker PNGs are unchanged. Score candidate
+   designs with `pnpm track-scores` (Google's `arcoreimg`).
 8. **SVG** in mm units (`width="297mm" viewBox="0 0 297 210"`). Also offer PDF.
 9. **Publish**: upload GLB, SVG/PDF, PNGs (markers, whole-mat track image), QR
    directly from the browser (storage RLS); write the project row.
@@ -175,7 +185,12 @@ triangle indices) is kept as is.
 - **Tracked images**: the corner markers **and the whole printed page**
   (`mat.trackImage`). The page is a large target, so it is detected sooner and
   stays actively tracked at normal viewing distance, where the small markers
-  often drop to "emulated".
+  often drop to "emulated". ARCore only accepts the page when it carries the
+  tracking texture; on older mats it reports the page `untrackable`, the
+  markers must first fill a good part of the camera frame, and the searching
+  hint says so ("hold your phone ~20 cm above a corner marker", from
+  `ArStatus.pageTrackable`). Cropping denser "bands" out of an old page image
+  was measured and rejected (still too blank).
 - **Pose estimation** (`src/lib/ar/pose.ts`): each tracked image contributes its
   centre + 4 corners as point correspondences (mat frame ↔ world); one weighted
   rigid fit over all of them gives `worldFromMat` (works from a single image;

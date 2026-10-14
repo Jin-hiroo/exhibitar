@@ -24,6 +24,8 @@ export interface MatInput {
   contactWeak: boolean;
   paperPreference?: PaperPreference;
   markerWidthMm?: number;
+  /** print the tracking texture (default true; off only to compare scores) */
+  texture?: boolean;
 }
 
 /** A `Marker` before its PNG has been uploaded (the publisher fills in `imagePath`). */
@@ -72,10 +74,8 @@ export function generateMat(input: MatInput): GeneratedMat {
     markerWidthMm: input.markerWidthMm,
     paperPreference: input.paperPreference,
   });
-  const markers = pickMarkers(
-    markerSeedFor(input.projectId, input.geometryVersion),
-    layout.markers.length,
-  );
+  const seed = markerSeedFor(input.projectId, input.geometryVersion);
+  const markers = pickMarkers(seed, layout.markers.length);
   const qrUrl = viewerUrl(input.siteUrl, input.projectId);
   const items = buildMatDrawing({
     layout,
@@ -85,6 +85,7 @@ export function generateMat(input: MatInput): GeneratedMat {
     markerArts: markers.map((m) => m.art),
     title: input.title,
     qrText: qrUrl,
+    textureSeed: input.texture === false ? undefined : (seed ^ 0x9e3779b9) >>> 0,
   });
 
   const [W, H] = layout.sizeMm;

@@ -16,6 +16,7 @@ import type { ExhibitScene } from './exhibit-scene';
 import {
   DEFAULT_IMAGE_CONVENTION,
   estimateWorldFromMat,
+  MAT_TARGET_ID,
   PoseFilter,
   printScales,
   trackTargets,
@@ -61,6 +62,11 @@ export interface ArStatus {
   convention: ImageConvention;
   conventionSource: 'default' | 'detected' | 'stored' | 'override';
   trackability: readonly XRImageTrackability[] | null;
+  /**
+   * Whether the platform accepted the whole-page image as a target (null while
+   * unknown). Without it only the corner markers can be found, from close up.
+   */
+  pageTrackable: boolean | null;
   /** measured / expected image width (≈ 1 when printed at 100 %), median over tracked images */
   printScale: number | null;
   fps: number;
@@ -355,6 +361,9 @@ export class ArRuntime {
       convention: this.convention,
       conventionSource: this.conventionSource,
       trackability: this.trackability,
+      pageTrackable: this.trackability
+        ? this.trackability[this.targets.findIndex((t) => t.id === MAT_TARGET_ID)] === 'trackable'
+        : null,
       printScale: median(printScales(observations, this.targets).map((p) => p.scale)),
       fps: this.fps,
     });

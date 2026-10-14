@@ -21,7 +21,8 @@
     "demo": "tsx scripts/demo-pipeline.ts",
     "mock": "tsx scripts/make-mock-project.ts",
     "samples": "tsx scripts/make-samples.ts",
-    "perf:viewer": "node scripts/perf-viewer.mjs"
+    "perf:viewer": "node scripts/perf-viewer.mjs",
+    "track-scores": "tsx scripts/track-scores.ts"
   },
   "dependencies": {
     "@countertype/clipper2-ts": "1.5.4-3.9a869ba",

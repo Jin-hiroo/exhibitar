@@ -5,6 +5,7 @@ import { MARKER_QUIET_MM, QR_SIZE_MM, SUBTITLE, SUBTITLE_SIZE_MM } from './layou
 import type { MarkerArt } from './markers';
 import { tileLabel, TILE_OVERLAP_MM } from './paper';
 import { qrDrawItems } from './qr';
+import { textureItems } from './texture';
 
 const BLACK = '#000';
 const WHITE = '#fff';
@@ -21,6 +22,8 @@ export interface DrawingInput {
   markerArts: MarkerArt[];
   title: string;
   qrText: string;
+  /** print the tracking texture over the free space (see texture.ts); omit for none */
+  textureSeed?: number;
 }
 
 /** Everything printed on the mat, in page mm, back to front. */
@@ -90,6 +93,8 @@ export function buildMatDrawing(d: DrawingInput): DrawItem[] {
   }
 
   if (l.tilePlan) items.push(...tileMarks(l));
+  // last: the texture keeps clear of everything above
+  if (d.textureSeed !== undefined) items.push(...textureItems(items, l, d.textureSeed));
   return items;
 }
 

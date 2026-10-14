@@ -5,7 +5,13 @@ import { applyOrientation, findRestingCandidates, restingRotation } from '../geo
 import { parseStl } from '../geometry/parse-stl';
 import * as poly from '../geometry/polygons';
 import type { Rect } from './display-list';
-import { layoutMat, MARKER_QUIET_MM, SHADOW_CLEARANCE_MM, type MatLayout } from './layout';
+import {
+  DEFAULT_MARKER_WIDTH_MM,
+  layoutMat,
+  MARKER_QUIET_MM,
+  SHADOW_CLEARANCE_MM,
+  type MatLayout,
+} from './layout';
 import { planTiles, PRINTER_MARGIN_MM, TILE_OVERLAP_MM, tileLabel } from './paper';
 
 async function footprintOf(t: Float32Array, normal?: [number, number, number]) {
@@ -68,7 +74,34 @@ describe('layoutMat', () => {
     assertValid(l, fp.shadowOutlineMm);
     // markers hug the printable corners
     const xs = l.markers.map((m) => m.center[0]);
-    expect(Math.min(...xs) - 34).toBeCloseTo(PRINTER_MARGIN_MM, 0);
+    const half = l.markers[0]!.widthMm / 2 + MARKER_QUIET_MM;
+    expect(Math.min(...xs) - half).toBeCloseTo(PRINTER_MARGIN_MM, 0);
+  });
+
+  it('prints markers as large as the sheet allows, keeping the title on top', () => {
+    const shadow = [poly.rect(-80, -60, 80, 60)]; // 160 × 120 mm → A3
+    const l = layoutMat({ shadowOutlineMm: shadow, title: 'Bigger' });
+    expect(l.paper).toBe('A3');
+    const w = l.markers[0]!.widthMm;
+    expect(w).toBeGreaterThan(DEFAULT_MARKER_WIDTH_MM);
+    expect(w).toBeLessThanOrEqual(0.33 * Math.min(...l.sizeMm));
+    expect(l.markers.every((m) => m.widthMm === w)).toBe(true);
+    assertValid(l, shadow);
+    // same title, same place as with the default markers
+    const small = layoutMat({
+      shadowOutlineMm: shadow,
+      title: 'Bigger',
+      markerWidthMm: DEFAULT_MARKER_WIDTH_MM,
+    });
+    expect(l.title?.sizeMm).toBe(small.title?.sizeMm);
+    expect(l.title?.rect.y).toBeCloseTo(small.title!.rect.y, 3);
+  });
+
+  it('respects an explicit marker width', () => {
+    const shadow = [poly.rect(-80, -60, 80, 60)];
+    const l = layoutMat({ shadowOutlineMm: shadow, title: 'Fixed', markerWidthMm: 60 });
+    expect(l.markers.map((m) => m.widthMm)).toEqual([60, 60, 60, 60]);
+    assertValid(l, shadow);
   });
 
   it('never puts markers or elements under the shadow for any fixture', async () => {
