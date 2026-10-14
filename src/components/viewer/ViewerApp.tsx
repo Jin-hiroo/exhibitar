@@ -253,7 +253,7 @@ export function ViewerApp({ project, assetBase }: Props) {
             {caps && <CapabilityNote caps={caps} />}
             {error && <p className={styles.error}>{error}</p>}
             <p className={styles.fine}>
-              Point your phone at the printed mat. Tracking uses only the square markers.
+              Point your phone at the printed mat. Tracking uses only the mat, not the object.
             </p>
           </section>
         </main>
@@ -289,7 +289,7 @@ export function ViewerApp({ project, assetBase }: Props) {
             {(!status || status.phase === 'searching' || status.phase === 'starting') && (
               <div className={styles.hint}>
                 <strong>Point your camera at the mat</strong>
-                Keep the square markers in view, 30–60 cm away.
+                {searchHint(status)}
               </div>
             )}
             {debug && status && <pre className={styles.debug}>{debugText(status)}</pre>}
@@ -363,6 +363,18 @@ function statusText(s: ArStatus | null): string {
   if (s.phase === 'holding') return 'Mat out of view';
   const n = s.tracked.length;
   return `Tracking · ${n} marker${n === 1 ? '' : 's'}`;
+}
+
+/**
+ * Where to hold the phone while searching. The whole printed page is only
+ * found from a normal viewing distance when ARCore accepts it as a target
+ * (textured mats); otherwise only the corner markers can lock on, and those
+ * must fill a good part of the camera frame first.
+ */
+function searchHint(s: ArStatus | null): string {
+  return s?.pageTrackable
+    ? 'Keep the whole mat in view, 30–60 cm away.'
+    : 'Hold your phone about 20 cm above one corner marker until it locks on, then step back.';
 }
 
 function debugText(s: ArStatus): string {
