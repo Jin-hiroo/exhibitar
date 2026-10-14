@@ -369,12 +369,13 @@ function statusText(s: ArStatus | null): string {
  * Where to hold the phone while searching. The whole printed page is only
  * found from a normal viewing distance when ARCore accepts it as a target
  * (textured mats); otherwise only the corner markers can lock on, and those
- * must fill a good part of the camera frame first.
+ * must fill a good part of the camera frame first. Said in screen terms, not
+ * centimetres: mats get shown scaled down on monitors.
  */
 function searchHint(s: ArStatus | null): string {
   return s?.pageTrackable
     ? 'Keep the whole mat in view, 30–60 cm away.'
-    : 'Hold your phone about 20 cm above one corner marker until it locks on, then step back.';
+    : 'Move in close to one corner marker until it fills about half the screen width. Once it locks on, step back.';
 }
 
 function debugText(s: ArStatus): string {
