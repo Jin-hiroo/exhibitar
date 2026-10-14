@@ -83,6 +83,7 @@ interface Project {
     markers: Marker[];
     trackImage?: TrackImage;          // the whole printed page as one extra tracking image
     qrUrl?: string;                   // Viewer URL in the printed QR (Studio offers a rebuild if it drifts)
+    designVersion?: number;           // mat design generation; older (or absent) → Studio offers a rebuild
   };
 
   annotations: Annotation[];
@@ -132,8 +133,11 @@ QR), `annotation-media/`, all public-read. Object paths are
 (immutable, cacheable); only the project's owner may write under its folder
 (storage RLS). Project fields store these paths.
 
-A mat can be rebuilt without the STL (e.g. when its printed QR link is out of
-date: `mat.qrUrl` ≠ current Viewer URL). `rebuildMatInput` (`src/lib/mat/rebuild.ts`)
+A mat can be rebuilt without the STL, and the Studio offers it (Publish tab, pointed
+to from the Mat tab) when its printed QR link is out of date (`mat.qrUrl` ≠ current
+Viewer URL) or it was made with an older mat design (`mat.designVersion` <
+`MAT_DESIGN_VERSION`; bump that when a design change makes old prints track clearly
+worse, as the tracking texture did). `rebuildMatInput` (`src/lib/mat/rebuild.ts`)
 regenerates it from the stored outlines and paper family under the next
 geometry version, so its files get new names; the stored GLB (and thus region
 triangle indices) is kept as is.
@@ -188,7 +192,8 @@ triangle indices) is kept as is.
   often drop to "emulated". ARCore only accepts the page when it carries the
   tracking texture; on older mats it reports the page `untrackable`, the
   markers must first fill a good part of the camera frame, and the searching
-  hint says so ("hold your phone ~20 cm above a corner marker", from
+  hint says so ("move in close to a corner marker until it fills about half
+  the screen width", from
   `ArStatus.pageTrackable`). Cropping denser "bands" out of an old page image
   was measured and rejected (still too blank).
 - **Pose estimation** (`src/lib/ar/pose.ts`): each tracked image contributes its

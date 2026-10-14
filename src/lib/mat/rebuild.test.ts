@@ -3,9 +3,10 @@ import { cube, toBinaryStl } from '../../../tests/fixtures/shapes';
 import { computeFootprint } from '../geometry/footprint';
 import { applyOrientation, restingRotation } from '../geometry/orient';
 import { parseStl } from '../geometry/parse-stl';
+import * as poly from '../geometry/polygons';
 import type { Project } from '../types';
 import { generateMat } from './generate';
-import { rebuildMatInput } from './rebuild';
+import { MAT_DESIGN_VERSION, matDesignOutdated, rebuildMatInput } from './rebuild';
 
 describe('rebuildMatInput', () => {
   it('rebuilds a stored mat with the new link, same layout, next geometry version', async () => {
@@ -48,5 +49,28 @@ describe('rebuildMatInput', () => {
     expect(rebuilt.meta.markers.map((m) => m.seed)).not.toEqual(
       old.meta.markers.map((m) => m.seed),
     );
+  });
+});
+
+describe('matDesignOutdated', () => {
+  it('flags mats made before the current design (stored without a designVersion)', () => {
+    expect(matDesignOutdated({})).toBe(true);
+    expect(matDesignOutdated({ designVersion: MAT_DESIGN_VERSION - 1 })).toBe(true);
+    expect(matDesignOutdated({ designVersion: MAT_DESIGN_VERSION })).toBe(false);
+  });
+
+  it('is false for every newly generated mat', () => {
+    const shadow = [poly.rect(-30, -30, 30, 30)];
+    const mat = generateMat({
+      projectId: 'abc123',
+      geometryVersion: 1,
+      title: 'T',
+      siteUrl: 'https://exhibitar.vercel.app',
+      contactOutlineMm: shadow,
+      shadowOutlineMm: shadow,
+      contactWeak: false,
+    });
+    expect(mat.meta.designVersion).toBe(MAT_DESIGN_VERSION);
+    expect(matDesignOutdated(mat.meta)).toBe(false);
   });
 });

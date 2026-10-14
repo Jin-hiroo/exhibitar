@@ -57,6 +57,11 @@ export interface Project {
     trackImage?: TrackImage;
     /** Viewer URL encoded in the printed QR code (absent on mats made before it was recorded). */
     qrUrl?: string;
+    /**
+     * Mat design generation it was made with (`MAT_DESIGN_VERSION`, mat/rebuild.ts).
+     * Absent = 1: made before the tracking texture, so the Studio offers a rebuild.
+     */
+    designVersion?: number;
   };
 
   annotations: Annotation[];

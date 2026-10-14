@@ -88,14 +88,20 @@ not stale. Two things kept it from locking:
 
 Response:
 
-- Viewer hint: while the page is not `trackable` (all mats printed before this fix), "Hold your
-  phone about 20 cm above one corner marker until it locks on, then step back"; with a trackable
-  page, "Keep the whole mat in view, 30–60 cm away".
+- Viewer hint: while the page is not `trackable` (all mats printed before this fix), "Move in
+  close to one corner marker until it fills about half the screen width. Once it locks on, step
+  back" (first worded as "about 20 cm above", which is too far for a mat shown scaled down on a
+  screen); with a trackable page, "Keep the whole mat in view, 30–60 cm away".
 - New mats: **black confetti texture** over all free space (`src/lib/mat/texture.ts`, kept clear
   of the placement area, markers, QR and text), and **bigger markers** where the sheet allows
   (up to a third of its short side, as long as the title keeps its place: A4 69 mm, mySkull's
-  A3 70 mm, a 160 × 120 mm object's A3 98 mm). Existing mats get both via Studio → rebuild mat +
-  reprint.
+  A3 70 mm, a 160 × 120 mm object's A3 98 mm). Existing mats get both via Studio → **Make a
+  new mat** + reprint.
+
+Follow-up the same day: the regenerated mock-cube mat tracked, mySkull still did not. It was
+still the old v2 mat: the Studio only offered "Make a new mat" when the printed QR link had
+changed, so there was no way to rebuild it without re-uploading the STL. Mats now record
+`mat.designVersion`, and the Studio offers the rebuild for any mat made before the texture.
 - Rejected: tracking "bands" cut from an old page image (the strip between two markers along an
   edge), which would have needed no reprint. ARCore rejects or scores them 0: the blank stretch
   between the two markers is too long.

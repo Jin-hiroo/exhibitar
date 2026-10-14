@@ -33,9 +33,10 @@ Open `https://exhibitar.vercel.app/v/mockcube01?debug` (or the localhost URL) on
 - [ ] Session starts; the hint "Point your camera at the mat" appears.
 - [ ] HUD `trackable` shows `ok` for m0–m3 **and `mat`** (a `NO` means ARCore rejected that
       image). The hint then reads "Keep the whole mat in view, 30–60 cm away".
-- [ ] **Old mats** (printed before the texture, `mat:NO`): the hint reads "Hold your phone about
-      20 cm above one corner marker…"; doing that locks within a few seconds, and stepping back
-      keeps tracking. Rebuild the mat in the Studio and reprint to get `mat:ok`.
+- [ ] **Old mats** (printed before the texture, `mat:NO`): the hint reads "Move in close to one
+      corner marker until it fills about half the screen width…"; doing that locks within a few
+      seconds, and stepping back keeps tracking. To get `mat:ok`: Studio → Mat or Publish tab →
+      **Make a new mat**, then print the new PDF.
 - [ ] Pointing at the mat: status becomes "Tracking · N markers"; HUD `images` shows `T`.
 - [ ] Debug overlay: green squares sit exactly on the printed markers, the cyan rectangle on
       the page edges, orange on the contact outline; blue axis points to FRONT.

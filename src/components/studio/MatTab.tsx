@@ -1,6 +1,7 @@
 'use client';
 
 import { printInstructions } from '@/lib/mat/instructions';
+import { matDesignOutdated } from '@/lib/mat/rebuild';
 import styles from '@/app/studio/studio.module.css';
 import type { EditorContext } from './Editor';
 
@@ -22,6 +23,17 @@ export function MatTab({ ctx }: { ctx: EditorContext }) {
         {svgUrl && <img className={styles.matPreview} src={svgUrl} alt="Placement mat" />}
       </div>
       <aside className={styles.panel}>
+        {!ready && matDesignOutdated(mat) && (
+          <div className={styles.warning}>
+            <p>
+              This mat was made before the current mat design (tracking pattern, bigger markers), so
+              phones only find it from close up. Make a new one and print it instead.
+            </p>
+            <button className={styles.primary} onClick={() => ctx.setTab('publish')}>
+              Make a new mat…
+            </button>
+          </div>
+        )}
         <strong>
           {mat.paper} {mat.orientation}
           {sheets > 1 ? ` · ${sheets} sheets (${mat.tiles.cols} × ${mat.tiles.rows})` : ''}

@@ -9,6 +9,7 @@ import { encodePng } from './png';
 import { renderPdf, type PdfPage } from './pdf';
 import { qrPng, viewerUrl } from './qr';
 import { rasterizeDrawing } from './raster-drawing';
+import { MAT_DESIGN_VERSION } from './rebuild';
 import { renderSvg } from './svg';
 
 export interface MatInput {
@@ -137,6 +138,7 @@ export function generateMat(input: MatInput): GeneratedMat {
       markers: markerSpecs,
       trackImage,
       qrUrl,
+      designVersion: MAT_DESIGN_VERSION,
     },
     svg,
     tileSvgs,
