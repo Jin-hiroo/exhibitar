@@ -6,6 +6,8 @@ Framework-free placement-mat generation. Runs inside `src/workers/mat.worker.ts`
 - `prng.ts`, `raster.ts`, `png.ts`, `markers.ts`, `quality.ts` — seeded marker art → SVG shapes +
   PNG, corner/asymmetry/distinctness checks
 - `layout.ts`, `paper.ts` — marker/QR/ruler/arrow/title placement, paper choice, tiling
+- `texture.ts` — black confetti over the free space so ARCore accepts the whole page as a target
+  (tune with `pnpm track-scores`)
 - `display-list.ts`, `drawing.ts`, `svg.ts`, `pdf.ts` — one list of mm primitives, two backends
 - `qr.ts`, `instructions.ts`
 

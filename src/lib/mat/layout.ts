@@ -59,6 +59,8 @@ export interface MatLayout {
   sizeMm: [number, number];
   /** page position of the mat-frame origin: page = mat XZ + origin */
   originMm: [number, number];
+  /** nothing is printed closer than this to the mat's edge */
+  marginMm: number;
   /** the shadow outline in page mm, grown by the clearance: nothing may be printed here */
   keepOut: Polygons;
   markers: MarkerSlot[];
@@ -240,7 +242,17 @@ function tryLayout(
   if (!ruler) return null;
   placed.push(ruler);
 
-  return { sizeMm: [W, H], originMm: origin, keepOut, markers, front, ruler, qr, title };
+  return {
+    sizeMm: [W, H],
+    originMm: origin,
+    marginMm: margin,
+    keepOut,
+    markers,
+    front,
+    ruler,
+    qr,
+    title,
+  };
 }
 
 /**
@@ -292,7 +304,8 @@ function overlaps(a: Rect, b: Rect, gap: number): boolean {
   );
 }
 
-function hitsPolygons(r: Rect, polys: Polygons): boolean {
+/** True when rect `r` overlaps `polys` (more than a sliver). */
+export function hitsPolygons(r: Rect, polys: Polygons): boolean {
   const pb = poly.bounds(polys);
   if (r.x > pb.maxX || r.x + r.w < pb.minX || r.y > pb.maxY || r.y + r.h < pb.minY) return false;
   return poly.area(poly.intersect([poly.rect(r.x, r.y, r.x + r.w, r.y + r.h)], polys)) > 0.01;

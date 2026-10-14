@@ -101,7 +101,12 @@ export function pickMarkers(baseSeed: number, count: number, maxTries = 200): Ma
 
 // ---------------------------------------------------------------------------
 
-function randomShape(rng: Rng, cx: number, cy: number, r: number): Point[] {
+/**
+ * A random triangle, bar or spiky star of nominal radius `r` around (cx, cy).
+ * Scale-free: marker art uses unit-square coordinates, the mat texture millimetres.
+ * Points stay within about 1.2 r of the centre.
+ */
+export function randomShape(rng: Rng, cx: number, cy: number, r: number): Point[] {
   const kind = rng();
   if (kind < 0.35) return triangle(rng, cx, cy, r);
   if (kind < 0.65)
