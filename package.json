@@ -2,6 +2,11 @@
   "name": "exhibitar",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jin-hiroo/exhibitar.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=24"

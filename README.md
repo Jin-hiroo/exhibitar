@@ -8,6 +8,9 @@ markers; visitors scan a QR code and see labels registered onto the real object.
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Tasks / workstreams: [docs/TASKS.md](docs/TASKS.md)
 - Agent/contributor rules: [CLAUDE.md](CLAUDE.md)
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) · Security: [SECURITY.md](SECURITY.md)
+
+A hosted instance runs at https://exhibitar.vercel.app.
 
 ## What works
 
@@ -77,23 +80,32 @@ WebXR only runs in a secure context. Three options, easiest first:
    Previews are behind Vercel Authentication, so sign in on the phone first
    (or use the production domain for public audience tests).
 
-## Supabase
+## Self-hosting
 
-Schema, RLS, storage buckets and functions live in `supabase/migrations/` (applied to the
-`exhibitar` project). The app sends no email. Manual dashboard settings:
+ExhibitAR is a Next.js app backed by a Supabase project (auth, Postgres, storage). Without
+Supabase env vars the Studio still works as an in-tab draft and the demo exhibit still loads;
+only sign-in and publishing are disabled.
 
-- **Auth → Sign In / Providers → Email**: enabled, with **Confirm email** off. Otherwise
-  sign-up sends a confirmation email, and the built-in mailer allows only a few per hour.
-  There is no "forgot password": sign in with a passkey and change the password at
-  `/studio/account`, or reset the user from the dashboard.
-- **Auth → Passkeys**: enabled, RP ID `exhibitar.vercel.app`, origin
-  `https://exhibitar.vercel.app`. Passkeys therefore work only on the production domain, not on
-  Vercel previews or localhost (password sign-in works everywhere). Don't change the RP ID
-  once people have passkeys: that invalidates all of them.
+1. **Create a Supabase project** and apply the SQL in `supabase/migrations/` in file order,
+   either with the Supabase CLI (`supabase link --project-ref <ref>` then `supabase db push`)
+   or by pasting each file into the SQL editor. This creates the `projects` table, row-level
+   security, the viewer functions and the storage buckets.
+2. **Auth settings** in the Supabase dashboard. The app sends no email.
+   - **Sign In / Providers → Email**: enabled, with **Confirm email** off. Otherwise sign-up
+     sends a confirmation email, and the built-in mailer allows only a few per hour. There is
+     no "forgot password": sign in with a passkey and change the password at
+     `/studio/account`, or reset the user from the dashboard.
+   - **Passkeys**: enabled, with your production domain as the RP ID and
+     `https://<your-domain>` as the origin. Passkeys then work only on that domain, not on
+     previews or localhost; password sign-in works everywhere. Don't change the RP ID once
+     people have passkeys: that invalidates all of them.
+   - See [SECURITY.md](SECURITY.md) for hardening settings.
+3. **Environment variables** (see `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`. The site URL is what
+   printed QR codes point at, so it must be your production domain.
+4. **Deploy.** On Vercel, import the repository and set the variables for all environments;
+   `main` deploys to production and branches get previews. Any host that runs Next.js works.
 
-## Deployment
+## License
 
-- GitHub: `Jin-hiroo/exhibitar` (private). Pushes deploy to Vercel project
-  `exhibitar` (team _jin-hiroo's projects_); `main` → production, branches → previews.
-- Supabase project `exhibitar` (ref `abrbtlqpqjfvsyhvzgdg`, ap-northeast-1).
-- Env vars are set on Vercel for all environments; see `.env.example`.
+ExhibitAR is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE).
