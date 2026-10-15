@@ -3,10 +3,10 @@
 **Turn any 3D-printed object into an AR exhibit: print a paper mat, scan a QR code, see labels
 on the real object.**
 
-[![Vercel deployment](https://img.shields.io/github/deployments/Jin-hiroo/exhibitar/Production?label=vercel&logo=vercel)](https://github.com/Jin-hiroo/exhibitar/deployments)
+[![Live app status](https://img.shields.io/website?url=https%3A%2F%2Fexhibitar.vercel.app&label=live%20app&logo=vercel&up_message=online&down_message=offline)](https://exhibitar.vercel.app)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Version](https://img.shields.io/github/package-json/v/Jin-hiroo/exhibitar)](package.json)
-[![Next.js](https://img.shields.io/github/package-json/dependency-version/Jin-hiroo/exhibitar/next?logo=nextdotjs)](https://nextjs.org)
+[![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-blue)](package.json)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
 [![Node ≥24](https://img.shields.io/badge/node-%E2%89%A524-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
 [Live app](https://exhibitar.vercel.app) · [Demo exhibit](https://exhibitar.vercel.app/v/mockcube01)
