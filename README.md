@@ -1,37 +1,86 @@
 # ExhibitAR
 
-Turn any 3D-printed object into an AR exhibit. An exhibitor uploads an STL,
-marks points of interest and prints a paper placement mat with tracking
-markers; visitors scan a QR code and see labels registered onto the real object.
+**Turn any 3D-printed object into an AR exhibit: print a paper mat, scan a QR code, see labels
+on the real object.**
 
-- Product spec: [docs/SPEC.md](docs/SPEC.md)
-- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- Tasks / workstreams: [docs/TASKS.md](docs/TASKS.md)
-- Agent/contributor rules: [CLAUDE.md](CLAUDE.md)
-- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md) · Security: [SECURITY.md](SECURITY.md)
+[![Vercel deployment](https://img.shields.io/github/deployments/Jin-hiroo/exhibitar/Production?label=vercel&logo=vercel)](https://github.com/Jin-hiroo/exhibitar/deployments)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Version](https://img.shields.io/github/package-json/v/Jin-hiroo/exhibitar)](package.json)
+[![Next.js](https://img.shields.io/github/package-json/dependency-version/Jin-hiroo/exhibitar/next?logo=nextdotjs)](https://nextjs.org)
+[![Node ≥24](https://img.shields.io/badge/node-%E2%89%A524-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
-A hosted instance runs at https://exhibitar.vercel.app.
+[Live app](https://exhibitar.vercel.app) · [Demo exhibit](https://exhibitar.vercel.app/v/mockcube01)
+· [Spec](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Contributing](CONTRIBUTING.md) ·
+[Security](SECURITY.md)
 
-## What works
+![Studio: load an STL, generate the printable mat, add a point and a painted region, preview](docs/images/studio-demo.gif)
 
-- **Studio** (`/studio`): upload an STL (or a sample), pick how it stands and which side is
-  FRONT, generate the model + printable mat, annotate (points, painted regions, text, links,
-  images), preview, publish. Works without an account as an in-tab draft; publishing needs
-  sign-in (email + password, or a passkey; manage passkeys at `/studio/account`).
-- **Viewer** (`/v/<id>`): Android Chrome WebXR AR with image tracking (markers + whole page),
-  labels occluded by the real object, tap for details, guided tour, 3D fallback; iPhone via
-  the Needle Go App Clip. `?debug` shows the tracking HUD.
-- **Calibration** (`/studio/<id>/calibrate`): nudge the ghost model onto the real object on a
-  phone; saved for all visitors.
-- Demo exhibit without any backend: `/v/mockcube01` (print `/fixtures/mock-cube-mat.pdf`).
+<p>
+  <a href="docs/images/studio-mat.png"><img src="docs/images/studio-mat.png" alt="Mat tab with the generated A4 mat" height="190"></a>
+  <a href="docs/images/studio-annotate.png"><img src="docs/images/studio-annotate.png" alt="Annotate tab with two points and a painted region" height="190"></a>
+  <a href="docs/images/viewer-phone.png"><img src="docs/images/viewer-phone.png" alt="Viewer on a phone with a label's detail sheet" height="190"></a>
+</p>
 
-## Setup
+_Left to right: the printable placement mat, annotations in the Studio, and the visitor's view
+on a phone (3D fallback with a label's details)._
+
+## Features
+
+An exhibitor uploads an STL, marks points of interest and prints a paper placement mat with
+tracking markers. Visitors scan the QR code on the mat and see labels registered onto the real
+object, with no app to build and no object recognition to train.
+
+- **Works with any printed object.** Tracking uses only the printed mat (four image markers
+  plus whole-page tracking). The object's pose is known because it stands on its printed
+  outline.
+- **Your STL never leaves your browser.** Parsing, simplification and mat generation run in
+  Web Workers. Only the simplified model, the mat and the annotations are uploaded.
+- **Printable mat in one click.** PDF/SVG with the object's outline, a FRONT arrow, a 100 mm
+  check bar and the QR code, on A4/A3 or Letter/Tabloid. Larger objects tile across sheets.
+- **Points and painted regions.** Each one has a title, text, an optional link and image, and
+  a place in the guided tour.
+- **Labels behave like the real thing.** In AR the printed object hides labels behind it, and
+  labels fade when seen from behind.
+- **Runs in the browser.** Android Chrome via WebXR image tracking; iPhone via the Needle Go
+  App Clip (not yet device-tested). Other browsers get a 3D view of the exhibit.
+- **One-time calibration** on a phone (`/studio/<id>/calibrate`), saved for every visitor.
+- **Try it without an account.** The Studio works as an in-tab draft. Publishing needs
+  sign-in (email + password or a passkey).
+
+## Installation
+
+Requires Node 24+ and pnpm 10 (`corepack enable` picks the pinned version).
 
 ```bash
-pnpm install
-cp .env.example .env.local   # fill in Supabase URL + publishable key
-pnpm dev
+git clone https://github.com/Jin-hiroo/exhibitar.git && cd exhibitar && pnpm install
 ```
+
+Sign-in and publishing need a Supabase project: copy `.env.example` to `.env.local` and fill it
+in (see [Self-hosting](#self-hosting)). Without it, everything else below still works.
+
+## Usage
+
+```bash
+pnpm dev   # http://localhost:3000
+```
+
+1. Open http://localhost:3000/studio/new, pick a sample (or drop an STL) and click **Generate
+   model & mat**.
+2. **Mat**: download the PDF, print it at 100 % and place the printed object on the outline.
+3. **Annotate**: click **＋ Point** and click the model, or paint a region; give it a title and
+   text.
+4. **Preview** shows the visitor's 3D view; **Publish** (signed in) gives the exhibit its
+   `/v/<id>` page, which the QR code on the mat points to.
+
+The demo exhibit needs no backend: open http://localhost:3000/v/mockcube01 and print
+`/fixtures/mock-cube-mat.pdf` to try it in AR. Add `?debug` to any `/v/<id>` URL for the
+tracking HUD. For the full product and data model, see [docs/SPEC.md](docs/SPEC.md) and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Development
+
+Contributor rules: [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md).
+Workstreams: [docs/TASKS.md](docs/TASKS.md).
 
 | Command                       | What it does                                                                                                            |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
