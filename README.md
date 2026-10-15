@@ -13,7 +13,13 @@ on the real object.**
 · [Spec](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Contributing](CONTRIBUTING.md) ·
 [Security](SECURITY.md)
 
-![Studio: load an STL, generate the printable mat, add a point and a painted region, preview](docs/images/studio-demo.gif)
+<p>
+  <a href="docs/images/ar-skull-front.jpg"><img src="docs/images/ar-skull-front.jpg" alt="AR view: a 3D-printed skull on its placement mat, with labels 1 左目 (left eye) and 2 歯 (teeth) pinned to it" height="360"></a>
+  <a href="docs/images/ar-skull-angle.jpg"><img src="docs/images/ar-skull-angle.jpg" alt="The same exhibit from another angle: the labels stay on the eye and the teeth" height="360"></a>
+</p>
+
+_In AR: a 3D-printed skull on its printed mat, seen through a phone. The labels (1 左目 "left
+eye", 2 歯 "teeth") stay on the real object as the phone moves._
 
 <p>
   <a href="docs/images/studio-mat.png"><img src="docs/images/studio-mat.png" alt="Mat tab with the generated A4 mat" height="190"></a>
