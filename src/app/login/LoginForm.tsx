@@ -10,13 +10,13 @@ type Mode = 'signin' | 'signup';
 
 const NOT_CONFIGURED = 'Sign-in is not configured (missing Supabase env vars).';
 
-export function LoginForm({ next, error }: { next: string; error: string | null }) {
+export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState<'password' | 'passkey' | null>(null);
-  const [message, setMessage] = useState<string | null>(error);
+  const [message, setMessage] = useState<string | null>(null);
 
   // Passkey autofill: the browser offers saved passkeys in the email field's suggestions.
   useEffect(() => {
