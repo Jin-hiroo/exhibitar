@@ -49,3 +49,7 @@ next-env.d.ts
 
 # generated fixtures / demo output
 /tests/fixtures/out/
+
+# local agent state
+/.claude/worktrees/
+/.claude/settings.local.json
