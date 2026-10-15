@@ -22,13 +22,13 @@ _In AR: a 3D-printed skull on its printed mat, seen through a phone. The labels 
 eye", 2 歯 "teeth") stay on the real object as the phone moves._
 
 <p>
-  <a href="docs/images/studio-mat.png"><img src="docs/images/studio-mat.png" alt="Mat tab with the generated A4 mat" height="190"></a>
-  <a href="docs/images/studio-annotate.png"><img src="docs/images/studio-annotate.png" alt="Annotate tab with two points and a painted region" height="190"></a>
-  <a href="docs/images/viewer-phone.png"><img src="docs/images/viewer-phone.png" alt="Viewer on a phone with a label's detail sheet" height="190"></a>
+  <a href="docs/images/studio-mat.png"><img src="docs/images/studio-mat.png" alt="Mat tab of the skull exhibit: the generated A3 mat with the stand's outline, markers and QR code" height="190"></a>
+  <a href="docs/images/studio-annotate.png"><img src="docs/images/studio-annotate.png" alt="Annotate tab of the skull exhibit: points 1 左目 and 2 歯 on the simplified model" height="190"></a>
+  <a href="docs/images/viewer-phone.png"><img src="docs/images/viewer-phone.png" alt="The skull exhibit on a phone: 3D view with the 左目 label's detail sheet open" height="190"></a>
 </p>
 
-_Left to right: the printable placement mat, annotations in the Studio, and the visitor's view
-on a phone (3D fallback with a label's details)._
+_The same skull exhibit, left to right: its printable placement mat, its annotations in the
+Studio, and the visitor's view on a phone without AR (3D view with a label's details)._
 
 ## Features
 
