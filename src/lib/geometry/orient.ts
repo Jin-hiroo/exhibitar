@@ -10,9 +10,10 @@ import {
   type IndexedMesh,
   type Vec3Tuple,
 } from './mesh';
+import type { QuatTuple } from './rotation';
 
-/** Quaternion as [x, y, z, w]. */
-export type QuatTuple = [number, number, number, number];
+// three-free, so the Studio's Setup tab can use it without loading three.js
+export { restingRotation, type QuatTuple } from './rotation';
 
 export interface RestingCandidate {
   /** Outward normal of the resting face in model coords; it will point to −Y. */
@@ -33,7 +34,6 @@ const COPLANAR_ANGLE_DEG = 1;
 const COPLANAR_OFFSET_MM = 0.2;
 const MAX_CANDIDATES = 24;
 const AS_PRINTED_BONUS = 1.05;
-const DOWN = new Vector3(0, -1, 0);
 
 /**
  * Suggest resting faces: planes of the convex hull, ranked by the real flat
@@ -100,17 +100,6 @@ export function findRestingCandidates(mesh: IndexedMesh): RestingCandidate[] {
     });
   }
   return out.sort((a, b) => b.score - a.score);
-}
-
-/** Rotation that turns `normal` (outward, model coords) straight down, then yaws about Y for FRONT. */
-export function restingRotation(normal: Vec3Tuple, frontYawDeg = 0): QuatTuple {
-  const rest = new Quaternion().setFromUnitVectors(new Vector3(...normal).normalize(), DOWN);
-  const yaw = new Quaternion().setFromAxisAngle(
-    new Vector3(0, 1, 0),
-    (frontYawDeg * Math.PI) / 180,
-  );
-  const q = yaw.multiply(rest);
-  return [q.x, q.y, q.z, q.w];
 }
 
 /** Compose an extra user rotation (e.g. 90° steps, free rotate) after `base`. */
