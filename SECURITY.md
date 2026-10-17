@@ -40,3 +40,9 @@ Most of these are Supabase settings, not code:
   migrations. The app does not send a CAPTCHA token yet, so turning on Supabase's CAPTCHA
   protection would break sign-in.
 - Set the passkey relying-party ID to your production domain only.
+- With Google sign-in on and **Confirm email** off, nobody checks the address of an email +
+  password account. Supabase links a Google sign-in to an existing account with the same
+  email, so someone who signs up first with another person's address keeps password access to
+  the account that person later uses through Google. Turn **Confirm email** on (with custom
+  SMTP) if that matters for your instance: Supabase then drops unconfirmed sign-ups when it
+  links.

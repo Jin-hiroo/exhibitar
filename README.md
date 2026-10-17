@@ -51,7 +51,7 @@ object, with no app to build and no object recognition to train.
   App Clip (not yet device-tested). Other browsers get a 3D view of the exhibit.
 - **One-time calibration** on a phone (`/studio/<id>/calibrate`), saved for every visitor.
 - **Try it without an account.** The Studio works as an in-tab draft. Publishing needs
-  sign-in (email + password or a passkey).
+  sign-in (Google, email + password or a passkey).
 
 ## Installation
 
@@ -167,6 +167,15 @@ only sign-in and publishing are disabled.
      `https://<your-domain>` as the origin. Passkeys then work only on that domain, not on
      previews or localhost; password sign-in works everywhere. Don't change the RP ID once
      people have passkeys: that invalidates all of them.
+   - **Sign In / Providers → Google** (optional): create an OAuth client of type "Web
+     application" in the [Google Auth Platform](https://console.cloud.google.com/auth/clients),
+     with the callback URL shown on that Supabase page as its authorized redirect URI, and
+     paste the client ID and secret into Supabase. The login page shows **Continue with
+     Google** within 5 minutes of the provider being enabled; no redeploy is needed.
+   - **URL Configuration** (needed for Google): Site URL `https://<your-domain>`; Redirect
+     URLs `http://localhost:3000/**` for local dev and, on Vercel,
+     `https://<project>-*-<team>.vercel.app/**` for previews. Google sign-in only returns to
+     the Site URL or an origin on this list.
    - See [SECURITY.md](SECURITY.md) for hardening settings.
 3. **Environment variables** (see `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`. The site URL is what

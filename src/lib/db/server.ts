@@ -42,6 +42,27 @@ export function getPublicDb(): Db | null {
 }
 
 /**
+ * Whether the Google provider is switched on in Supabase (Auth → Sign In / Providers), from
+ * the project's public auth settings. Cached for 5 minutes: the login page shows "Continue
+ * with Google" soon after the provider is enabled, without a redeploy.
+ */
+export async function isGoogleSignInEnabled(): Promise<boolean> {
+  const env = supabaseEnv();
+  if (!env) return false;
+  try {
+    const res = await timedFetch()(`${env.url}/auth/v1/settings`, {
+      headers: { apikey: env.key },
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return false;
+    const settings = (await res.json()) as { external?: { google?: unknown } };
+    return settings.external?.google === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The signed-in user, from the session's access token. `getClaims` checks the
  * token's signature locally against the project's public signing keys (fetched
  * once and cached), so a page doesn't wait for a round trip to Supabase Auth.
