@@ -236,7 +236,8 @@ applied about the mat origin (+yaw = counter-clockwise seen from above).
 
 ```text
 /                         marketing/landing
-/login                    Supabase auth (email + password, passkey)
+/login                    Supabase auth (Google, email + password, passkey)
+/auth/callback            Google sign-in landing: PKCE code → session cookie
 /auth/signout             POST: sign out
 /studio                   project list
 /studio/account           passkeys (add/remove), change password

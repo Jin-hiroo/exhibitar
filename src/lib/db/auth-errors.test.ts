@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorCode, authErrorMessage, isPasskeyCancel } from './auth-errors';
+import { authErrorCode, authErrorMessage, isPasskeyCancel, oauthErrorMessage } from './auth-errors';
 
 const named = (name: string) => Object.assign(new Error('x'), { name });
 
@@ -36,5 +36,27 @@ describe('authErrorMessage', () => {
     expect(authErrorMessage(aborted)).toBeNull();
     expect(authErrorMessage(dismissed)).toBeNull();
     expect(isPasskeyCancel({ code: 'webauthn_verification_failed' })).toBe(false);
+  });
+});
+
+describe('oauthErrorMessage', () => {
+  it('maps the codes /auth/callback sends back', () => {
+    expect(oauthErrorMessage('access_denied')).toBe('Google sign-in was cancelled.');
+    expect(oauthErrorMessage('flow_state_expired')).toMatch(/took too long/);
+    expect(oauthErrorMessage('pkce_code_verifier_not_found')).toMatch(/browser you started it in/);
+    expect(oauthErrorMessage('not_configured')).toMatch(/not configured/);
+  });
+
+  it('never echoes the URL value', () => {
+    const generic = 'Google sign-in did not finish. Try again.';
+    expect(oauthErrorMessage('Your account is locked. Call +1 555 0100')).toBe(generic);
+    expect(oauthErrorMessage('constructor')).toBe(generic);
+    expect(oauthErrorMessage('__proto__')).toBe(generic);
+  });
+
+  it('is null without a code', () => {
+    expect(oauthErrorMessage(undefined)).toBeNull();
+    expect(oauthErrorMessage('')).toBeNull();
+    expect(oauthErrorMessage(['access_denied', 'x'])).toBeNull();
   });
 });

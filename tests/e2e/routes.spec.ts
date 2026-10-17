@@ -82,6 +82,18 @@ test('editing a saved exhibit requires signing in', async ({ page }) => {
   );
 });
 
+test('a failed Google sign-in returns to the login page with a fixed message', async ({ page }) => {
+  // cancelled on Google's consent screen: Supabase redirects back with ?error=access_denied
+  await page.goto('/auth/callback?error=access_denied&next=%2Fstudio%2Faccount');
+  await expect(page).toHaveURL(/\/login\?error=access_denied&next=%2Fstudio%2Faccount$/);
+  await expect(page.getByText('Google sign-in was cancelled.')).toBeVisible();
+
+  // text in the URL is never shown
+  await page.goto('/login?error=Call%20support%20at%20%2B1%20555%200100');
+  await expect(page.getByText('Google sign-in did not finish. Try again.')).toBeVisible();
+  await expect(page.getByText(/555 0100/)).toHaveCount(0);
+});
+
 test.describe('on iPhone', () => {
   test.use({
     userAgent:
