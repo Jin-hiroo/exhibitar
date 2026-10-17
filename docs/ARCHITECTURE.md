@@ -260,10 +260,12 @@ src/
     annotations/          picking, painting, serialization     (WS-C)
     ar/                   session, tracking, pose fusion, occlusion, labels (WS-D)
     db/                   supabase client, queries             (WS-E)
+    perf/                 Server-Timing, Supabase call timing
   workers/                worker entrypoints wrapping lib/     (WS-A/B)
   components/
     studio/               (WS-C, WS-F)
     viewer/               (WS-D)
+    nav/                  page-switch timing + progress bar (root layout)
 tests/
   fixtures/               generated STLs (cube, L-shape, tripod, sphere)
 supabase/
@@ -275,3 +277,9 @@ supabase/
 - Studio: 1M-triangle STL processed to preview in < 15 s on a mid laptop.
 - Viewer: GLB ≤ 1.5 MB, marker PNGs ≤ 200 KB each, first interaction < 3 s on 4G,
   steady 30+ fps on a mid-range phone.
+- Studio page switches: < 300 ms. Server-rendered pages query Supabase, so Vercel
+  Functions run in Supabase's region (`vercel.json`: `hnd1` for `ap-northeast-1`).
+  From `iad1`, each Supabase call took 0.7–0.9 s. Pages check the session with
+  `getClaims()` (local signature check) rather than `getUser()` (a round trip).
+  Avoid `loading.tsx` on fast routes: once its fallback shows, React holds the page
+  back for at least 300 ms. Measure with `pnpm perf:nav` (README → Checking page speed).

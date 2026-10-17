@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import { restingRotation } from '@/lib/geometry/orient';
+import { restingRotation } from '@/lib/geometry/rotation';
 import { formatDimsMm, sourceScaleFor } from '@/lib/geometry/scale';
 import type { PaperPreference } from '@/lib/mat/paper';
 import { siteUrl } from '@/lib/db/env';

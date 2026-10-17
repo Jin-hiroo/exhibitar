@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import mockProject from '../../../tests/fixtures/project.mock.json';
 import type { Project, ViewerProject } from '../types';
 import { storagePublicBase } from './env';
@@ -15,8 +16,11 @@ export interface PublishedExhibit {
   assetBase: string;
 }
 
-/** A published project for the public Viewer: demo fixtures first, then Supabase. */
-export async function getPublishedProject(id: string): Promise<PublishedExhibit | null> {
+/**
+ * A published project for the public Viewer: demo fixtures first, then Supabase.
+ * Cached per request: `generateMetadata` and the page share one database call.
+ */
+export const getPublishedProject = cache(async (id: string): Promise<PublishedExhibit | null> => {
   const fixture = FIXTURES[id];
   if (fixture) {
     const { title, description, model, objectToMat, calibration, mat, annotations } = fixture;
@@ -31,4 +35,4 @@ export async function getPublishedProject(id: string): Promise<PublishedExhibit 
   const { data, error } = await db.rpc('get_published_project', { p_id: id });
   if (error || !data) return null;
   return { project: data as unknown as ViewerProject, assetBase: base };
-}
+});

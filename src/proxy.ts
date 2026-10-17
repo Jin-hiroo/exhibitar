@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { regionTiming, serverTimingHeader } from '@/lib/perf/server-timing';
+import { timedFetch } from '@/lib/perf/timed-fetch';
 
 /**
  * Keeps the Supabase session cookie fresh for the Studio and auth routes.
@@ -12,6 +14,7 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
+    global: { fetch: timedFetch() },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {
@@ -21,8 +24,18 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  // refreshes the access token if needed (must run before the response is returned)
-  await supabase.auth.getUser();
+  // Refreshes the access token if needed (must run before the response is returned).
+  // The signature is checked locally against the cached signing keys, so this
+  // only calls Supabase Auth when the token has to be refreshed.
+  const t0 = performance.now();
+  await supabase.auth.getClaims();
+  response.headers.set(
+    'Server-Timing',
+    serverTimingHeader([
+      { name: 'auth', dur: performance.now() - t0, desc: 'session check' },
+      ...regionTiming(),
+    ]),
+  );
   return response;
 }
 
