@@ -97,6 +97,19 @@ Workstreams: [docs/TASKS.md](docs/TASKS.md).
 | `pnpm fixtures`               | writes fixture STLs (binary + ASCII) to `tests/fixtures/out/`                                                           |
 | `pnpm demo`                   | runs the full geometry + mat pipeline on every fixture → `tests/fixtures/out/demo/` (GLB, mat SVG/PDF, marker PNGs, QR) |
 | `pnpm mock`                   | regenerates `tests/fixtures/project.mock.json` + `public/fixtures/*` from the real pipeline                             |
+| `pnpm perf:nav [url] [runs]`  | times Studio page switches on any deployment (see below)                                                                |
+
+### Checking page speed
+
+- `pnpm perf:nav https://exhibitar.vercel.app` clicks through the Studio and prints, per page
+  switch, the time until the next page shows, the server's share of it, and the region that
+  ran it. Set `PERF_EMAIL` and `PERF_PASSWORD` to measure signed-in pages too.
+- In the browser, page switches appear as `nav → /path` in DevTools → Performance → Timings.
+  Run `localStorage.perf = '1'` in the console to also log them as `[perf]` lines (always on in
+  `pnpm dev`). Studio responses carry a `Server-Timing` header (session check time, Vercel
+  region): DevTools → Network → a request → Timing.
+- On the server, Supabase calls slower than 300 ms are logged as `[perf] supabase …` (Vercel →
+  Logs, or the `pnpm dev` terminal). `PERF_LOG=1` logs every call.
 
 ## Try the AR viewer (Android)
 
@@ -160,6 +173,9 @@ only sign-in and publishing are disabled.
    printed QR codes point at, so it must be your production domain.
 4. **Deploy.** On Vercel, import the repository and set the variables for all environments;
    `main` deploys to production and branches get previews. Any host that runs Next.js works.
+   Run the server in the same region as your Supabase project: every Studio page queries it,
+   and each query across an ocean adds most of a second. `vercel.json` pins Vercel Functions
+   to `hnd1` (Tokyo) for a Supabase project in `ap-northeast-1`; change it to match yours.
 
 ## License
 

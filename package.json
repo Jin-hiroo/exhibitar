@@ -27,6 +27,7 @@
     "mock": "tsx scripts/make-mock-project.ts",
     "samples": "tsx scripts/make-samples.ts",
     "perf:viewer": "node scripts/perf-viewer.mjs",
+    "perf:nav": "node scripts/perf-nav.mjs",
     "track-scores": "tsx scripts/track-scores.ts"
   },
   "dependencies": {
