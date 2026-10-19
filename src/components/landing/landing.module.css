@@ -1,0 +1,1266 @@
+/*
+ * Landing page. The hero is the green self-healing cutting mat the exhibitor
+ * works on, with a 1 cm grid and rulers, and the AR photo lying on it. The rest
+ * of the page is a sheet of paper lying on the mat: ink type, with the Studio
+ * screens printed on it inside crop marks. The left ruler counts down both.
+ * Label yellow (#ffc400, the AR label colour) is kept for the tape you click.
+ */
+
+.root {
+  --mat: #2d6a4f;
+  --mat-deep: #255a42;
+  --cream: #e9e5c4;
+  --paper: #fbfbf8;
+  --sheet: #f6f5ef;
+  --plate: #ffffff;
+  --masking: rgb(238 230 198 / 0.86);
+  --ink: #141414;
+  --ink-soft: #45463f;
+  --tape: #ffc400;
+  --cm: 1cm;
+  --ruler: 0.75cm;
+  --pad: 0.6cm;
+  --gap: 24px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --rest: 0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62);
+  --lifted: 0 2px 2px rgb(0 0 0 / 0.12), 0 40px 60px -18px rgb(0 18 8 / 0.5);
+
+  /* what is printed where: ink on the paper sheet (the mat overrides these) */
+  --fg: var(--ink);
+  --fg-soft: var(--ink-soft);
+  --print: var(--ink);
+  --print-major: rgb(20 20 20 / 0.3);
+  --print-minor: rgb(20 20 20 / 0.1);
+  --ruler-bg: transparent;
+  --tick-half: var(--print-major);
+  --tick-mm: var(--print-minor);
+  --focus: var(--ink);
+  --shade: 20 20 20;
+
+  position: relative;
+  overflow: clip;
+  color: var(--fg);
+  background-color: var(--sheet);
+  font-family: var(--font-text), system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  font-variant-numeric: lining-nums;
+}
+
+:global(html:has([data-landing])) {
+  background: #f6f5ef;
+  color-scheme: light;
+  scrollbar-color: rgb(20 20 20 / 0.4) #f6f5ef;
+}
+
+.root ::selection {
+  background: var(--tape);
+  color: var(--ink);
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.root a {
+  color: inherit;
+  text-decoration-color: var(--print-major);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+}
+
+.root a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ---------- language ---------- */
+
+.root:not([data-lang='ja']) .ja,
+.root[data-lang='ja'] .en {
+  display: none;
+}
+
+.ja {
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Noto Sans CJK JP', 'Yu Gothic',
+    Meiryo, sans-serif;
+  line-break: strict;
+}
+
+/* Japanese display type: M PLUS 1, one heavy weight */
+.h1 .ja,
+.h2 .ja,
+.step h3 .ja,
+.specList dt .ja,
+.statement h2 .ja,
+.use h3 .ja,
+.qrCard p .ja,
+.tapeFace .ja {
+  font-family:
+    var(--font-ja), 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-feature-settings: 'palt';
+}
+
+.root[data-lang='ja'] {
+  line-height: 1.85;
+}
+
+/* Japanese headings break between phrases (marked with <wbr>), not inside words */
+.h1 .ja,
+.h2 .ja,
+.step h3 .ja,
+.qrCard p .ja,
+.specList dt .ja,
+.statement h2 .ja,
+.use h3 .ja {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.root p {
+  text-wrap: pretty;
+}
+
+/* ---------- the mat (hero) ---------- */
+
+.mat {
+  --fg: #ffffff;
+  --fg-soft: #d5e6da;
+  --print: var(--cream);
+  --print-major: rgb(233 229 196 / 0.42);
+  --print-minor: rgb(233 229 196 / 0.15);
+  --ruler-bg: var(--mat-deep);
+  --tick-half: var(--print);
+  --tick-mm: var(--print-major);
+  --focus: var(--tape);
+  --shade: 0 18 8;
+
+  position: relative;
+  z-index: 2;
+  color: var(--fg);
+  background-color: var(--mat);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(var(--print-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--print-major) 1px, transparent 1px),
+    linear-gradient(var(--print-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--print-minor) 1px, transparent 1px);
+  background-size:
+    180px 180px,
+    calc(var(--cm) * 5) calc(var(--cm) * 5),
+    calc(var(--cm) * 5) calc(var(--cm) * 5),
+    var(--cm) var(--cm),
+    var(--cm) var(--cm);
+  background-position:
+    0 0,
+    var(--ruler) var(--ruler),
+    var(--ruler) var(--ruler),
+    var(--ruler) var(--ruler),
+    var(--ruler) var(--ruler);
+}
+
+/* the paper's edge lies on the mat: a thin contact shadow along its top */
+.mat::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 10px;
+  background: linear-gradient(to top, rgb(0 18 8 / 0.34), transparent);
+  pointer-events: none;
+}
+
+/* ---------- rulers ---------- */
+
+.rulerTop,
+.rulerLeft,
+.rulerCorner {
+  position: absolute;
+  z-index: 1;
+  background-color: var(--ruler-bg);
+  color: var(--print);
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 9px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rulerTop {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--ruler);
+  display: flex;
+  padding-left: var(--ruler);
+  overflow: hidden;
+  border-bottom: 1px solid var(--print-major);
+  background-image:
+    linear-gradient(90deg, var(--print) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tick-half) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tick-mm) 1px, transparent 1px);
+  background-size:
+    var(--cm) 52%,
+    calc(var(--cm) / 2) 34%,
+    calc(var(--cm) / 10) 20%;
+  background-repeat: repeat-x;
+  background-position: var(--ruler) 0;
+}
+
+.rulerTop span {
+  flex: none;
+  width: var(--cm);
+  padding: calc(var(--ruler) * 0.56) 0 0 3px;
+}
+
+.rulerLeft {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--ruler);
+  overflow: hidden;
+  border-right: 1px solid var(--print-major);
+  background-image:
+    linear-gradient(var(--print) 1px, transparent 1px),
+    linear-gradient(var(--tick-half) 1px, transparent 1px),
+    linear-gradient(var(--tick-mm) 1px, transparent 1px);
+  background-size:
+    52% var(--cm),
+    34% calc(var(--cm) / 2),
+    20% calc(var(--cm) / 10);
+  background-repeat: repeat-y;
+  background-position: 0 var(--ruler);
+}
+
+/* the same ruler printed in ink down the paper; the mat's ruler covers its top */
+.rulerPaper {
+  z-index: 1;
+}
+
+.rulerLeftNumbers {
+  display: block;
+  white-space: pre;
+  margin-top: var(--ruler);
+  padding-left: calc(var(--ruler) * 0.4);
+  font-size: 8.5px;
+  line-height: var(--cm);
+  transform: translateY(calc(var(--cm) * -0.24));
+}
+
+.rulerCorner {
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: var(--ruler);
+  height: var(--ruler);
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--print-major);
+  border-bottom: 1px solid var(--print-major);
+}
+
+.cmProbe {
+  position: absolute;
+  width: var(--cm);
+  height: 0;
+  visibility: hidden;
+}
+
+.cursorTop,
+.cursorLeft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  background: var(--tape);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.root[data-pointer] .cursorTop,
+.root[data-pointer] .cursorLeft {
+  opacity: 1;
+}
+
+.cursorTop {
+  width: 2px;
+  height: var(--ruler);
+}
+
+.cursorLeft {
+  width: var(--ruler);
+  height: 2px;
+}
+
+.cursorTop span,
+.cursorLeft span {
+  position: absolute;
+  padding: 1px 3px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cursorTop span {
+  left: 2px;
+  bottom: 0;
+}
+
+.cursorLeft span {
+  top: 2px;
+  left: 0;
+}
+
+/* ---------- layout ---------- */
+
+.wrap {
+  margin-left: max(var(--ruler), calc((100% - 1320px - var(--pad) * 2) / 2));
+  padding-inline: var(--pad);
+  max-width: calc(1320px + var(--pad) * 2);
+}
+
+.matWrap {
+  position: relative;
+  padding-top: var(--ruler);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 14px 22px;
+  flex-wrap: wrap;
+  padding-block: 18px;
+}
+
+.wordmark {
+  margin-right: auto;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  color: var(--print);
+}
+
+.root .wordmark {
+  text-decoration: none;
+}
+
+.navLinks {
+  display: none;
+  gap: 26px;
+  font-weight: 500;
+}
+
+.root .navLinks a {
+  text-decoration-color: transparent;
+}
+
+.root .navLinks a:hover {
+  text-decoration-color: var(--print);
+}
+
+.langSwitch {
+  display: flex;
+  border: 1.5px solid var(--print-major);
+}
+
+.langSwitch button {
+  appearance: none;
+  border: 0;
+  padding: 5px 10px;
+  background: none;
+  color: var(--fg-soft);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.langSwitch button:hover {
+  color: var(--fg);
+}
+
+.root:not([data-lang='ja']) .langEn,
+.root[data-lang='ja'] .langJa {
+  background: var(--print);
+  color: var(--mat-deep);
+}
+
+.root .navStudio {
+  display: none;
+  padding: 7px 14px;
+  border: 1.5px solid var(--print);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.root .navStudio:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  display: grid;
+  gap: calc(var(--cm) * 1.6);
+  padding-block: calc(var(--cm) * 0.9) calc(var(--cm) * 2.5);
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+}
+
+.h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(3.1rem, 1.5rem + 5.4vw, 6rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.h1 .ja {
+  display: block;
+  font-size: clamp(2.3rem, 1.3rem + 3.6vw, 4.5rem);
+  line-height: 1.16;
+  letter-spacing: 0;
+}
+
+.lede {
+  margin-top: calc(var(--cm) * 0.8);
+  max-width: 33em;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  color: var(--fg-soft);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 32px;
+  margin-top: calc(var(--cm) * 1.1);
+}
+
+/* the call to action: a strip of label-yellow tape */
+.root .tape {
+  display: inline-block;
+  text-decoration: none;
+  transform: rotate(-1.2deg);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(var(--shade) / 0.35));
+  transition:
+    transform 0.4s var(--ease-out),
+    filter 0.4s var(--ease-out);
+}
+
+.tapeFace {
+  --s: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 30px 15px 28px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  mask:
+    conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% var(--s)
+      repeat-y,
+    conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% var(--s)
+      repeat-y;
+}
+
+.tapeFace .ja {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tapeFace svg {
+  transition: transform 0.4s var(--ease-out);
+}
+
+.root .tape:hover {
+  transform: rotate(0deg) translateY(-2px);
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(var(--shade) / 0.42));
+}
+
+.root .tape:hover svg {
+  transform: translateX(4px);
+}
+
+.root .tape:active {
+  transform: rotate(0deg) translateY(1px);
+}
+
+.root .textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--print-major);
+}
+
+.fine {
+  margin-top: calc(var(--cm) * 1.1);
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+.heroFigure {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: min(100%, 470px);
+  margin: 0;
+}
+
+.print {
+  position: relative;
+  padding: 10px;
+  background: var(--paper);
+  box-shadow: var(--rest);
+  transform: rotate(var(--r, 0deg));
+  animation: settle 1s var(--ease-out) 0.1s both;
+}
+
+.print img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes settle {
+  from {
+    transform: rotate(calc(var(--r, 0deg) - 1.5deg)) translateY(-18px) scale(1.03);
+    box-shadow: var(--lifted);
+  }
+}
+
+/* masking tape: holding the print down, and the paper sheet's top edge */
+.strip,
+.edgeStrip {
+  --s: 7px;
+  position: absolute;
+  background: var(--masking);
+  mask:
+    conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% var(--s)
+      repeat-y,
+    conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% var(--s)
+      repeat-y;
+}
+
+.strip {
+  width: 92px;
+  height: 26px;
+}
+
+.strip[data-pos='tl'] {
+  top: 4px;
+  left: -30px;
+  transform: rotate(-40deg);
+}
+
+.strip[data-pos='tr'] {
+  top: 4px;
+  right: -30px;
+  transform: rotate(40deg);
+}
+
+.edgeStrip {
+  z-index: 3;
+  bottom: -14px;
+  width: 112px;
+  height: 28px;
+}
+
+.edgeStrip[data-pos='l'] {
+  left: calc(var(--ruler) + 7%);
+  transform: rotate(-3deg);
+}
+
+.edgeStrip[data-pos='r'] {
+  right: 7%;
+  transform: rotate(2.5deg);
+}
+
+.dimCaption {
+  position: relative;
+  margin-top: calc(var(--cm) * 0.9);
+  padding-top: 26px;
+  max-width: 30em;
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+/* a dimension line with end ticks, its label set into the line */
+.dimCaption::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 11px;
+  border-inline: 1px solid var(--print);
+  background: linear-gradient(var(--print), var(--print)) 0 5px / 100% 1px no-repeat;
+}
+
+.dimLabel {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0 8px;
+  background: var(--mat);
+  color: var(--print);
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.dimLabel:has(span:empty) {
+  display: none;
+}
+
+/* ---------- the paper ---------- */
+
+.section {
+  position: relative;
+  padding-block: calc(var(--cm) * 2.5);
+}
+
+.paper > .section:first-child {
+  padding-top: calc(var(--cm) * 3);
+}
+
+.h2 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.h2 .ja {
+  font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3.25rem);
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.sectionLede {
+  margin-top: 18px;
+  max-width: 34em;
+  font-size: 1.125rem;
+  color: var(--fg-soft);
+}
+
+/* a screen printed on the paper, inside crop marks */
+.plate,
+.demoMatFrame {
+  position: relative;
+  background: var(--plate);
+  border: 1px solid var(--print-minor);
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.plate::before,
+.demoMatFrame::before {
+  --m: linear-gradient(var(--print), var(--print));
+  content: '';
+  position: absolute;
+  inset: -18px;
+  background:
+    var(--m) left 0 top 17px / 11px 1px,
+    var(--m) left 17px top 0 / 1px 11px,
+    var(--m) right 0 top 17px / 11px 1px,
+    var(--m) right 17px top 0 / 1px 11px,
+    var(--m) left 0 bottom 17px / 11px 1px,
+    var(--m) left 17px bottom 0 / 1px 11px,
+    var(--m) right 0 bottom 17px / 11px 1px,
+    var(--m) right 17px bottom 0 / 1px 11px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.plateMat {
+  width: min(100%, 400px);
+}
+
+.platePhone {
+  width: min(100%, 270px);
+}
+
+.plateAr {
+  width: min(100%, 440px);
+}
+
+/* how it works */
+
+.steps {
+  list-style: none;
+  display: grid;
+  gap: calc(var(--cm) * 2.6);
+  margin-top: calc(var(--cm) * 1.8);
+}
+
+.step {
+  display: grid;
+  gap: 34px;
+  align-content: start;
+}
+
+.stepText {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 16px;
+  align-items: baseline;
+}
+
+.stepNo {
+  grid-row: span 2;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(4rem, 3rem + 3vw, 6rem);
+  font-weight: 800;
+  line-height: 0.78;
+  color: var(--print);
+  font-variant-numeric: tabular-nums;
+}
+
+.step h3 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.step h3 .ja {
+  font-size: 1.4rem;
+  line-height: 1.35;
+}
+
+.step p {
+  margin-top: 8px;
+  max-width: 32em;
+  color: var(--fg-soft);
+}
+
+.stepVisual {
+  justify-self: start;
+  width: 100%;
+  margin: 0;
+}
+
+/* step 1: the drop area sits under the instructions; the Studio after the drop is the visual */
+.plateDrop {
+  grid-column: 1 / -1;
+  width: min(100%, 472px);
+  margin-top: 40px;
+}
+
+/* stacked above the Setup plate: keep the two sets of crop marks apart */
+@media (max-width: 1023px) {
+  .plateDrop {
+    margin-bottom: 20px;
+  }
+}
+
+.legend {
+  margin-top: 30px;
+  max-width: 34em;
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+/* demo */
+
+.demo {
+  display: grid;
+  gap: calc(var(--cm) * 1.5);
+}
+
+.demoSteps {
+  counter-reset: demo;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.demoSteps li {
+  counter-increment: demo;
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  align-items: baseline;
+}
+
+.demoSteps li::before {
+  content: counter(demo);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--print);
+}
+
+.qrCard {
+  display: none;
+  align-items: center;
+  gap: 18px;
+  width: max-content;
+  margin-top: 28px;
+  padding: 14px 22px 14px 14px;
+  background: var(--plate);
+  border: 1px solid var(--print-minor);
+  color: var(--ink);
+}
+
+.qr {
+  width: 128px;
+  aspect-ratio: 1;
+}
+
+.qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qrCard p {
+  max-width: 7em;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.qrCard p .ja {
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.phoneHint {
+  margin-top: 24px;
+  padding-left: 14px;
+  border-left: 1px solid var(--print);
+  max-width: 32em;
+}
+
+.note {
+  margin-top: 22px;
+  max-width: 34em;
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+.note code {
+  padding: 1px 5px;
+  background: rgb(20 20 20 / 0.07);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+.demoLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 22px;
+  font-weight: 600;
+}
+
+.demoMat {
+  display: grid;
+  justify-items: start;
+  gap: 26px;
+}
+
+.demoMatFrame {
+  width: 100%;
+}
+
+.demoMatFrame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.demoMatFrame:fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: #fff;
+}
+
+.demoMatFrame:fullscreen::before {
+  display: none;
+}
+
+.demoMatFrame:fullscreen img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.textButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--print-major);
+  text-underline-offset: 0.28em;
+  cursor: pointer;
+}
+
+.textButton:hover {
+  text-decoration-color: currentColor;
+}
+
+/* what it does */
+
+.spec {
+  display: grid;
+  gap: calc(var(--cm) * 1.2);
+}
+
+.specList {
+  display: grid;
+  column-gap: 36px;
+}
+
+.specList > div {
+  padding: 18px 0 24px;
+  border-top: 1px solid var(--print-major);
+}
+
+.specList dt {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.specList dt .ja {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.specList dd {
+  margin-top: 6px;
+  color: var(--fg-soft);
+}
+
+/* who it is for */
+
+.statement {
+  position: relative;
+  padding-block: calc(var(--cm) * 3);
+}
+
+.statementHead {
+  position: relative;
+}
+
+.statement h2 {
+  position: relative;
+  max-width: 15em;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2rem, 1.2rem + 2.8vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.statement h2 .ja {
+  font-size: clamp(1.6rem, 1.1rem + 2vw, 2.75rem);
+  line-height: 1.45;
+}
+
+/*
+ * One example per audience: a model labelled in the real Studio, inside crop marks. The labels
+ * are screen-sized in the Studio, so the plates stay near that size (up to 440px, two across
+ * from 768px) to keep them readable.
+ */
+.uses {
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 440px);
+  gap: calc(var(--cm) * 1.6) 48px; /* crop marks stand 18px outside each plate */
+  margin-top: calc(var(--cm) * 1.8);
+}
+
+/* the en/ja picture spans */
+.plateUse > span {
+  display: block;
+}
+
+.use h3 {
+  margin-top: 30px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.use h3 .ja {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.use p {
+  margin-top: 6px;
+  color: var(--fg-soft);
+}
+
+.uses + .legend {
+  margin-top: calc(var(--cm) * 1.4);
+}
+
+.angleGuide {
+  display: none;
+}
+
+/* closing */
+
+.close {
+  padding-block: calc(var(--cm) * 2.5) calc(var(--cm) * 3);
+  border-top: 1px solid var(--print-major);
+}
+
+.close p {
+  margin-top: 16px;
+  max-width: 34em;
+  font-size: 1.125rem;
+  color: var(--fg-soft);
+}
+
+.close .actions {
+  margin-top: var(--cm);
+}
+
+/* footer */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 28px;
+  padding-block: 22px 32px;
+  background: linear-gradient(var(--print-major), var(--print-major)) var(--pad) 0 /
+    calc(100% - var(--pad) * 2) 1px no-repeat;
+  font-size: 0.9375rem;
+}
+
+.imprint {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.imprint .ja {
+  letter-spacing: 0;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
+
+/* ---------- larger screens ---------- */
+
+@media (min-width: 640px) {
+  .root {
+    --ruler: var(--cm);
+    --pad: calc(var(--cm) * 1);
+  }
+
+  .rulerTop,
+  .rulerLeft,
+  .rulerCorner,
+  .rulerLeftNumbers {
+    font-size: 10px;
+  }
+
+  .rulerLeftNumbers {
+    padding-left: calc(var(--ruler) * 0.5);
+  }
+
+  .root .navStudio {
+    display: inline-block;
+  }
+
+  .qrCard {
+    display: flex;
+  }
+
+  .phoneHint {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .uses {
+    grid-template-columns: repeat(2, minmax(0, 440px));
+  }
+}
+
+@media (min-width: 900px) {
+  .navLinks {
+    display: flex;
+  }
+
+  .specList {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .root {
+    --pad: calc(var(--cm) * 2);
+  }
+
+  .hero {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: center;
+    min-height: min(820px, calc(100svh - var(--ruler) - 78px));
+    padding-block: calc(var(--cm) * 0.5) calc(var(--cm) * 2);
+  }
+
+  .heroCopy {
+    grid-column: 1 / span 7;
+  }
+
+  .heroFigure {
+    grid-column: 8 / span 5;
+    justify-self: end;
+  }
+
+  .angleGuide {
+    display: block;
+    position: absolute;
+    right: calc(var(--cm) * -1);
+    bottom: var(--cm);
+    width: calc(var(--cm) * 8);
+    height: calc(var(--cm) * 8);
+    fill: none;
+    stroke: var(--print-major);
+    stroke-width: 1;
+    pointer-events: none;
+  }
+
+  .angleGuide text {
+    fill: var(--print-major);
+    stroke: none;
+    font-family: var(--font-display), sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .steps {
+    row-gap: calc(var(--cm) * 2.6);
+  }
+
+  .step {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: center;
+  }
+
+  .stepText {
+    grid-column: 1 / span 5;
+  }
+
+  .stepVisual {
+    grid-column: 7 / span 6;
+  }
+
+  .step:nth-child(even) .stepText {
+    grid-column: 8 / span 5;
+  }
+
+  .step:nth-child(even) .stepVisual {
+    grid-row: 1;
+    grid-column: 1 / span 6;
+    display: grid;
+    justify-items: end;
+  }
+
+  .demo {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: start;
+  }
+
+  .demoCopy {
+    grid-column: 1 / span 4;
+  }
+
+  .demoMat {
+    grid-column: 5 / span 8;
+    margin-top: calc(var(--cm) * 0.5);
+  }
+
+  .spec {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+
+  .spec > h2 {
+    grid-column: 1 / span 4;
+  }
+
+  .specList {
+    grid-column: 5 / span 8;
+  }
+
+  .uses {
+    column-gap: calc(var(--cm) * 3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .print {
+    animation: none;
+  }
+
+  .root .tape,
+  .tapeFace svg {
+    transition: none;
+  }
+}

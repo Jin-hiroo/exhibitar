@@ -1,0 +1,550 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T09:53:22+00:00",
+  "title": "Design System: ExhibitAR",
+  "extensions": {
+    "colorMeta": {
+      "mat-green": {
+        "role": "primary",
+        "displayName": "Mat Green",
+        "canonical": "oklch(47.6% 0.078 162.2)",
+        "tonalRamp": [
+          "oklch(15% 0.078 162.2)",
+          "oklch(26% 0.078 162.2)",
+          "oklch(38% 0.078 162.2)",
+          "oklch(50% 0.078 162.2)",
+          "oklch(62% 0.078 162.2)",
+          "oklch(74% 0.078 162.2)",
+          "oklch(85% 0.078 162.2)",
+          "oklch(95% 0.078 162.2)"
+        ]
+      },
+      "mat-deep": {
+        "role": "primary",
+        "displayName": "Mat Deep",
+        "canonical": "oklch(42.4% 0.070 161.6)",
+        "tonalRamp": [
+          "oklch(15% 0.07 161.6)",
+          "oklch(26% 0.07 161.6)",
+          "oklch(38% 0.07 161.6)",
+          "oklch(50% 0.07 161.6)",
+          "oklch(62% 0.07 161.6)",
+          "oklch(74% 0.07 161.6)",
+          "oklch(85% 0.07 161.6)",
+          "oklch(95% 0.07 161.6)"
+        ]
+      },
+      "label-yellow": {
+        "role": "secondary",
+        "displayName": "Label Yellow",
+        "canonical": "oklch(85.0% 0.174 86.6)",
+        "tonalRamp": [
+          "oklch(15% 0.174 86.6)",
+          "oklch(26% 0.174 86.6)",
+          "oklch(38% 0.174 86.6)",
+          "oklch(50% 0.174 86.6)",
+          "oklch(62% 0.174 86.6)",
+          "oklch(74% 0.174 86.6)",
+          "oklch(85% 0.174 86.6)",
+          "oklch(95% 0.174 86.6)"
+        ]
+      },
+      "line-cream": {
+        "role": "neutral",
+        "displayName": "Line Cream",
+        "canonical": "oklch(91.7% 0.044 101.5)",
+        "tonalRamp": [
+          "oklch(15% 0.044 101.5)",
+          "oklch(26% 0.044 101.5)",
+          "oklch(38% 0.044 101.5)",
+          "oklch(50% 0.044 101.5)",
+          "oklch(62% 0.044 101.5)",
+          "oklch(74% 0.044 101.5)",
+          "oklch(85% 0.044 101.5)",
+          "oklch(95% 0.044 101.5)"
+        ]
+      },
+      "line-major": {
+        "role": "neutral",
+        "displayName": "Line Major (cream 42%)",
+        "canonical": "oklch(91.7% 0.044 101.5 / 0.42)",
+        "tonalRamp": [
+          "oklch(15% 0.044 101.5)",
+          "oklch(26% 0.044 101.5)",
+          "oklch(38% 0.044 101.5)",
+          "oklch(50% 0.044 101.5)",
+          "oklch(62% 0.044 101.5)",
+          "oklch(74% 0.044 101.5)",
+          "oklch(85% 0.044 101.5)",
+          "oklch(95% 0.044 101.5)"
+        ]
+      },
+      "line-minor": {
+        "role": "neutral",
+        "displayName": "Line Minor (cream 15%)",
+        "canonical": "oklch(91.7% 0.044 101.5 / 0.15)",
+        "tonalRamp": [
+          "oklch(15% 0.044 101.5)",
+          "oklch(26% 0.044 101.5)",
+          "oklch(38% 0.044 101.5)",
+          "oklch(50% 0.044 101.5)",
+          "oklch(62% 0.044 101.5)",
+          "oklch(74% 0.044 101.5)",
+          "oklch(85% 0.044 101.5)",
+          "oklch(95% 0.044 101.5)"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "oklch(96.9% 0.008 98.9)",
+        "tonalRamp": [
+          "oklch(15% 0.008 98.9)",
+          "oklch(26% 0.008 98.9)",
+          "oklch(38% 0.008 98.9)",
+          "oklch(50% 0.008 98.9)",
+          "oklch(62% 0.008 98.9)",
+          "oklch(74% 0.008 98.9)",
+          "oklch(85% 0.008 98.9)",
+          "oklch(95% 0.008 98.9)"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate White",
+        "canonical": "oklch(100.0% 0.000 0.0)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Print Paper",
+        "canonical": "oklch(98.7% 0.004 106.5)",
+        "tonalRamp": [
+          "oklch(15% 0.004 106.5)",
+          "oklch(26% 0.004 106.5)",
+          "oklch(38% 0.004 106.5)",
+          "oklch(50% 0.004 106.5)",
+          "oklch(62% 0.004 106.5)",
+          "oklch(74% 0.004 106.5)",
+          "oklch(85% 0.004 106.5)",
+          "oklch(95% 0.004 106.5)"
+        ]
+      },
+      "masking-cream": {
+        "role": "neutral",
+        "displayName": "Masking Cream",
+        "canonical": "oklch(92.3% 0.043 95.5 / 0.86)",
+        "tonalRamp": [
+          "oklch(15% 0.043 95.5)",
+          "oklch(26% 0.043 95.5)",
+          "oklch(38% 0.043 95.5)",
+          "oklch(50% 0.043 95.5)",
+          "oklch(62% 0.043 95.5)",
+          "oklch(74% 0.043 95.5)",
+          "oklch(85% 0.043 95.5)",
+          "oklch(95% 0.043 95.5)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(19.1% 0.000 0.0)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "oklch(39.1% 0.012 113.5)",
+        "tonalRamp": [
+          "oklch(15% 0.012 113.5)",
+          "oklch(26% 0.012 113.5)",
+          "oklch(38% 0.012 113.5)",
+          "oklch(50% 0.012 113.5)",
+          "oklch(62% 0.012 113.5)",
+          "oklch(74% 0.012 113.5)",
+          "oklch(85% 0.012 113.5)",
+          "oklch(95% 0.012 113.5)"
+        ]
+      },
+      "ink-major": {
+        "role": "neutral",
+        "displayName": "Ink Major (ink 30%)",
+        "canonical": "oklch(19.1% 0.000 0.0 / 0.3)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ink-minor": {
+        "role": "neutral",
+        "displayName": "Ink Minor (ink 10%)",
+        "canonical": "oklch(19.1% 0.000 0.0 / 0.1)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "text-white": {
+        "role": "neutral",
+        "displayName": "Text White",
+        "canonical": "oklch(100.0% 0.000 0.0)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "text-soft": {
+        "role": "neutral",
+        "displayName": "Text Soft",
+        "canonical": "oklch(90.9% 0.024 155.1)",
+        "tonalRamp": [
+          "oklch(15% 0.024 155.1)",
+          "oklch(26% 0.024 155.1)",
+          "oklch(38% 0.024 155.1)",
+          "oklch(50% 0.024 155.1)",
+          "oklch(62% 0.024 155.1)",
+          "oklch(74% 0.024 155.1)",
+          "oklch(85% 0.024 155.1)",
+          "oklch(95% 0.024 155.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The one hero headline, white on the mat."
+      },
+      "display-ja": {
+        "displayName": "Display (Japanese)",
+        "purpose": "Hero headline in Japanese; phrase breaks marked with <wbr>."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, in ink on the paper."
+      },
+      "headline-ja": {
+        "displayName": "Headline (Japanese)",
+        "purpose": "Section headings in Japanese."
+      },
+      "statement": {
+        "displayName": "Statement",
+        "purpose": "The single large audience sentence."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Oversized cream step numbers."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Step titles."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "Feature-list terms and the QR card caption."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running copy on mat and paper."
+      },
+      "body-ja": {
+        "displayName": "Body (Japanese)",
+        "purpose": "Japanese running copy in the system gothic stack."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The sentence under the hero headline."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Captions, notes, fine print, footer."
+      },
+      "label-tape": {
+        "displayName": "Tape Label",
+        "purpose": "Text on the yellow action tape."
+      },
+      "label-dimension": {
+        "displayName": "Dimension Label",
+        "purpose": "Measurements set into dimension lines; footer imprint."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Inline code inside notes only: ui-monospace, SFMono-Regular, Menlo, monospace on a 7% ink chip."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rest",
+        "value": "0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62)",
+        "purpose": "The hero print lying on the mat."
+      },
+      {
+        "name": "lifted",
+        "value": "0 2px 2px rgb(0 0 0 / 0.12), 0 40px 60px -18px rgb(0 18 8 / 0.5)",
+        "purpose": "Start frame of the hero print's settle only."
+      },
+      {
+        "name": "edge-contact",
+        "value": "linear-gradient(to top, rgb(0 18 8 / 0.34), transparent) 10px",
+        "purpose": "Where the paper sheet meets the mat, along the mat's bottom edge."
+      },
+      {
+        "name": "tape",
+        "value": "drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(var(--shade) / 0.35))",
+        "purpose": "The action tape at rest; --shade is 0 18 8 on the mat, 20 20 20 on the paper."
+      },
+      {
+        "name": "tape-hover",
+        "value": "drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(var(--shade) / 0.42))",
+        "purpose": "The action tape on hover."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one easing curve."
+      },
+      {
+        "name": "settle",
+        "value": "1s ease-out 0.1s, from rotate(r - 1.5deg) translateY(-18px) scale(1.03) with the lifted shadow",
+        "purpose": "The hero print settles onto the mat once, on load. Off under reduced motion."
+      },
+      {
+        "name": "tape-hover",
+        "value": "0.4s ease-out",
+        "purpose": "Tape straightens to 0deg and rises 2px; arrow nudges 4px; active presses 1px."
+      },
+      {
+        "name": "ruler-cursor",
+        "value": "opacity 0.25s",
+        "purpose": "Yellow ruler ticks fade in when a mouse or pen is over the page."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "900px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Action Tape",
+      "kind": "button",
+      "refersTo": "button-tape",
+      "description": "The primary action on the mat: label-yellow tape with torn ends, tilted -1.2deg, green-tinted shadow.",
+      "html": "<div class=\"ds-mat\"><a class=\"ds-tape\" href=\"#\"><span class=\"ds-tape-face\">Make an exhibit <svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M4 12h15M13 6l6 6-6 6\"/></svg></span></a></div>",
+      "css": ".ds-mat { background:#2d6a4f; padding:32px; color:#ffffff; font-family:Barlow,system-ui,sans-serif; } .ds-tape { display:inline-block; text-decoration:none; transform:rotate(-1.2deg); filter:drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(0 18 8 / 0.35)); transition:transform .4s cubic-bezier(0.16,1,0.3,1), filter .4s cubic-bezier(0.16,1,0.3,1); } .ds-tape-face { display:inline-flex; align-items:center; gap:12px; padding:15px 30px 15px 28px; background:#ffc400; color:#141414; font-family:'Barlow Condensed',sans-serif; font-size:1.375rem; font-weight:700; line-height:1; letter-spacing:0.01em; mask: conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% 9px repeat-y, conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% 9px repeat-y; } .ds-tape-face svg { transition:transform .4s cubic-bezier(0.16,1,0.3,1); } .ds-tape:hover { transform:rotate(0deg) translateY(-2px); filter:drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(0 18 8 / 0.42)); } .ds-tape:hover svg { transform:translateX(4px); } .ds-tape:active { transform:rotate(0deg) translateY(1px); } .ds-tape:focus-visible { outline:2px solid #ffc400; outline-offset:4px; }"
+    },
+    {
+      "name": "Action Tape on Paper",
+      "kind": "button",
+      "refersTo": "button-tape",
+      "description": "The same tape in the closing section, its shadow tinted with ink and its focus ring in ink.",
+      "html": "<div class=\"ds-paper\"><a class=\"ds-tape\" href=\"#\"><span class=\"ds-tape-face\">Make an exhibit <svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M4 12h15M13 6l6 6-6 6\"/></svg></span></a></div>",
+      "css": ".ds-paper { background:#f6f5ef; padding:40px; color:#141414; font-family:Barlow,system-ui,sans-serif; } .ds-tape { display:inline-block; text-decoration:none; transform:rotate(-1.2deg); filter:drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(20 20 20 / 0.35)); transition:transform .4s cubic-bezier(0.16,1,0.3,1), filter .4s cubic-bezier(0.16,1,0.3,1); } .ds-tape-face { display:inline-flex; align-items:center; gap:12px; padding:15px 30px 15px 28px; background:#ffc400; color:#141414; font-family:'Barlow Condensed',sans-serif; font-size:1.375rem; font-weight:700; line-height:1; letter-spacing:0.01em; mask: conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% 9px repeat-y, conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% 9px repeat-y; } .ds-tape-face svg { transition:transform .4s cubic-bezier(0.16,1,0.3,1); } .ds-tape:hover { transform:rotate(0deg) translateY(-2px); filter:drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(20 20 20 / 0.42)); } .ds-tape:hover svg { transform:translateX(4px); } .ds-tape:active { transform:rotate(0deg) translateY(1px); } .ds-tape:focus-visible { outline:2px solid #141414; outline-offset:4px; }"
+    },
+    {
+      "name": "Text Link",
+      "kind": "button",
+      "refersTo": "link-text",
+      "description": "Secondary link on the mat; on the paper the text is ink and the underline is ink at 30%.",
+      "html": "<div class=\"ds-mat\"><a href=\"#\" class=\"ds-text-link\">Try the demo <svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M12 4v15M6 13l6 6 6-6\"/></svg></a></div>",
+      "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; } .ds-text-link { display:inline-flex; align-items:center; gap:8px; color:#ffffff; font-weight:600; text-decoration:underline; text-decoration-color:rgb(233 229 196 / 0.42); text-decoration-thickness:1px; text-underline-offset:.28em; } .ds-text-link:hover { text-decoration-color:currentColor; } .ds-text-link:focus-visible { outline:2px solid #ffc400; outline-offset:4px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Open Studio in the nav: square 1.5px cream outline, faint white fill on hover.",
+      "html": "<div class=\"ds-mat\"><a href=\"#\" class=\"ds-outline\">Open Studio</a></div>",
+      "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; } .ds-outline { display:inline-block; padding:7px 14px; border:1.5px solid #e9e5c4; color:#ffffff; font-weight:600; text-decoration:none; transition:background-color .2s; } .ds-outline:hover { background:rgb(255 255 255 / 0.1); } .ds-outline:focus-visible { outline:2px solid #ffc400; outline-offset:4px; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Printed on the mat beneath the top ruler: condensed cream wordmark, plain text links, language switch, outline Studio button. No bar or background.",
+      "html": "<div class=\"ds-mat\"><header class=\"ds-nav\"><a href=\"#\" class=\"ds-wordmark\">ExhibitAR</a><nav class=\"ds-nav-links\"><a href=\"#\">How it works</a><a href=\"#\">Demo</a><a href=\"#\">GitHub</a></nav><div class=\"ds-lang\"><button class=\"ds-on\">EN</button><button>日本語</button></div><a href=\"#\" class=\"ds-outline\">Open Studio</a></header></div>",
+      "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; } .ds-nav { display:flex; align-items:center; flex-wrap:wrap; gap:14px 22px; } .ds-wordmark { margin-right:auto; font-family:'Barlow Condensed',sans-serif; font-size:1.75rem; font-weight:800; line-height:1; color:#e9e5c4; text-decoration:none; } .ds-nav-links { display:flex; gap:26px; font-weight:500; } .ds-nav-links a { color:#ffffff; text-decoration:underline; text-decoration-color:transparent; text-underline-offset:.28em; } .ds-nav-links a:hover { text-decoration-color:#e9e5c4; } .ds-lang { display:flex; border:1.5px solid rgb(233 229 196 / 0.42); } .ds-lang button { border:0; padding:5px 10px; background:none; color:#d5e6da; font:inherit; font-size:.875rem; font-weight:600; line-height:1.4; cursor:pointer; } .ds-lang button:hover { color:#ffffff; } .ds-lang .ds-on { background:#e9e5c4; color:#255a42; } .ds-outline { display:inline-block; padding:7px 14px; border:1.5px solid #e9e5c4; color:#ffffff; font-weight:600; text-decoration:none; } .ds-outline:hover { background:rgb(255 255 255 / 0.1); }"
+    },
+    {
+      "name": "Language Switch",
+      "kind": "chip",
+      "refersTo": "lang-switch-option",
+      "description": "EN / 日本語 segmented switch; the active segment is filled line cream.",
+      "html": "<div class=\"ds-mat\"><div class=\"ds-lang\" role=\"group\" aria-label=\"Language\"><button aria-pressed=\"false\">EN</button><button class=\"ds-on\" aria-pressed=\"true\" lang=\"ja\">日本語</button></div></div>",
+      "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; } .ds-lang { display:inline-flex; border:1.5px solid rgb(233 229 196 / 0.42); } .ds-lang button { border:0; padding:5px 10px; background:none; color:#d5e6da; font:inherit; font-size:.875rem; font-weight:600; line-height:1.4; cursor:pointer; } .ds-lang button:hover { color:#ffffff; } .ds-lang .ds-on { background:#e9e5c4; color:#255a42; } .ds-lang button:focus-visible { outline:2px solid #ffc400; outline-offset:4px; }"
+    },
+    {
+      "name": "Hero Print",
+      "kind": "card",
+      "refersTo": "hero-print",
+      "description": "The one loose sheet on the mat: paper border, rest shadow, -2.5deg, masking strips across the top corners.",
+      "html": "<div class=\"ds-mat\" style=\"padding:56px\"><div class=\"ds-print\"><div class=\"ds-photo\"></div><span class=\"ds-strip ds-tl\"></span><span class=\"ds-strip ds-tr\"></span></div></div>",
+      "css": ".ds-mat { background:#2d6a4f; padding:32px; color:#ffffff; font-family:Barlow,system-ui,sans-serif; } .ds-print { position:relative; width:240px; padding:10px; background:#fbfbf8; box-shadow:0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62); transform:rotate(-2.5deg); } .ds-photo { aspect-ratio:4/5; background:linear-gradient(160deg,#8a7a66,#3b3530); } .ds-strip { position:absolute; top:4px; width:92px; height:26px; background:rgb(238 230 198 / 0.86); mask: conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% 7px repeat-y, conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% 7px repeat-y; } .ds-tl { left:-30px; transform:rotate(-40deg); } .ds-tr { right:-30px; transform:rotate(40deg); }"
+    },
+    {
+      "name": "Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "A screen printed flat on the paper: white plate, ink-minor hairline, printer's crop marks. No tilt, shadow or tape.",
+      "html": "<div class=\"ds-paper\" style=\"padding:48px\"><div class=\"ds-plate\"><div class=\"ds-shot\"></div></div></div>",
+      "css": ".ds-paper { background:#f6f5ef; padding:40px; color:#141414; font-family:Barlow,system-ui,sans-serif; } .ds-plate { position:relative; max-width:320px; background:#ffffff; border:1px solid rgb(20 20 20 / 0.1); } .ds-shot { aspect-ratio:16/10; background:linear-gradient(#eef0f3 0 14%, #ffffff 14%); } .ds-plate::before { --m:linear-gradient(#141414,#141414); content:''; position:absolute; inset:-18px; background: var(--m) left 0 top 17px / 11px 1px, var(--m) left 17px top 0 / 1px 11px, var(--m) right 0 top 17px / 11px 1px, var(--m) right 17px top 0 / 1px 11px, var(--m) left 0 bottom 17px / 11px 1px, var(--m) left 17px bottom 0 / 1px 11px, var(--m) right 0 bottom 17px / 11px 1px, var(--m) right 17px bottom 0 / 1px 11px; background-repeat:no-repeat; pointer-events:none; }"
+    },
+    {
+      "name": "Paper Edge",
+      "kind": "custom",
+      "refersTo": "edge-strip",
+      "description": "Where the hero ends: contact shadow on the mat's bottom edge, two masking strips across the seam onto the paper.",
+      "html": "<div class=\"ds-edge\"><div class=\"ds-edge-mat\"><span class=\"ds-es ds-l\"></span><span class=\"ds-es ds-r\"></span></div><div class=\"ds-edge-paper\"></div></div>",
+      "css": ".ds-edge-mat { position:relative; height:80px; background:#2d6a4f; } .ds-edge-mat::after { content:''; position:absolute; left:0; right:0; bottom:0; height:10px; background:linear-gradient(to top, rgb(0 18 8 / 0.34), transparent); } .ds-edge-paper { height:60px; background:#f6f5ef; } .ds-es { position:absolute; z-index:1; bottom:-14px; width:112px; height:28px; background:rgb(238 230 198 / 0.86); mask: conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% 7px repeat-y, conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% 7px repeat-y; } .ds-l { left:10%; transform:rotate(-3deg); } .ds-r { right:7%; transform:rotate(2.5deg); }"
+    },
+    {
+      "name": "Ruler",
+      "kind": "custom",
+      "refersTo": "ruler",
+      "description": "The signature: a mat-deep ruler band with cm, 5 mm and 1 mm ticks and condensed centimetre numerals.",
+      "html": "<div class=\"ds-ruler\" aria-hidden=\"true\"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>",
+      "css": ".ds-ruler { display:flex; height:1cm; overflow:hidden; background-color:#255a42; color:#e9e5c4; border-bottom:1px solid rgb(233 229 196 / 0.42); font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:10px; line-height:1; font-variant-numeric:tabular-nums; background-image:linear-gradient(90deg,#e9e5c4 1px,transparent 1px),linear-gradient(90deg,#e9e5c4 1px,transparent 1px),linear-gradient(90deg,rgb(233 229 196 / 0.42) 1px,transparent 1px); background-size:1cm 52%,0.5cm 34%,0.1cm 20%; background-repeat:repeat-x; } .ds-ruler span { flex:none; width:1cm; padding:0.56cm 0 0 3px; }"
+    },
+    {
+      "name": "Ink Ruler",
+      "kind": "custom",
+      "refersTo": "ruler-paper",
+      "description": "The left ruler continued down the paper in ink, same count, transparent band.",
+      "html": "<div class=\"ds-paper\" style=\"padding:0\"><div class=\"ds-iruler\"><span>23\n24\n25\n26\n27</span></div></div>",
+      "css": ".ds-paper { background:#f6f5ef; padding:40px; color:#141414; font-family:Barlow,system-ui,sans-serif; } .ds-iruler { width:1cm; height:5cm; border-right:1px solid rgb(20 20 20 / 0.3); color:#141414; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:10px; line-height:1cm; font-variant-numeric:tabular-nums; background-image:linear-gradient(#141414 1px, transparent 1px), linear-gradient(rgb(20 20 20 / 0.3) 1px, transparent 1px), linear-gradient(rgb(20 20 20 / 0.1) 1px, transparent 1px); background-size:52% 1cm, 34% 0.5cm, 20% 0.1cm; background-repeat:repeat-y; } .ds-iruler span { display:block; white-space:pre; padding-left:0.5cm; transform:translateY(-0.24cm); }"
+    },
+    {
+      "name": "Dimension Caption",
+      "kind": "custom",
+      "description": "A dimension line with end ticks, the measured width set into the line, caption below.",
+      "html": "<div class=\"ds-mat\"><figcaption class=\"ds-dim\"><span class=\"ds-dim-label\">12.4 cm</span>Seen through a phone: the skull on its A3 mat.</figcaption></div>",
+      "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; padding:40px 32px 32px; } .ds-dim { position:relative; max-width:30em; padding-top:26px; font-size:.9375rem; color:#d5e6da; } .ds-dim::before { content:''; position:absolute; top:0; left:0; right:0; height:11px; border-inline:1px solid #e9e5c4; background:linear-gradient(#e9e5c4,#e9e5c4) 0 5px / 100% 1px no-repeat; } .ds-dim-label { position:absolute; top:-4px; left:50%; translate:-50% 0; padding:0 8px; background:#2d6a4f; color:#e9e5c4; font-family:'Barlow Condensed',sans-serif; font-size:.875rem; font-weight:600; line-height:1.2; letter-spacing:.04em; white-space:nowrap; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cutting Mat",
+    "overview": "The page is the exhibitor's workbench seen from above. The hero is the green self-healing cutting mat: a printed 1 cm grid with heavier 5 cm lines, centimetre rulers along the top and left edges in cream, and the AR photo lying on it as a taped print. Below the hero, a sheet of warm off-white paper lies on the mat, its top edge taped down with two masking strips, and everything after that point is printed on the paper in ink: type, hairline rules, a 45° and 60° guide, and white plates holding the Studio screenshots and the demo mat inside printer's crop marks. The left ruler keeps counting down the paper, now printed in ink, without a break in the count. The world is calm, exact and physical rather than glossy or techy.\n\nThere is one loud colour, borrowed from the product. Label yellow is the colour of the AR labels on the visitor's phone and in the Studio; on the page it is the strip of tape you click, the pointer ticks on the rulers, and the text selection. Type is a condensed engineering sans, the kind printed on cutting mats and rulers, for headlines and numerals, over a plain humanist sans for reading. Japanese is a first-class language on the same URL, with a heavy rounded gothic for display and the system Japanese gothic for text.\n\nScope: this system is the landing page at `/` (`src/components/landing/`). The Studio and Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour the two already share.",
+    "keyCharacteristics": [
+      "Two surfaces with two printing inks: green mat with cream lines in the hero, off-white paper with ink everywhere below it.",
+      "One set of role variables (foreground, soft foreground, print at full, major and minor strength, ruler background, focus, shadow tint) that each surface sets for itself, so a component prints correctly on whichever surface it lies on.",
+      "The hero photo is the only object lying loose on the mat: tilted, taped, shadowed, settling once on load.",
+      "On the paper, screenshots are printed flat on white plates inside crop marks: no tilt, no shadow, no tape.",
+      "Label yellow kept for what you act on: the tape, the ruler cursor, selection, and focus on the mat.",
+      "Square corners everywhere; edges are cut paper, torn tape and printed lines.",
+      "English and Japanese with equal typographic care."
+    ],
+    "rules": [
+      {
+        "name": "The Label Yellow Rule",
+        "body": "Yellow is the AR label colour and nothing else may borrow it. It marks only what responds to you: the action tape, the ruler cursor, selection, and focus on the mat. Never use it for decoration, headings, plates or a second accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Inks Rule",
+        "body": "Every line is printed at one of three strengths of its surface's ink: cream at full, 42% and 15% on the mat; ink at full, 30% and 10% on the paper. No grey, no green on the paper, no new opacities. Components take these through the surface's role variables instead of naming a colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Green Stays in the Hero Rule",
+        "body": "Mat green ends at the paper's top edge. Below it, the page is the paper sheet; nothing green is printed on it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Same Care in Both Languages Rule",
+        "body": "Every piece of copy exists in English and Japanese. Japanese headings get their own smaller sizes and looser leading (about 1.16 to 1.45), M PLUS 1 at 800 with `palt`, `word-break: keep-all`, and phrase breaks marked with `<wbr>` so lines never break inside a word. Japanese body runs at line-height 1.85 with strict line breaking.",
+        "section": "typography"
+      },
+      {
+        "name": "The Condensed Means Measured Rule",
+        "body": "Barlow Condensed is for headlines, numerals and things that measure (rulers, dimension labels, step numbers, the tape). Reading text is never condensed.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Scale Rule",
+        "body": "Things on the page are measured in the page's own centimetres. The rulers, the pointer readout and the hero's dimension line all read the same CSS cm (measured from a 1 cm probe), so a stated size always agrees with the rulers.",
+        "section": "layout"
+      },
+      {
+        "name": "The Unbroken Count Rule",
+        "body": "The left ruler runs the full height of the page with one count. On the mat it is the cream ruler on a mat-deep band; on the paper the same ruler is printed in ink on a transparent band, layered under the mat so the mat's own ruler covers its top.",
+        "section": "layout"
+      },
+      {
+        "name": "The Printed Is Flat Rule",
+        "body": "Only the paper's edge, the hero print and the tape cast shadows, and only the shadows above. Nothing printed (text, rules, rulers, plates, the nav) is ever lifted.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Already There Rule",
+        "body": "Motion starts from a visible state and runs once. Nothing waits invisible for a scroll trigger.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep mat green to the hero: grid, cream rulers, the taped AR print and the yellow tape; start the paper sheet at its bottom edge with the contact shadow and two masking strips.",
+      "**Do** print everything below the hero on the paper in ink, and print screens on white plates with a hairline and crop marks.",
+      "**Do** colour components through the surface roles (foreground, soft, print at full, major and minor, ruler background, focus, shade) so they print correctly on mat or paper.",
+      "**Do** use label yellow only for the action tape, the ruler cursor, selection and focus on the mat.",
+      "**Do** measure in the page's own centimetres, and keep the left ruler's count unbroken from mat to paper.",
+      "**Do** write every string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.",
+      "**Do** keep motion to the hero print's one settle, from an already-visible state, with reduced motion honoured."
+    ],
+    "donts": [
+      "**Don't** put a phone mockup in the hero or line features up as a row of icon cards; the real AR photo, screenshots and the demo mat do the showing.",
+      "**Don't** print green on the paper, or extend the mat below the hero.",
+      "**Don't** tilt, shadow or tape a plate; on the paper, screens are printed flat.",
+      "**Don't** round corners; paper, tape and rulers are square or torn.",
+      "**Don't** use yellow as a second accent, a heading colour, a plate or decoration.",
+      "**Don't** lift anything printed with a shadow, or use a shadow other than the rest, lifted, edge-contact and tape shadows.",
+      "**Don't** set reading text in Barlow Condensed, or use the ruler's 8.5 to 10px numeral size for anything a person needs to read.",
+      "**Don't** use the mono stack for anything but inline code in notes.",
+      "**Don't** treat the Studio and Viewer's older UI (system fonts, white or near-black surfaces, the blue `#1f6feb` / `#4c8dff` link accent in `src/app/globals.css` and `src/app/studio/studio.module.css`) as part of this system, and don't extend the cutting-mat world to them without a deliberate redesign; label yellow is the only colour they share today."
+    ]
+  }
+}
