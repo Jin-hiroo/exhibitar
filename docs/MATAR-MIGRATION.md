@@ -36,8 +36,10 @@ works the same in iOS Safari and Android Chrome with no flags and no app.
    `pnpm build && pnpm pack`, then copy `matar-<version>.tgz` to
    `vendor/` here and depend on `"matar": "file:vendor/matar-<version>.tgz"`.
    Vercel installs it with no credentials. Commit the tarball with the bump.
-2. **Local development across both repos:** `pnpm link ../matar`. Never commit
-   a `link:` dependency.
+2. **Local development across both repos:** `pnpm link ../matar`. Turbopack
+   only reads files under its root, so while linked also set
+   `turbopack: { root: path.join(__dirname, '..') }` in `next.config.ts`.
+   Commit neither the `link:` dependency nor that root.
 3. **Once matar is public on npm:** `"matar": "^0.x"`, and delete `vendor/`.
 
 The matar version in use is the single source of truth for tag family and board
@@ -57,12 +59,16 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
       affects every workstream).
 - [ ] **M2 Mat design v3**: draw matar AprilTag **tag36h11** tags instead of the
       seeded art, using matar's `layoutBorderTags` and `tagSvg`/`boardSvg`.
-      Layout (matar ARCHITECTURE.md §3.1): on A4 a ring of 12–14 tags of 32 mm
-      along all edges (so the object and hands can't hide them all), plus an
-      inner ring of 4–6 tags of 20 mm around the footprint for close-ups; A3
-      for objects ≳ 10 cm; ≤ 40 tags; tags ≥ 8 mm from the page edge with one
-      extra white cell between them. Keep `layout.keepOut` (footprint) and the
-      seam-avoid rules; tiled mats must be aligned to ≲ 1 mm. Pick tag IDs per
+      Layout (matar ARCHITECTURE.md §3.1): `layoutBorderTags` fills the border
+      band of a page rectangle (8 mm margin, one white cell between tags,
+      corners shared, evenly spaced), so on A4 a ring of **16 tags of 32 mm**
+      along all edges (the object and hands can't hide them all). Add an inner
+      ring of 20 mm tags for close-ups with a second call whose area is the
+      footprint rectangle grown outward. A3 for objects ≳ 10 cm; ≤ 40 tags.
+      Pass `originMm` = the page position of the mat-frame origin (the
+      footprint centre, ARCHITECTURE.md §2), so matar's board frame is the mat
+      frame. Keep-outs are rectangles; tags touching one are dropped. Keep
+      `layout.keepOut` (footprint) and the seam-avoid rules; tiled mats must be aligned to ≲ 1 mm. Pick tag IDs per
       project with `pickTagIds(seed)` seeded from the project ID, so
       neighbouring exhibits in one room don't share many tags (matar rejects
       the few that do). Drop `texture.ts`, `quality.ts`, the whole-page
@@ -92,8 +98,10 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
       - versioned, immutable URLs for viewer chunks and exhibit assets, served
         with `Cache-Control: public, max-age=31536000, immutable` (the HTTP
         cache is outside WebKit's script-storage policy);
-      - a service worker that pre-caches the app shell, viewer chunks and the
-        exhibit's assets in the Cache API, plus `navigator.storage.persist()`;
+      - a service worker that pre-caches the app shell, viewer chunks
+        (including matar's separate worker chunk, which Next emits with its
+        own hashed URL) and the exhibit's assets in the Cache API, plus
+        `navigator.storage.persist()`;
       - on iOS, an "Add to Home Screen" hint: a Safari **tab** deletes the
         Cache API and service worker after 7 days without a visit, Home Screen
         web apps keep theirs (whether `persist()` exempts a tab: unverified,
