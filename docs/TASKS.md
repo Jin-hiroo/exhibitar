@@ -85,6 +85,13 @@ computed mat size; same seed → identical output.
 **Tests:** pose-fusion math unit tests with synthetic marker poses;
 manual device test checklist in `docs/DEVICE-TESTS.md`.
 
+## WS-M Migrate the viewer to matar (planned)
+
+Replaces the WebXR tracking of WS-D with the matar library (iPhone + Android,
+no flags, no App Clip). Tasks M0–M8 and acceptance criteria live in
+`docs/MATAR-MIGRATION.md`; tick them there. The WebXR viewer is kept on branch
+`webxr`.
+
 ## WS-E Backend & Auth (`src/lib/db`, `src/app/api`, `supabase/`)
 
 - [x] E1 Supabase project, auth (email + password, passkeys, Google; was magic link until the built-in mailer's rate limit blocked sign-in), env vars on Vercel _(dashboard steps in README → Supabase)_
