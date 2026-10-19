@@ -64,7 +64,8 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
       corners shared, evenly spaced), so on A4 a ring of **16 tags of 32 mm**
       along all edges (the object and hands can't hide them all). Add an inner
       ring of 20 mm tags for close-ups with a second call whose area is the
-      footprint rectangle grown outward. A3 for objects ≳ 10 cm; ≤ 40 tags.
+      footprint rectangle grown outward (on A4 it fits only around footprints
+      up to ≈ 55 × 140 mm; larger objects get A3 or no inner ring). A3 for objects ≳ 10 cm; ≤ 40 tags.
       Pass `originMm` = the page position of the mat-frame origin (the
       footprint centre, ARCHITECTURE.md §2), so matar's board frame is the mat
       frame. Keep-outs are rectangles; tags touching one are dropped. Keep
