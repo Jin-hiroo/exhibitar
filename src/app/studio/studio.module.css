@@ -51,6 +51,7 @@
 .field input:not([type='range']),
 .field textarea,
 .field select {
+  min-width: 0; /* shrink to narrow fields (Scale) instead of overflowing the panel */
   font: inherit;
   padding: 10px 12px;
   border-radius: 10px;
