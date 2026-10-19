@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     'test-results/**',
     'playwright-report/**',
     'tests/fixtures/out/**',
+    // vendored agent skills (impeccable) and their working files
+    '.claude/**',
+    '.impeccable/**',
   ]),
 ]);
 

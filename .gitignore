@@ -53,3 +53,14 @@ next-env.d.ts
 # local agent state
 /.claude/worktrees/
 /.claude/settings.local.json
+
+# impeccable (design skill, `npx impeccable install`): its launcher downloads the
+# native engine on first run, and its working files stay local. The surface
+# briefs in .impeccable/surfaces/ and DESIGN.md are committed.
+/.claude/skills/impeccable/scripts/bin/
+/.impeccable/mocks/
+/.impeccable/review/
+/.impeccable/questions/
+/.impeccable/build/
+/.impeccable/hook.cache.json
+/.impeccable/config.local.json
