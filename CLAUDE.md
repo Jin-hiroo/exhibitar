@@ -74,6 +74,16 @@ workstream, depend on the interface in `src/lib/types.ts` and use a stub/mock
 until the real implementation lands. Update the checkbox in `docs/TASKS.md`
 when a task is done.
 
+## AR viewer migration (planned)
+
+The WebXR viewer (with the Needle Go App Clip on iPhone) is being replaced by
+**matar**, a separate open-source tracking library (`~/dev/matar`,
+`github.com/Jin-hiroo/matar`) that tracks square tags on the mat from the
+camera in any mobile browser. The WebXR version is kept on branch `webxr`.
+Plan, dependency setup and tasks: `docs/MATAR-MIGRATION.md` (WS-M). Build
+tracking features in matar, not here. Until WS-M lands, the WebXR code on
+`main` stays as described in ARCHITECTURE.md §5.
+
 ## Unknowns to verify, not assume
 
 - Current status of WebXR `image-tracking` in Android Chrome (may require a flag).

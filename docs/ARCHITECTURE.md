@@ -180,6 +180,9 @@ triangle indices) is kept as is.
 
 ## 5. Viewer (AR)
 
+> **Being replaced** by the matar library (camera-based tag tracking, no WebXR):
+> see `docs/MATAR-MIGRATION.md`. The WebXR design below stays on branch `webxr`.
+
 - Entry `/v/[id]`: server-render landing card (title, description, Start AR).
   Prefetch GLB + marker PNGs.
 - **AR session**: WebXR `immersive-ar` with `image-tracking`
