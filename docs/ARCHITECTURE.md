@@ -239,11 +239,11 @@ applied about the mat origin (+yaw = counter-clockwise seen from above).
 
 ```text
 /                         marketing/landing
-/login                    Supabase auth (Google, email + password, passkey)
+/login                    Supabase auth (Google, email + password)
 /auth/callback            Google sign-in landing: PKCE code → session cookie
 /auth/signout             POST: sign out
 /studio                   project list
-/studio/account           passkeys (add/remove), change password
+/studio/account           change password (hidden for Google sign-ins)
 /studio/new               upload → wizard
 /studio/[id]              editor tabs: Setup · Mat · Annotate · Preview · Publish
 /studio/[id]/calibrate    phone calibration AR

@@ -51,7 +51,7 @@ object, with no app to build and no object recognition to train.
   App Clip (not yet device-tested). Other browsers get a 3D view of the exhibit.
 - **One-time calibration** on a phone (`/studio/<id>/calibrate`), saved for every visitor.
 - **Try it without an account.** The Studio works as an in-tab draft. Publishing needs
-  sign-in (Google, email + password or a passkey).
+  sign-in (Google or email + password).
 
 ## Installation
 
@@ -161,12 +161,8 @@ only sign-in and publishing are disabled.
 2. **Auth settings** in the Supabase dashboard. The app sends no email.
    - **Sign In / Providers → Email**: enabled, with **Confirm email** off. Otherwise sign-up
      sends a confirmation email, and the built-in mailer allows only a few per hour. There is
-     no "forgot password": sign in with a passkey and change the password at
-     `/studio/account`, or reset the user from the dashboard.
-   - **Passkeys**: enabled, with your production domain as the RP ID and
-     `https://<your-domain>` as the origin. Passkeys then work only on that domain, not on
-     previews or localhost; password sign-in works everywhere. Don't change the RP ID once
-     people have passkeys: that invalidates all of them.
+     no "forgot password": reset the user from the dashboard. Signed-in users change their
+     password at `/studio/account`; people who signed in with Google don't have one there.
    - **Sign In / Providers → Google** (optional): create an OAuth client of type "Web
      application" in the [Google Auth Platform](https://console.cloud.google.com/auth/clients),
      with the callback URL shown on that Supabase page as its authorized redirect URI, and

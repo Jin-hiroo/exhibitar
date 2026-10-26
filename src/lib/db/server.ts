@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { cache } from 'react';
 import { timedFetch } from '../perf/timed-fetch';
+import { signedInWithGoogle } from './auth-method';
 import type { Db } from './client';
 import type { Database } from './database.types';
 import { supabaseEnv } from './env';
@@ -69,11 +70,13 @@ export async function isGoogleSignInEnabled(): Promise<boolean> {
  * Data access is still authorized by RLS in the database.
  */
 export const getCurrentUser = cache(
-  async (): Promise<{ id: string; email: string | null } | null> => {
+  async (): Promise<{ id: string; email: string | null; google: boolean } | null> => {
     const db = await getServerDb();
     if (!db) return null;
     const { data } = await db.auth.getClaims();
     const claims = data?.claims;
-    return claims ? { id: claims.sub, email: claims.email ?? null } : null;
+    return claims
+      ? { id: claims.sub, email: claims.email ?? null, google: signedInWithGoogle(claims.amr) }
+      : null;
   },
 );

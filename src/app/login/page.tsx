@@ -13,7 +13,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
       <h1>Sign in</h1>
       <p className={styles.muted}>
         Exhibitors sign in to publish exhibits, with{' '}
-        {google ? 'Google, email and password, or a passkey' : 'email and password or a passkey'}.
+        {google ? 'Google or with email and password' : 'email and password'}.
       </p>
       <LoginForm next={next} google={google} error={oauthErrorMessage(sp.error)} />
       <p className={styles.muted}>

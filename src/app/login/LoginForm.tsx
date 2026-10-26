@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { authErrorCode, authErrorMessage, NOT_CONFIGURED } from '@/lib/db/auth-errors';
+import { authErrorMessage, NOT_CONFIGURED } from '@/lib/db/auth-errors';
 import { getBrowserDb } from '@/lib/db/client';
 import styles from '../studio/studio.module.css';
 
@@ -23,7 +23,7 @@ export function LoginForm({
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState<'password' | 'passkey' | 'google' | null>(null);
+  const [busy, setBusy] = useState<'password' | 'google' | null>(null);
   const [message, setMessage] = useState<string | null>(error);
 
   // Back from Google's page (restored from the back-forward cache): no redirect is pending.
@@ -34,37 +34,6 @@ export function LoginForm({
     window.addEventListener('pageshow', onShow);
     return () => window.removeEventListener('pageshow', onShow);
   }, []);
-
-  // Passkey autofill: the browser offers saved passkeys in the email field's suggestions.
-  useEffect(() => {
-    const db = getBrowserDb();
-    if (!db || typeof PublicKeyCredential === 'undefined') return;
-    let active = true;
-    const listen = async () => {
-      if (!(await PublicKeyCredential.isConditionalMediationAvailable?.())) return;
-      const { error: err } = await db.auth.signInWithPasskey({
-        options: { mediation: 'conditional' },
-      });
-      if (!active) return;
-      if (!err) {
-        router.replace(next);
-        router.refresh();
-        return;
-      }
-      const code = authErrorCode(err);
-      if (code === 'passkey_disabled') return;
-      if (code === 'webauthn_challenge_expired') {
-        void listen();
-        return;
-      }
-      const text = authErrorMessage(err);
-      if (text) setMessage(text);
-    };
-    void listen();
-    return () => {
-      active = false;
-    };
-  }, [next, router]);
 
   const continueTo = (path: string) => {
     router.replace(path);
@@ -89,27 +58,12 @@ export function LoginForm({
         // no email: "Confirm email" is off in Supabase, so sign-up returns a session
         const { data, error: err } = await db.auth.signUp({ email, password });
         if (err) setMessage(authErrorMessage(err));
-        else if (data.session) continueTo('/studio/account?new=1');
+        else if (data.session) continueTo(next);
         else setMessage('Account created, but Supabase still requires email confirmation.');
       }
     } finally {
       setBusy(null);
     }
-  };
-
-  const signInWithPasskey = async () => {
-    const db = getBrowserDb();
-    if (!db) {
-      setMessage(NOT_CONFIGURED);
-      return;
-    }
-    setBusy('passkey');
-    setMessage(null);
-    // replaces a pending autofill request (auth-js aborts it)
-    const { error: err } = await db.auth.signInWithPasskey();
-    setBusy(null);
-    if (err) setMessage(authErrorMessage(err));
-    else continueTo(next);
   };
 
   /** Leaves for Google; `/auth/callback` sets the session and continues to `next`. */
@@ -151,7 +105,7 @@ export function LoginForm({
             type="email"
             name="email"
             required
-            autoComplete="username webauthn"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@museum.org"
@@ -175,29 +129,20 @@ export function LoginForm({
         </button>
       </form>
 
-      {(google || mode === 'signin') && <p className={styles.divider}>or</p>}
       {google && (
-        <button
-          type="button"
-          className={styles.secondary}
-          disabled={busy !== null}
-          onClick={signInWithGoogle}
-        >
-          <GoogleLogo />
-          {busy === 'google' ? 'Redirecting to Google…' : 'Continue with Google'}
-        </button>
+        <>
+          <p className={styles.divider}>or</p>
+          <button
+            type="button"
+            className={styles.secondary}
+            disabled={busy !== null}
+            onClick={signInWithGoogle}
+          >
+            <GoogleLogo />
+            {busy === 'google' ? 'Redirecting to Google…' : 'Continue with Google'}
+          </button>
+        </>
       )}
-      {mode === 'signin' && (
-        <button
-          type="button"
-          className={styles.secondary}
-          disabled={busy !== null}
-          onClick={signInWithPasskey}
-        >
-          {busy === 'passkey' ? 'Waiting for passkey…' : 'Sign in with a passkey'}
-        </button>
-      )}
-
       {message && <p className={styles.error}>{message}</p>}
 
       <p className={styles.small}>

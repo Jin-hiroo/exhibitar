@@ -5,7 +5,7 @@ describe('safeNextPath', () => {
   it('keeps same-site paths with query and hash', () => {
     expect(safeNextPath('/studio')).toBe('/studio');
     expect(safeNextPath('/studio/abc123/calibrate')).toBe('/studio/abc123/calibrate');
-    expect(safeNextPath('/studio/account?new=1#passkeys')).toBe('/studio/account?new=1#passkeys');
+    expect(safeNextPath('/studio/account?tab=a#password')).toBe('/studio/account?tab=a#password');
   });
 
   it('falls back for missing or non-path values', () => {

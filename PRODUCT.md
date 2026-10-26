@@ -49,8 +49,8 @@ the annotations are uploaded. Visitors need nothing installed. It is open source
   orientation, choose FRONT, generate the mat (outline, markers, QR, ruler) as PDF/SVG,
   annotate with points and painted regions (title, text, optional image and link, tour
   order), preview, publish, calibrate.
-- Studio works as an in-tab draft without an account; publishing needs sign-in (Google,
-  email + password, or passkey).
+- Studio works as an in-tab draft without an account; publishing needs sign-in (Google
+  or email + password).
 - In AR, the printed object hides labels behind it, and labels fade when seen from behind.
   Tapping a label opens a detail sheet and lights up its region; there is an optional guided
   tour.

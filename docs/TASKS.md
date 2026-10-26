@@ -94,7 +94,7 @@ no flags, no App Clip). Tasks M0–M8 and acceptance criteria live in
 
 ## WS-E Backend & Auth (`src/lib/db`, `src/app/api`, `supabase/`)
 
-- [x] E1 Supabase project, auth (email + password, passkeys, Google; was magic link until the built-in mailer's rate limit blocked sign-in), env vars on Vercel _(dashboard steps in README → Supabase)_
+- [x] E1 Supabase project, auth (email + password, Google; passkeys removed; was magic link until the built-in mailer's rate limit blocked sign-in), env vars on Vercel _(dashboard steps in README → Supabase)_
 - [x] E2 `projects` table + RLS + public view for published projects
 - [x] E3 Storage buckets + signed upload route; public read for published assets _(direct uploads guarded by storage RLS instead of signed URLs)_
 - [x] E4 CRUD routes / server actions; `geometryVersion` bump logic _(geometry_version bump enforced by a DB trigger)_
