@@ -34,6 +34,14 @@ export function ArrowDown(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function ArrowUp(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 20V5M6 11l6-6 6 6" />
+    </Icon>
+  );
+}
+
 export function ArrowUpRight(props: SVGProps<SVGSVGElement>) {
   return (
     <Icon {...props}>

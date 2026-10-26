@@ -182,7 +182,7 @@ The page is the exhibitor's workbench seen from above. The hero is the green sel
 
 There is one loud colour, borrowed from the product. Label yellow is the colour of the AR labels on the visitor's phone and in the Studio; on the page it is the strip of tape you click, the pointer ticks on the rulers, and the text selection. Type is a condensed engineering sans, the kind printed on cutting mats and rulers, for headlines and numerals, over a plain humanist sans for reading. Japanese is a first-class language on the same URL, with a heavy rounded gothic for display and the system Japanese gothic for text.
 
-Scope: this system is the landing page at `/` (`src/components/landing/`). The Studio and Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour the two already share.
+Scope: this system is the landing page at `/` (`src/components/landing/`) and the legal pages at `/privacy` and `/terms` (`src/components/legal/`), which share the landing page's nav, rulers, edge strips and footer through `src/components/landing/chrome.tsx`. The Studio (with its sign-in page) and the Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour the two already share.
 
 **Key Characteristics:**
 
@@ -249,7 +249,7 @@ On the paper:
 ### Hierarchy
 
 - **Display** (`display`): the one hero headline, white on the mat, balanced wrapping.
-- **Headline** (`headline`): section headings, in ink on the paper.
+- **Headline** (`headline`): section headings, in ink on the paper; on the legal pages, the document title on the mat.
 - **Statement** (`statement`): the single large audience sentence (the section's h2), max 15em.
 - **Numeral** (`numeral`): oversized step numbers beside step titles; the demo's numbered list uses the same voice at 1.75rem.
 - **Title** (`title`, `title-sm`): step titles; feature-list terms and the QR card caption use the smaller size.
@@ -275,6 +275,8 @@ Vertical rhythm is in centimetres: sections are 2.5 cm top and bottom (the first
 
 From 1024px, sections use a 12-column grid with a 24px gutter. The hero takes 7 columns of copy against a 5-column photo print and fills the first viewport (up to 820px). The five steps alternate text (5 columns) and visual (6 columns) left and right. In step 1 the Studio's drop area (up to 472px, close to its real size) sits in the text column under the paragraph, and the visual is the Setup tab right after the drop. The demo puts 4 columns of copy against an 8-column mat; the feature list sits in 8 columns beside a 4-column heading and splits into two columns from 900px. Below 1024px everything stacks in one column. Nav links appear from 900px, the outline Studio button and the QR card from 640px; on phones the QR card is replaced by a hint, set off by a 1px ink rule, to open the page on a computer. The 45° and 60° guide appears behind the statement from 1024px. Under the statement, the four example cards go two across from 768px and stack below that.
 
+The legal pages use the same column and the same centimetres. A short mat header holds the document title and lede (7 columns) beside the title block (5 columns) from 1024px, stacked below that. On the paper, the contents take 3 columns and stick 1 cm from the top while the summary plate and the numbered sections share the other 8. Section text is indented 2.75rem under its number from 640px and stops at 36em; the summary plate's right edge meets that measure. Below 1024px the summary comes first, then the contents, and each section's rule carries a "Contents ↑" link back.
+
 **The One Scale Rule.** Things on the page are measured in the page's own centimetres. The rulers, the pointer readout and the hero's dimension line all read the same CSS cm (measured from a 1 cm probe), so a stated size always agrees with the rulers.
 
 **The Unbroken Count Rule.** The left ruler runs the full height of the page with one count. On the mat it is the cream ruler on a mat-deep band; on the paper the same ruler is printed in ink on a transparent band, layered under the mat so the mat's own ruler covers its top.
@@ -294,7 +296,7 @@ Everything printed is flat: text, rules, rulers, crop marks, and the plates on t
 
 ### Motion
 
-Easing is one expo-out curve, `cubic-bezier(0.16, 1, 0.3, 1)`. The hero print settles onto the mat once, on load, over 1s after 0.1s: from 1.5° more tilt, 18px higher, 3% larger and lifted, down to rest. Nothing else animates in. The tape straightens and rises 2px on hover (0.4s), its arrow nudges 4px; it presses down 1px when active. Ruler cursor ticks fade in over 0.25s. The settle and the tape transitions are off under `prefers-reduced-motion: reduce`.
+Easing is one expo-out curve, `cubic-bezier(0.16, 1, 0.3, 1)`. The hero print settles onto the mat once, on load, over 1s after 0.1s: from 1.5° more tilt, 18px higher, 3% larger and lifted, down to rest. Nothing else animates in. The tape straightens and rises 2px on hover (0.4s), its arrow nudges 4px; it presses down 1px when active. Ruler cursor ticks fade in over 0.25s. On the legal pages the contents tick grows to mark the section being read (0.25s). The settle, the tape and the contents tick transitions are off under `prefers-reduced-motion: reduce`.
 
 ### Named Rules
 
@@ -321,7 +323,7 @@ Every corner is square (`rounded.none`): paper is cut, tape is torn, rulers are 
 
 ### Navigation
 
-Printed on the mat beneath the top ruler: the wordmark in Barlow Condensed 800 at 1.75rem in line cream, then text links (from 900px), the language switch, and the outline Studio button (from 640px). No bar, no background, no sticky header. The footer is printed on the paper: the imprint in the dimension-label voice and a row of links, under a major-strength ink rule that spans the content column.
+Printed on the mat beneath the top ruler: the wordmark in Barlow Condensed 800 at 1.75rem in line cream, then text links (from 900px), the language switch, and the outline Studio button (from 640px). No bar, no background, no sticky header. Off the landing page, the in-page links point back to `/#how` and `/#demo`. The footer is printed on the paper: the imprint in the dimension-label voice and a row of links (Studio, Demo, GitHub, the licence, Privacy, Terms), under a major-strength ink rule that spans the content column.
 
 ### Language Switch
 
@@ -355,9 +357,33 @@ One card per audience under the statement: a plate with a model labelled in the 
 
 Term and description pairs, each opened by a 1px major-strength ink rule; terms in the smaller title size, descriptions in ink soft. Two columns from 900px.
 
+### Title Block (legal pages)
+
+An engineering drawing's title block on the mat: a 2 × 2 grid of cells in a 1.5px print border, ruled inside at major strength. Each cell is a label in the dimension-label voice (Japanese labels smaller and at regular weight) over a 0.9375rem value: In effect from, Operator, Covers, and Sheet n / 2, which links to the other document. Below 640px the last two cells take full rows so the host name and the other sheet's title never break mid-word.
+
+### Contents (legal pages)
+
+The numbered section list, headed in the title-sm voice over a full-strength rule, each entry a step number in condensed bold beside the title in ink soft, opened by a minor rule. The section being read turns full ink and 600 weight; from 1024px it is also marked by a ruler tick in the margin that grows from 10px at major strength to 18px × 2px at full strength, like a pointer on a scale.
+
+### Summary Plate (legal pages)
+
+The short version of the document, printed on a plate with crop marks: a title-size heading, five lede-size points with square bullets, and a small note under a minor rule saying the numbered sections are what count.
+
+### Numbered Sections and Bullets
+
+Each section opens with a major-strength rule (full strength for the first) and a title-size heading with its number in condensed 800 hanging in the indent. Lists use a 6px printed ink square, centred on the first line, never a dash, which reads as the Japanese long-vowel mark. Inline subheads use the title-sm voice.
+
+### Storage Table
+
+What the site keeps in the browser: condensed column heads over a 1.5px full-strength rule, rows on minor rules, names in ink and the rest in ink soft. Below 720px each row becomes a block with its own condensed labels.
+
+### Provider List
+
+Term and description pairs for the outside services, like the Feature List: each opened by a major-strength rule, the name in the title-sm voice, the description in ink soft.
+
 ### Icons
 
-Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentColor, sized 1em: arrows right, down, up-right and an expand mark. Icons accompany a text label; they are never the only content.
+Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentColor, sized 1em: arrows right, down, up and up-right, and an expand mark. Icons accompany a text label; they are never the only content.
 
 ## Do's and Don'ts
 
@@ -370,6 +396,7 @@ Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentCol
 - **Do** measure in the page's own centimetres, and keep the left ruler's count unbroken from mat to paper.
 - **Do** write every string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.
 - **Do** keep motion to the hero print's one settle, from an already-visible state, with reduced motion honoured.
+- **Do** keep the legal pages printable: the print stylesheet drops the rulers, nav, contents and footer and prints the document in ink on white.
 
 ### Don't:
 

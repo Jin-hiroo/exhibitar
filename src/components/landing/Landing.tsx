@@ -6,6 +6,7 @@ import { siteUrl } from '@/lib/db/env';
 import { viewerUrl } from '@/lib/mat/qr';
 import { FullscreenMat } from './FullscreenMat';
 import { displayFont, jaFont, textFont } from './fonts';
+import { DEMO_ID, EdgeStrips, MatRulers, PaperRuler, REPO, SiteFooter, SiteNav } from './chrome';
 import { ArrowDown, ArrowRight, ArrowUpRight } from './icons';
 import arAngle from './img/ar-skull-angle.jpg';
 import skullPhoto from './img/ar-skull-front.jpg';
@@ -24,18 +25,8 @@ import setupShot from './img/studio-setup.jpg';
 import phoneShot from './img/viewer-phone.png';
 import styles from './landing.module.css';
 import { LangScript } from './LangScript';
-import { LangSwitch } from './LangSwitch';
 import { MeasuredWidth } from './MeasuredWidth';
-import { RulerCursor } from './RulerCursor';
 import { T } from './T';
-
-const REPO = 'https://github.com/Jin-hiroo/exhibitar';
-/** Bundled demo exhibit (public/fixtures), served without a database. */
-const DEMO_ID = 'mockcube01';
-
-const TOP_NUMBERS = Array.from({ length: 80 }, (_, i) => i);
-/** One text node, one number per centimetre line, long enough for the tallest layout. */
-const LEFT_NUMBERS = Array.from({ length: 420 }, (_, i) => i).join('\n');
 
 const FEATURES = [
   {
@@ -210,45 +201,13 @@ export async function Landing() {
     >
       <LangScript />
 
-      {/* printed on the paper; the mat covers its top with its own ruler, numbered the same */}
-      <div className={`${styles.rulerLeft} ${styles.rulerPaper}`} aria-hidden>
-        <span className={styles.rulerLeftNumbers}>{LEFT_NUMBERS}</span>
-      </div>
-      <span className={styles.cmProbe} data-cm-probe="" aria-hidden />
-      <RulerCursor />
+      <PaperRuler />
 
       <div className={styles.mat}>
-        <div className={styles.rulerTop} aria-hidden>
-          {TOP_NUMBERS.map((n) => (
-            <span key={n}>{n}</span>
-          ))}
-        </div>
-        <div className={styles.rulerLeft} aria-hidden>
-          <span className={styles.rulerLeftNumbers}>{LEFT_NUMBERS}</span>
-        </div>
-        <div className={styles.rulerCorner} aria-hidden>
-          cm
-        </div>
+        <MatRulers />
 
         <div className={`${styles.wrap} ${styles.matWrap}`}>
-          <header className={styles.nav}>
-            <Link href="/" className={styles.wordmark}>
-              ExhibitAR
-            </Link>
-            <nav className={styles.navLinks} aria-label="Main">
-              <a href="#how">
-                <T en="How it works" ja="使い方" />
-              </a>
-              <a href="#demo">
-                <T en="Demo" ja="デモ" />
-              </a>
-              <a href={REPO}>GitHub</a>
-            </nav>
-            <LangSwitch />
-            <Link href="/studio" className={styles.navStudio}>
-              <T en="Open Studio" ja="スタジオを開く" />
-            </Link>
-          </header>
+          <SiteNav home />
 
           <section className={styles.hero} aria-labelledby="hero-title">
             <div className={styles.heroCopy}>
@@ -326,8 +285,7 @@ export async function Landing() {
         </div>
 
         {/* the paper's top edge is taped to the mat */}
-        <span className={styles.edgeStrip} data-pos="l" aria-hidden />
-        <span className={styles.edgeStrip} data-pos="r" aria-hidden />
+        <EdgeStrips />
       </div>
 
       <main className={`${styles.wrap} ${styles.paper}`}>
@@ -746,20 +704,7 @@ export async function Landing() {
         </section>
       </main>
 
-      <footer className={`${styles.wrap} ${styles.footer}`}>
-        <p className={styles.imprint}>
-          ExhibitAR ·{' '}
-          <T en="Placement mats for any 3D print" ja="あらゆる3Dプリントのための配置マット" />
-        </p>
-        <nav aria-label="Footer" className={styles.footerLinks}>
-          <Link href="/studio">Studio</Link>
-          <Link href={`/v/${DEMO_ID}`}>
-            <T en="Demo" ja="デモ" />
-          </Link>
-          <a href={REPO}>GitHub</a>
-          <a href={`${REPO}/blob/main/LICENSE`}>Apache 2.0</a>
-        </nav>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

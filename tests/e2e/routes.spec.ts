@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 const routes: [path: string, heading: RegExp][] = [
-  ['/', /ExhibitAR/],
+  ['/', /Turn any 3D print into an AR exhibit/],
   ['/login', /Sign in/],
   ['/studio', /Studio/],
+  ['/privacy', /Privacy policy/],
+  ['/terms', /Terms of service/],
 
   ['/v/mockcube01', /Mock cube/],
 ];

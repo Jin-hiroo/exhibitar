@@ -1,0 +1,658 @@
+/*
+ * Legal pages, in the landing page's world (landing.module.css carries the root,
+ * the mat, the rulers, the nav and the footer). The mat is a short header with the
+ * title and a drawing's title block; the document is printed on the paper below,
+ * in a calm reading column with its contents beside it.
+ */
+
+.page {
+  --indent: 2.75rem;
+  --measure: 36em;
+}
+
+/*
+ * globals.css hides horizontal overflow on both html and body, which makes body a
+ * scroll container and stops the contents from sticking. Clip instead on this page.
+ */
+:global(body):has(.page) {
+  overflow-x: clip;
+}
+
+/* Japanese display type: M PLUS 1, one heavy weight, phrase breaks only */
+.h1 [lang='ja'],
+.summary h2 [lang='ja'],
+.tocTitle [lang='ja'],
+.section h2 [lang='ja'] {
+  font-family:
+    var(--font-ja), 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-feature-settings: 'palt';
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- the mat header ---------- */
+
+.head {
+  display: grid;
+  gap: var(--cm);
+  padding-block: calc(var(--cm) * 0.6) calc(var(--cm) * 1.5);
+}
+
+.h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.h1 [lang='ja'] {
+  display: block;
+  font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3.25rem);
+  line-height: 1.2;
+}
+
+.lede {
+  margin-top: calc(var(--cm) * 0.7);
+  max-width: 34em;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  color: var(--fg-soft);
+}
+
+/* a drawing's title block: cells ruled in cream, labels in the dimension voice */
+.titleBlock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: end;
+  border: 1.5px solid var(--print);
+}
+
+.titleBlock > div {
+  padding: 9px 14px 12px;
+  border-top: 1px solid var(--print-major);
+  border-left: 1px solid var(--print-major);
+}
+
+.titleBlock > div:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+.titleBlock > div:nth-child(odd) {
+  border-left: 0;
+}
+
+.titleBlock dt {
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: var(--fg-soft);
+}
+
+/* Japanese labels step down in size and weight, as the condensed English ones do */
+.titleBlock dt [lang='ja'] {
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.titleBlock dd {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- the document on the paper ---------- */
+
+.doc {
+  padding-block: calc(var(--cm) * 3) calc(var(--cm) * 2.5);
+}
+
+.layout {
+  display: grid;
+  gap: calc(var(--cm) * 1.4);
+}
+
+/* the short version: printed on a plate, inside crop marks */
+/* its right edge meets the reading column's measure */
+.summary {
+  max-width: calc(var(--indent) + var(--measure));
+  padding: 24px 28px 26px;
+}
+
+.summary h2 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.summary h2 [lang='ja'] {
+  font-size: 1.5rem;
+  line-height: 1.35;
+}
+
+.summary ul {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.summary li {
+  position: relative;
+  padding-left: 26px;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  line-height: 1.5;
+}
+
+[data-lang='ja'] .summary li {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+/* a small printed square for a bullet, centred on the first line */
+.summary li::before,
+.prose li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: calc(0.5lh - 3px);
+  width: 6px;
+  height: 6px;
+  background: var(--print);
+}
+
+.summaryNote {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--print-minor);
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+/* contents */
+
+.toc {
+  max-width: var(--measure);
+  font-size: 0.9375rem;
+}
+
+.tocTitle {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--print);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.tocTitle [lang='ja'] {
+  font-size: 1.375rem;
+  line-height: 1.4;
+}
+
+.toc ol {
+  list-style: none;
+}
+
+.page .toc a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--print-minor);
+  color: var(--fg-soft);
+  line-height: 1.35;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.page .toc a:hover,
+.page .toc a[aria-current] {
+  color: var(--fg);
+}
+
+.page .toc a[aria-current] {
+  font-weight: 600;
+}
+
+.tocNo {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--print);
+}
+
+/* sections */
+
+.section {
+  position: relative;
+  padding-block: calc(var(--cm) * 1.1) calc(var(--cm) * 1.4);
+  border-top: 1px solid var(--print-major);
+  scroll-margin-top: calc(var(--cm) * 0.6);
+}
+
+/* a way back to the contents, set on the section's rule (narrow screens only) */
+.page .toContents {
+  position: absolute;
+  top: -0.75em;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  background: var(--sheet);
+  color: var(--fg-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.page .toContents:hover {
+  color: var(--fg);
+}
+
+.section:first-child .toContents {
+  display: none;
+}
+
+.placeholder {
+  padding: 0 4px;
+  background: rgb(20 20 20 / 0.07);
+  color: inherit;
+  font-style: italic;
+}
+
+.section:first-child {
+  border-top-color: var(--print);
+}
+
+.section h2 {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: baseline;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.section h2 [lang='ja'] {
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.no {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--print);
+}
+
+.prose {
+  margin-top: 16px;
+}
+
+.prose > div > * + * {
+  margin-top: 14px;
+}
+
+.prose :where(p, ul, h3) {
+  max-width: var(--measure);
+}
+
+.prose p,
+.prose li {
+  color: var(--fg-soft);
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.prose h3 {
+  padding-top: 12px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.prose [lang='ja'] h3 {
+  font-family:
+    var(--font-ja), 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-feature-settings: 'palt';
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.prose ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.prose li {
+  position: relative;
+  padding-left: 24px;
+}
+
+.prose li::before {
+  top: calc(0.5lh - 2.5px);
+  width: 5px;
+  height: 5px;
+}
+
+.prose code {
+  padding: 1px 5px;
+  background: rgb(20 20 20 / 0.07);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+/* the services we use: terms and descriptions, each opened by a rule */
+.providers > div {
+  max-width: var(--measure);
+  padding: 12px 0 14px;
+  border-top: 1px solid var(--print-major);
+}
+
+.providers dt {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.providers dd {
+  margin-top: 4px;
+  color: var(--fg-soft);
+}
+
+/* the storage table: column heads in the condensed voice, ink rules */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.table th {
+  padding: 0 18px 8px 0;
+  border-bottom: 1.5px solid var(--print);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.table th [lang='ja'] {
+  font-family:
+    var(--font-ja), 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.table td {
+  padding: 12px 18px 12px 0;
+  border-bottom: 1px solid var(--print-minor);
+  color: var(--fg-soft);
+  vertical-align: top;
+}
+
+.table td:first-child {
+  color: var(--fg);
+}
+
+.table code {
+  white-space: nowrap;
+}
+
+.table td:last-child {
+  white-space: nowrap;
+}
+
+.table td:last-child,
+.table th:last-child {
+  padding-right: 0;
+}
+
+[data-lang='ja'] .table {
+  line-height: 1.75;
+}
+
+.cellLabel {
+  display: none;
+}
+
+.contactLine {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.prose .contactLine {
+  color: var(--fg);
+}
+
+.next {
+  padding-top: calc(var(--cm) * 1.2);
+  border-top: 1px solid var(--print);
+}
+
+/* ---------- small screens ---------- */
+
+/* the host name and the other sheet's title get the full width of the title block */
+@media (max-width: 639px) {
+  .titleBlock > div:nth-child(n + 3) {
+    grid-column: 1 / -1;
+    border-left: 0;
+  }
+
+  .titleBlock > div:nth-child(4) {
+    border-top: 1px solid var(--print-major);
+  }
+}
+
+/* the table becomes labelled rows */
+
+@media (max-width: 719px) {
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .table tr {
+    padding: 10px 0 14px;
+    border-bottom: 1px solid var(--print-minor);
+  }
+
+  .table tr:first-child {
+    border-top: 1.5px solid var(--print);
+  }
+
+  .table td {
+    padding: 2px 0;
+    border: 0;
+  }
+
+  .table td:first-child {
+    padding-bottom: 4px;
+  }
+
+  .table td:last-child {
+    white-space: normal;
+  }
+
+  .cellLabel {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--font-display), sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--fg-soft);
+  }
+}
+
+/* ---------- larger screens ---------- */
+
+@media (min-width: 640px) {
+  .head {
+    gap: calc(var(--cm) * 1.2);
+    padding-block: calc(var(--cm) * 0.9) calc(var(--cm) * 2);
+  }
+
+  .section h2 {
+    grid-template-columns: var(--indent) 1fr;
+    column-gap: 0;
+  }
+
+  .prose {
+    margin-left: var(--indent);
+  }
+}
+
+@media (min-width: 1024px) {
+  .head {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: end;
+    padding-block: calc(var(--cm) * 0.9) calc(var(--cm) * 2.2);
+  }
+
+  .headCopy {
+    grid-column: 1 / span 7;
+  }
+
+  .titleBlock {
+    grid-column: 8 / span 5;
+  }
+
+  .layout {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: calc(var(--cm) * 1.6);
+    align-items: start;
+  }
+
+  .summary {
+    grid-column: 4 / span 8;
+    grid-row: 1;
+  }
+
+  /* contents stay beside the reading column, a ruler tick at the section being read */
+  .toc {
+    grid-column: 1 / span 3;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: var(--cm);
+  }
+
+  .page .toc a::before {
+    content: '';
+    position: absolute;
+    top: calc(7px + 0.68em);
+    left: -26px;
+    width: 10px;
+    height: 1px;
+    background: var(--print-major);
+    transition:
+      width 0.25s var(--ease-out),
+      background-color 0.25s;
+  }
+
+  .page .toc a[aria-current]::before {
+    width: 18px;
+    height: 2px;
+    background: var(--print);
+  }
+
+  .sections {
+    grid-column: 4 / span 8;
+    grid-row: 2;
+  }
+
+  .page .toContents {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page .toc a::before {
+    transition: none;
+  }
+}
+
+/* ---------- print: just the document, in ink ---------- */
+
+@media print {
+  .page {
+    background: #fff;
+  }
+
+  .page [aria-hidden],
+  .page header,
+  .page footer,
+  .toc,
+  .next {
+    display: none;
+  }
+
+  .page .mat {
+    --fg: var(--ink);
+    --fg-soft: var(--ink-soft);
+    --print: var(--ink);
+    --print-major: rgb(20 20 20 / 0.3);
+    background: none;
+    color: var(--ink);
+  }
+
+  .page .mat::after {
+    display: none;
+  }
+
+  .page .mat > div {
+    margin-left: 0;
+    padding-top: 0;
+  }
+
+  .doc {
+    margin-left: 0;
+    padding-top: 0;
+  }
+
+  .summary::before {
+    display: none;
+  }
+
+  .section {
+    break-inside: avoid-page;
+  }
+}

@@ -19,6 +19,11 @@ export default async function LoginPage(props: PageProps<'/login'>) {
       <p className={styles.muted}>
         Just trying things out? <Link href="/studio/new">Open the Studio</Link> without an account.
       </p>
+      <p className={styles.muted}>
+        By signing in or creating an account, you agree to the{' '}
+        <Link href="/terms">Terms of service</Link> and the{' '}
+        <Link href="/privacy">Privacy policy</Link>.
+      </p>
     </main>
   );
 }
