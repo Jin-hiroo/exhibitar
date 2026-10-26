@@ -39,7 +39,6 @@ Most of these are Supabase settings, not code:
   can sign up can upload files to the public buckets, up to the per-file limits in the
   migrations. The app does not send a CAPTCHA token yet, so turning on Supabase's CAPTCHA
   protection would break sign-in.
-- Set the passkey relying-party ID to your production domain only.
 - With Google sign-in on and **Confirm email** off, nobody checks the address of an email +
   password account. Supabase links a Google sign-in to an existing account with the same
   email, so someone who signs up first with another person's address keeps password access to

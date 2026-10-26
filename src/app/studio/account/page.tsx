@@ -1,13 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { AccountPanel } from '@/components/studio/AccountPanel';
+import { PasswordForm } from '@/components/studio/PasswordForm';
 import { getCurrentUser } from '@/lib/db/server';
 import styles from '../studio.module.css';
 
-export default async function AccountPage(props: PageProps<'/studio/account'>) {
+export default async function AccountPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/studio/account');
-  const sp = await props.searchParams;
   return (
     <main className={styles.narrow}>
       <header className={styles.header}>
@@ -17,9 +16,10 @@ export default async function AccountPage(props: PageProps<'/studio/account'>) {
         </Link>
       </header>
       <p className={styles.muted}>
-        Signed in as <b>{user.email}</b>
+        Signed in {user.google && 'with Google '}as <b>{user.email}</b>
       </p>
-      <AccountPanel welcome={sp.new === '1'} />
+      {/* a Google sign-in has no password here: Google handles it */}
+      {!user.google && <PasswordForm />}
     </main>
   );
 }
