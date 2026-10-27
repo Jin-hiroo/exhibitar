@@ -49,8 +49,9 @@ the annotations are uploaded. Visitors need nothing installed. It is open source
   orientation, choose FRONT, generate the mat (outline, markers, QR, ruler) as PDF/SVG,
   annotate with points and painted regions (title, text, optional image and link, tour
   order), preview, publish, calibrate.
-- Studio works as an in-tab draft without an account; publishing needs sign-in (Google
-  or email + password).
+- Making an exhibit needs sign-in (Google or email + password). Signed out, `/studio` is
+  where exhibitors sign in. A copy with no Supabase configured has no sign-in, so there the
+  Studio works as an in-tab draft.
 - In AR, the printed object hides labels behind it, and labels fade when seen from behind.
   Tapping a label opens a detail sheet and lights up its region; there is an optional guided
   tour.

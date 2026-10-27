@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { authErrorMessage, NOT_CONFIGURED } from '@/lib/db/auth-errors';
 import { getBrowserDb } from '@/lib/db/client';
-import styles from '../studio/studio.module.css';
+import { ArrowRight } from '@/components/landing/icons';
+import styles from '@/components/studio/sign-in.module.css';
 
 type Mode = 'signin' | 'signup';
 
@@ -25,6 +26,8 @@ export function LoginForm({
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState<'password' | 'google' | null>(null);
   const [message, setMessage] = useState<string | null>(error);
+  // a Google failure shows above the Google button, a password one under the form
+  const [messageFor, setMessageFor] = useState<'google' | 'password'>('google');
 
   // Back from Google's page (restored from the back-forward cache): no redirect is pending.
   useEffect(() => {
@@ -49,6 +52,7 @@ export function LoginForm({
     }
     setBusy('password');
     setMessage(null);
+    setMessageFor('password');
     try {
       if (mode === 'signin') {
         const { error: err } = await db.auth.signInWithPassword({ email, password });
@@ -75,6 +79,7 @@ export function LoginForm({
     }
     setBusy('google');
     setMessage(null);
+    setMessageFor('google');
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
     const { error: err } = await db.auth.signInWithOAuth({
       provider: 'google',
@@ -96,8 +101,31 @@ export function LoginForm({
     signup: busy === 'password' ? 'Creating account…' : 'Create account',
   }[mode];
 
+  const note = message && (
+    <p className={styles.error} role="alert">
+      <Alert />
+      <span>{message}</span>
+    </p>
+  );
+
   return (
     <div className={styles.form}>
+      {messageFor === 'google' && note}
+      {google && (
+        <>
+          <button
+            type="button"
+            className={styles.outline}
+            disabled={busy !== null}
+            onClick={signInWithGoogle}
+          >
+            <GoogleLogo />
+            {busy === 'google' ? 'Redirecting to Google…' : 'Continue with Google'}
+          </button>
+          <p className={styles.divider}>or with email</p>
+        </>
+      )}
+
       <form onSubmit={submit} className={styles.form}>
         <label className={styles.field}>
           <span>Email</span>
@@ -122,47 +150,64 @@ export function LoginForm({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {mode === 'signup' && <small className={styles.small}>At least 8 characters.</small>}
+          {mode === 'signup' && <small className={styles.hint}>At least 8 characters.</small>}
         </label>
-        <button className={styles.primary} disabled={busy !== null}>
-          {submitLabel}
+        <button className={styles.tape} disabled={busy !== null}>
+          <span className={styles.tapeFace}>
+            {submitLabel} <ArrowRight />
+          </span>
         </button>
       </form>
 
-      {google && (
-        <>
-          <p className={styles.divider}>or</p>
-          <button
-            type="button"
-            className={styles.secondary}
-            disabled={busy !== null}
-            onClick={signInWithGoogle}
-          >
-            <GoogleLogo />
-            {busy === 'google' ? 'Redirecting to Google…' : 'Continue with Google'}
-          </button>
-        </>
-      )}
-      {message && <p className={styles.error}>{message}</p>}
+      {messageFor === 'password' && note}
 
       <p className={styles.small}>
         {mode === 'signin' ? (
           <>
             New here?{' '}
-            <button type="button" className={styles.link} onClick={() => switchTo('signup')}>
+            <button
+              type="button"
+              className={styles.link}
+              disabled={busy !== null}
+              onClick={() => switchTo('signup')}
+            >
               Create an account
             </button>
           </>
         ) : (
           <>
             Already have an account?{' '}
-            <button type="button" className={styles.link} onClick={() => switchTo('signin')}>
+            <button
+              type="button"
+              className={styles.link}
+              disabled={busy !== null}
+              onClick={() => switchTo('signin')}
+            >
               Sign in
             </button>
           </>
         )}
       </p>
     </div>
+  );
+}
+
+/** A warning mark in the landing icons' stroke, beside a sign-in problem. */
+function Alert() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="square"
+      aria-hidden
+      focusable={false}
+    >
+      <path d="M12 3 2 21h20L12 3zM12 10v5M12 17.5v.5" />
+    </svg>
   );
 }
 

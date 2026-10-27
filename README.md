@@ -50,8 +50,8 @@ object, with no app to build and no object recognition to train.
 - **Runs in the browser.** Android Chrome via WebXR image tracking; iPhone via the Needle Go
   App Clip (not yet device-tested). Other browsers get a 3D view of the exhibit.
 - **One-time calibration** on a phone (`/studio/<id>/calibrate`), saved for every visitor.
-- **Try it without an account.** The Studio works as an in-tab draft. Publishing needs
-  sign-in (Google or email + password).
+- **Your exhibits, kept.** Sign in (Google or email + password) and drafts and published
+  exhibits stay in your Studio, ready to edit.
 
 ## Installation
 
@@ -151,8 +151,8 @@ WebXR only runs in a secure context. Three options, easiest first:
 ## Self-hosting
 
 ExhibitAR is a Next.js app backed by a Supabase project (auth, Postgres, storage). Without
-Supabase env vars the Studio still works as an in-tab draft and the demo exhibit still loads;
-only sign-in and publishing are disabled.
+Supabase env vars there is no sign-in, so the Studio works as an in-tab draft instead and the
+demo exhibit still loads; only saving and publishing are disabled.
 
 1. **Create a Supabase project** and apply the SQL in `supabase/migrations/` in file order,
    either with the Supabase CLI (`supabase link --project-ref <ref>` then `supabase db push`)

@@ -242,9 +242,9 @@ applied about the mat origin (+yaw = counter-clockwise seen from above).
 /login                    Supabase auth (Google, email + password)
 /auth/callback            Google sign-in landing: PKCE code → session cookie
 /auth/signout             POST: sign out
-/studio                   project list
+/studio                   project list; signed out, the sign-in page
 /studio/account           change password (hidden for Google sign-ins)
-/studio/new               upload → wizard
+/studio/new               upload → wizard (signed out: redirects to /studio)
 /studio/[id]              editor tabs: Setup · Mat · Annotate · Preview · Publish
 /studio/[id]/calibrate    phone calibration AR
 /v/[id]                   public Viewer

@@ -54,6 +54,8 @@ export async function isGoogleSignInEnabled(): Promise<boolean> {
     const res = await timedFetch()(`${env.url}/auth/v1/settings`, {
       headers: { apikey: env.key },
       next: { revalidate: 300 },
+      // an optional button: never hold the sign-in page on a slow auth server
+      signal: AbortSignal.timeout(2500),
     });
     if (!res.ok) return false;
     const settings = (await res.json()) as { external?: { google?: unknown } };

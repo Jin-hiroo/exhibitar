@@ -40,8 +40,8 @@ const OTHER_BROWSER = 'Finish Google sign-in in the browser you started it in, t
  * Supabase (`error_code`, else `error`) or the code exchange's `AuthError` code.
  */
 const OAUTH_MESSAGES: Record<string, string> = {
-  access_denied: 'Google sign-in was cancelled.',
-  signup_disabled: 'New accounts cannot be created right now.',
+  access_denied: 'Google sign-in was cancelled. Try again, or sign in with email below.',
+  signup_disabled: 'New accounts cannot be created right now. If you already have one, sign in.',
   flow_state_expired: 'Google sign-in took too long. Try again.',
   flow_state_not_found: OTHER_BROWSER,
   bad_code_verifier: OTHER_BROWSER,

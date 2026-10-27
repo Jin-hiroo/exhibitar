@@ -20,5 +20,8 @@ export function safeNextPath(raw: unknown, fallback = '/studio'): string {
     return fallback;
   }
   if (url.origin !== base) return fallback;
+  // dot segments can normalize into a protocol-relative path: `/.//evil.example`
+  // becomes `//evil.example`, which the browser would treat as another host
+  if (url.pathname.startsWith('//')) return fallback;
   return `${url.pathname}${url.search}${url.hash}`;
 }

@@ -1,9 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const routes: [path: string, heading: RegExp][] = [
   ['/', /Turn any 3D print into an AR exhibit/],
-  ['/login', /Sign in/],
-  ['/studio', /Studio/],
+  // without Supabase there is no sign-in: the sheet is titled "Studio" instead
+  ['/login', /^(Sign in to the Studio|Studio)$/],
+  ['/studio', /^(Sign in to the Studio|Studio)$/],
   ['/privacy', /Privacy policy/],
   ['/terms', /Terms of service/],
 
@@ -39,8 +40,30 @@ test('viewer falls back to a 3D view with labels and details when AR is unavaila
   await expect(page.getByRole('heading', { level: 2 })).toHaveCount(0);
 });
 
+/**
+ * True when the server has Supabase set up, read from the signed-out Studio rather than from
+ * the gate under test: without Supabase it offers "Start a draft" instead of a sign-in.
+ */
+async function hasBackend(page: Page): Promise<boolean> {
+  await page.goto('/studio');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  return (await page.getByRole('link', { name: 'Start a draft' }).count()) === 0;
+}
+
+test('starting an exhibit signed out sends you to sign in, then on to the new exhibit', async ({
+  page,
+}) => {
+  test.skip(!(await hasBackend(page)), 'no Supabase: the Studio is an in-tab draft');
+  await page.goto('/studio/new');
+  await expect(page).toHaveURL(/\/studio\?next=%2Fstudio%2Fnew$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sign in to the Studio');
+  await expect(page.getByLabel('Email')).toBeVisible();
+});
+
 test('studio: sample STL → mat → annotate → preview, without an account', async ({ page }) => {
   test.setTimeout(90_000);
+  // only a copy without Supabase lets you in signed out; with it, this needs an account
+  test.skip(await hasBackend(page), 'making an exhibit needs signing in');
   await page.goto('/studio/new');
   await page.getByRole('button', { name: '60 mm cube' }).click();
   await expect(page.getByText('60 × 60 × 60 mm')).toBeVisible({ timeout: 20_000 });
@@ -56,9 +79,9 @@ test('studio: sample STL → mat → annotate → preview, without an account', 
   await expect(page.getByText('Publishing needs an account')).toBeVisible();
 });
 
-test('studio list and login render', async ({ page }) => {
-  await page.goto('/studio');
-  await expect(page.getByRole('link', { name: '+ New exhibit' })).toBeVisible();
+test('signed out, the studio and the login page are the same sign-in', async ({ page }) => {
+  test.skip(!(await hasBackend(page)), 'no Supabase: there is no sign-in');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sign in to the Studio');
   await page.goto('/login');
   await expect(page.getByLabel('Email')).toHaveAttribute('autocomplete', 'username');
   await expect(page.getByLabel('Password')).toBeVisible();
@@ -85,10 +108,11 @@ test('editing a saved exhibit requires signing in', async ({ page }) => {
 });
 
 test('a failed Google sign-in returns to the login page with a fixed message', async ({ page }) => {
+  test.skip(!(await hasBackend(page)), 'no Supabase: there is no sign-in');
   // cancelled on Google's consent screen: Supabase redirects back with ?error=access_denied
   await page.goto('/auth/callback?error=access_denied&next=%2Fstudio%2Faccount');
   await expect(page).toHaveURL(/\/login\?error=access_denied&next=%2Fstudio%2Faccount$/);
-  await expect(page.getByText('Google sign-in was cancelled.')).toBeVisible();
+  await expect(page.getByText(/^Google sign-in was cancelled\./)).toBeVisible();
 
   // text in the URL is never shown
   await page.goto('/login?error=Call%20support%20at%20%2B1%20555%200100');
