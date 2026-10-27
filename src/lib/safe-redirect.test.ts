@@ -25,6 +25,14 @@ describe('safeNextPath', () => {
     expect(safeNextPath('/\n/evil.example')).toBe('/studio');
   });
 
+  it('rejects paths whose dot segments normalize to another host', () => {
+    expect(safeNextPath('/.//evil.example')).toBe('/studio');
+    expect(safeNextPath('/./\\evil.example')).toBe('/studio');
+    expect(safeNextPath('/a/..//evil.example')).toBe('/studio');
+    expect(safeNextPath('/studio/../..//evil.example/x?y#z')).toBe('/studio');
+    expect(safeNextPath('/studio/./new')).toBe('/studio/new');
+  });
+
   it('uses the given fallback', () => {
     expect(safeNextPath('//evil.example', '/')).toBe('/');
   });
