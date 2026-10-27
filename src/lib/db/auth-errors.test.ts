@@ -22,7 +22,9 @@ describe('authErrorMessage', () => {
 
 describe('oauthErrorMessage', () => {
   it('maps the codes /auth/callback sends back', () => {
-    expect(oauthErrorMessage('access_denied')).toBe('Google sign-in was cancelled.');
+    expect(oauthErrorMessage('access_denied')).toBe(
+      'Google sign-in was cancelled. Try again, or sign in with email below.',
+    );
     expect(oauthErrorMessage('flow_state_expired')).toMatch(/took too long/);
     expect(oauthErrorMessage('pkce_code_verifier_not_found')).toMatch(/browser you started it in/);
     expect(oauthErrorMessage('not_configured')).toMatch(/not configured/);

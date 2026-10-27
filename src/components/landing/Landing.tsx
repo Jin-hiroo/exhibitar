@@ -92,12 +92,12 @@ const FEATURES = [
   },
   {
     en: [
-      'Start without an account',
-      'The Studio works as a draft in your browser tab. Sign in to publish.',
+      'Your exhibits, kept',
+      'Sign in once. Drafts and published exhibits wait in your Studio, ready to edit.',
     ],
     ja: [
-      'アカウントなしで始められる',
-      'スタジオはブラウザのタブ内で下書きとして使えます。公開にはサインインが必要です。',
+      '展示はスタジオに保存',
+      '一度サインインすれば、下書きも公開した展示もスタジオに残り、いつでも編集できます。',
     ],
   },
 ] as const;

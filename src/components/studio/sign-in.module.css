@@ -1,0 +1,371 @@
+/*
+ * Signing in to the Studio, in the landing page's world (landing.module.css carries the
+ * root, the mat, the rulers and the nav). The whole page is the cutting mat; one paper
+ * sheet lies on it, taped along its top edge, with the sign-in printed in ink.
+ */
+
+.page {
+  --sheet-w: 540px;
+}
+
+/* the mat fills the screen: no paper below it, so no paper edge */
+.page .mat {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.page .mat::after {
+  display: none;
+}
+
+.matWrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  place-items: start center;
+  padding-block: calc(var(--cm) * 0.7) var(--cm);
+}
+
+/* ---------- the sheet ---------- */
+
+.sheet {
+  /* printed in ink: the paper's own roles */
+  --fg: var(--ink);
+  --fg-soft: var(--ink-soft);
+  --print: var(--ink);
+  --print-major: rgb(20 20 20 / 0.3);
+  --print-minor: rgb(20 20 20 / 0.1);
+  --focus: var(--ink);
+  --shade: 20 20 20;
+
+  position: relative;
+  width: min(100%, var(--sheet-w));
+  padding: 40px 24px 28px;
+  background: var(--paper);
+  color: var(--fg);
+  box-shadow: var(--rest);
+  animation: settle 1s var(--ease-out) 0.1s both;
+}
+
+@keyframes settle {
+  from {
+    transform: rotate(-1.2deg) translateY(-18px) scale(1.02);
+    box-shadow: var(--lifted);
+  }
+}
+
+/* two strips of masking tape across the top edge */
+.sheet .stripL,
+.sheet .stripR {
+  top: -13px;
+  width: 104px;
+}
+
+.sheet .stripL {
+  left: 26px;
+  transform: rotate(-3deg);
+}
+
+.sheet .stripR {
+  right: 26px;
+  transform: rotate(2.5deg);
+}
+
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.5rem, 1.7rem + 2.2vw, 3.6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.008em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 10px 0 22px;
+  color: var(--fg-soft);
+}
+
+/* ---------- the form (LoginForm prints with these) ---------- */
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.field input {
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--print-major);
+  border-radius: 0;
+  background: var(--plate);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  caret-color: var(--ink);
+  transition: border-color 0.2s;
+}
+
+.field input::placeholder {
+  color: #6f706a;
+}
+
+.field input:hover {
+  border-color: var(--ink);
+}
+
+.page .field input:focus-visible {
+  border-color: var(--ink);
+  outline-offset: 2px;
+}
+
+.hint {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--fg-soft);
+}
+
+/* Continue with Google: an outlined control printed in ink */
+.outline {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.outline:hover:not(:disabled) {
+  background: rgb(20 20 20 / 0.05);
+}
+
+.outline:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--print-major);
+}
+
+/* the submit button is a strip of label-yellow tape, as on the landing page */
+.tape {
+  appearance: none;
+  justify-self: start;
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transform: rotate(-1.2deg);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(var(--shade) / 0.35));
+  transition:
+    transform 0.4s var(--ease-out),
+    filter 0.4s var(--ease-out);
+}
+
+.tapeFace {
+  --s: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 30px 15px 28px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  mask:
+    conic-gradient(from 45deg at left, #0000, #000 1deg 89deg, #0000 90deg) left / 51% var(--s)
+      repeat-y,
+    conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) right / 51% var(--s)
+      repeat-y;
+}
+
+.tapeFace svg {
+  transition: transform 0.4s var(--ease-out);
+}
+
+.tape:hover:not(:disabled) {
+  transform: rotate(0deg) translateY(-2px);
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(var(--shade) / 0.42));
+}
+
+.tape:hover:not(:disabled) svg {
+  transform: translateX(4px);
+}
+
+.tape:active:not(:disabled) {
+  transform: rotate(0deg) translateY(1px);
+}
+
+.tape:disabled {
+  cursor: progress;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.18));
+}
+
+.tape:disabled .tapeFace {
+  opacity: 0.6;
+}
+
+/* a problem with the sign-in: a note printed in ink between two rules, never a colour */
+.error {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  padding: 10px 12px;
+  border-block: 1px solid var(--print-major);
+  background: var(--plate);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.error svg {
+  margin-top: 2px;
+  font-size: 1.0625rem;
+}
+
+.small {
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+.link {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--print-major);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  cursor: pointer;
+}
+
+.link:hover:not(:disabled) {
+  text-decoration-color: currentColor;
+}
+
+.link:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* ---------- foot of the sheet ---------- */
+
+.needs {
+  display: grid;
+  gap: 10px 18px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--print-major);
+  list-style: none;
+}
+
+.needs strong {
+  display: block;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.needs span {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--fg-soft);
+}
+
+.legal {
+  margin-top: 14px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+}
+
+.page .legal a {
+  color: var(--ink);
+}
+
+/* ---------- printed on the mat, under the sheet ---------- */
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 28px;
+  padding-block: 0 calc(var(--cm) * 0.7);
+  font-size: 0.9375rem;
+  color: var(--fg-soft);
+}
+
+@media (min-width: 480px) {
+  .sheet {
+    padding: 42px 50px 30px;
+  }
+
+  .needs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .main {
+    place-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+
+  .tape,
+  .tapeFace svg {
+    transition: none;
+  }
+}
