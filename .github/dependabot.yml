@@ -1,0 +1,39 @@
+# Dependency update PRs. CI runs on each one; nothing merges automatically.
+version: 2
+updates:
+  - package-ecosystem: npm # reads pnpm-lock.yaml
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    ignore:
+      # Node types follow the Node major we run on (24, same as Vercel); bump both together.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+    groups:
+      # Packages that must move together, majors included.
+      next:
+        patterns: [next, eslint-config-next]
+      react:
+        patterns: [react, react-dom, '@types/react', '@types/react-dom']
+      three:
+        patterns: [three, '@types/three']
+      # Everything else: one PR for all minor and patch updates; each major gets its own PR.
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Asia/Tokyo
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      github-actions:
+        patterns: ['*']
