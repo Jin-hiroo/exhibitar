@@ -2,7 +2,7 @@
 export const OPERATOR = 'Jin Sa';
 
 /** Where privacy requests, content reports and questions about the terms go. Published. */
-export const CONTACT_EMAIL = '';
+export const CONTACT_EMAIL = 'jinsa.dxb@gmail.com';
 
 export const SERVICE_HOST = 'exhibitar.vercel.app';
 
