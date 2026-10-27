@@ -93,7 +93,7 @@ Workstreams: [docs/TASKS.md](docs/TASKS.md).
 | `pnpm dev`                    | local dev server on http://localhost:3000                                                                               |
 | `pnpm lint && pnpm typecheck` | ESLint + `next typegen` + `tsc --noEmit`                                                                                |
 | `pnpm test`                   | Vitest unit tests (`src/**/*.test.ts`, `tests/**/*.test.ts`)                                                            |
-| `pnpm test:e2e`               | Playwright smoke tests (starts its own dev server on :3100)                                                             |
+| `pnpm test:e2e`               | Playwright smoke tests (starts its own dev server on :3100; with `CI=1`, serves the `pnpm build` output)                |
 | `pnpm fixtures`               | writes fixture STLs (binary + ASCII) to `tests/fixtures/out/`                                                           |
 | `pnpm demo`                   | runs the full geometry + mat pipeline on every fixture → `tests/fixtures/out/demo/` (GLB, mat SVG/PDF, marker PNGs, QR) |
 | `pnpm mock`                   | regenerates `tests/fixtures/project.mock.json` + `public/fixtures/*` from the real pipeline                             |

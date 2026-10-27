@@ -34,6 +34,13 @@ pnpm test:e2e
 pnpm format:check
 ```
 
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the same checks on every pull
+request. It also builds for production, runs the e2e tests against that build, and fails if an
+existing migration was changed. A pull request can merge only when CI passes.
+
+After a merge, Vercel deploys `main` to production. Migrations are not applied automatically: a
+maintainer applies new files in `supabase/migrations/` to the hosted Supabase project by hand.
+
 - Keep commits small and focused. Messages follow the existing style, for example
   `fix(viewer): …` or `feat(mat): …`.
 - Put pure geometry and mat logic in `src/lib/**` with unit tests. Keep React components thin.
