@@ -14,6 +14,7 @@ colors:
   masking-cream: 'rgb(238 230 198 / 0.86)'
   ink: '#141414'
   ink-soft: '#45463f'
+  ink-placeholder: '#6f706a'
   ink-major: 'rgb(20 20 20 / 0.3)'
   ink-minor: 'rgb(20 20 20 / 0.1)'
   text-white: '#ffffff'
@@ -45,6 +46,12 @@ typography:
     lineHeight: 1.25
     letterSpacing: '0'
     fontFeature: "'palt'"
+  headline-sheet:
+    fontFamily: 'Barlow Condensed, sans-serif'
+    fontSize: 'clamp(2.5rem, 1.7rem + 2.2vw, 3.6rem)'
+    fontWeight: 800
+    lineHeight: 0.95
+    letterSpacing: '-0.008em'
   statement:
     fontFamily: 'Barlow Condensed, sans-serif'
     fontSize: 'clamp(2rem, 1.2rem + 2.8vw, 3.75rem)'
@@ -170,6 +177,34 @@ components:
   ruler-paper:
     textColor: '{colors.ink}'
     width: '{spacing.ruler}'
+  sign-in-sheet:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.none}'
+    padding: '42px 50px 30px'
+    width: '540px'
+  sheet-strip:
+    backgroundColor: '{colors.masking-cream}'
+    width: '104px'
+    height: '26px'
+  input-field:
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.none}'
+    padding: '0 12px'
+    height: '46px'
+  button-outline-paper:
+    textColor: '{colors.ink}'
+    rounded: '{rounded.none}'
+    padding: '12px 16px'
+    height: '50px'
+  error-note:
+    backgroundColor: '{colors.plate}'
+    textColor: '{colors.ink}'
+    typography: '{typography.small}'
+    rounded: '{rounded.none}'
+    padding: '10px 12px'
 ---
 
 # Design System: ExhibitAR
@@ -182,13 +217,13 @@ The page is the exhibitor's workbench seen from above. The hero is the green sel
 
 There is one loud colour, borrowed from the product. Label yellow is the colour of the AR labels on the visitor's phone and in the Studio; on the page it is the strip of tape you click, the pointer ticks on the rulers, and the text selection. Type is a condensed engineering sans, the kind printed on cutting mats and rulers, for headlines and numerals, over a plain humanist sans for reading. Japanese is a first-class language on the same URL, with a heavy rounded gothic for display and the system Japanese gothic for text.
 
-Scope: this system is the landing page at `/` (`src/components/landing/`) and the legal pages at `/privacy` and `/terms` (`src/components/legal/`), which share the landing page's nav, rulers, edge strips and footer through `src/components/landing/chrome.tsx`. The Studio (with its sign-in page) and the Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour the two already share.
+Scope: this system is the landing page at `/` (`src/components/landing/`), the legal pages at `/privacy` and `/terms` (`src/components/legal/`), and the sign-in: the signed-out Studio at `/studio` and `/login`, which render one shared page (`src/components/studio/SignInSheet.tsx`, `sign-in.module.css`, with the form in `src/app/login/LoginForm.tsx`). All of them share the landing page's root, nav, rulers, ruler cursor and fonts through `src/components/landing/`. The signed-in Studio (exhibit list and editor) and the Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour they already share.
 
 **Key Characteristics:**
 
 - Two surfaces with two printing inks: green mat with cream lines in the hero, off-white paper with ink everywhere below it.
 - One set of role variables (foreground, soft foreground, print at full, major and minor strength, ruler background, focus, shadow tint) that each surface sets for itself, so a component prints correctly on whichever surface it lies on.
-- The hero photo is the only object lying loose on the mat: tilted, taped, shadowed, settling once on load.
+- One loose object per mat, tilted or taped, shadowed, settling once on load: on the landing, the hero photo; on the sign-in, the paper sheet that carries the form.
 - On the paper, screenshots are printed flat on white plates inside crop marks: no tilt, no shadow, no tape.
 - Label yellow kept for what you act on: the tape, the ruler cursor, selection, and focus on the mat.
 - Square corners everywhere; edges are cut paper, torn tape and printed lines.
@@ -225,6 +260,7 @@ On the paper:
 - **Plate** (`plate`): the white plates the screenshots, the demo mat and the QR card are printed on. The full-screen demo mat is pure white too, because there it stands in for printer paper.
 - **Ink** (`ink`): headlines, step numerals, the ink ruler's ticks and numbers, crop marks, focus outlines on the paper, text on the yellow tape, the QR modules.
 - **Ink Soft** (`ink-soft`): ledes, body paragraphs, captions, notes and feature descriptions on the paper.
+- **Ink Placeholder** (`ink-placeholder`): placeholder text inside a white input field, and nothing else. The same warm hue as ink soft, a step lighter so a sample value never reads as a typed one, and still above 4.5:1 on the plate.
 - **Ink Major** (`ink-major`): section and footer hairline rules, feature-list rules, resting link underlines, half-centimetre ticks on the ink ruler, the 45° and 60° guide.
 - **Ink Minor** (`ink-minor`): the hairline border of every plate and the millimetre ticks on the ink ruler.
 
@@ -232,7 +268,7 @@ On the paper:
 
 **The Label Yellow Rule.** Yellow is the AR label colour and nothing else may borrow it. It marks only what responds to you: the action tape, the ruler cursor, selection, and focus on the mat. Never use it for decoration, headings, plates or a second accent.
 
-**The Two Inks Rule.** Every line is printed at one of three strengths of its surface's ink: cream at full, 42% and 15% on the mat; ink at full, 30% and 10% on the paper. No grey, no green on the paper, no new opacities. Components take these through the surface's role variables instead of naming a colour.
+**The Two Inks Rule.** Every line is printed at one of three strengths of its surface's ink: cream at full, 42% and 15% on the mat; ink at full, 30% and 10% on the paper. No grey, no green on the paper, no new opacities. Components take these through the surface's role variables instead of naming a colour. Text is ink, ink soft, or, inside an input only, ink placeholder.
 
 **The Green Stays in the Hero Rule.** Mat green ends at the paper's top edge. Below it, the page is the paper sheet; nothing green is printed on it.
 
@@ -250,6 +286,7 @@ On the paper:
 
 - **Display** (`display`): the one hero headline, white on the mat, balanced wrapping.
 - **Headline** (`headline`): section headings, in ink on the paper; on the legal pages, the document title on the mat.
+- **Sheet headline** (`headline-sheet`): the title printed on a loose sheet ("Sign in to the Studio"), capped smaller than the section headline so it fits a 540px sheet on one or two lines; balanced wrapping.
 - **Statement** (`statement`): the single large audience sentence (the section's h2), max 15em.
 - **Numeral** (`numeral`): oversized step numbers beside step titles; the demo's numbered list uses the same voice at 1.75rem.
 - **Title** (`title`, `title-sm`): step titles; feature-list terms and the QR card caption use the smaller size.
@@ -263,7 +300,7 @@ On the paper:
 
 ### Named Rules
 
-**The Same Care in Both Languages Rule.** Every piece of copy exists in English and Japanese. Japanese headings get their own smaller sizes and looser leading (about 1.16 to 1.45), M PLUS 1 at 800 with `palt`, `word-break: keep-all`, and phrase breaks marked with `<wbr>` so lines never break inside a word. Japanese body runs at line-height 1.85 with strict line breaking.
+**The Same Care in Both Languages Rule.** On the landing page and the legal pages, every piece of copy exists in English and Japanese (the sign-in sheet is English, like the rest of the app). Japanese headings get their own smaller sizes and looser leading (about 1.16 to 1.45), M PLUS 1 at 800 with `palt`, `word-break: keep-all`, and phrase breaks marked with `<wbr>` so lines never break inside a word. Japanese body runs at line-height 1.85 with strict line breaking.
 
 **The Condensed Means Measured Rule.** Barlow Condensed is for headlines, numerals and things that measure (rulers, dimension labels, step numbers, the tape). Reading text is never condensed.
 
@@ -277,36 +314,38 @@ From 1024px, sections use a 12-column grid with a 24px gutter. The hero takes 7 
 
 The legal pages use the same column and the same centimetres. A short mat header holds the document title and lede (7 columns) beside the title block (5 columns) from 1024px, stacked below that. On the paper, the contents take 3 columns and stick 1 cm from the top while the summary plate and the numbered sections share the other 8. Section text is indented 2.75rem under its number from 640px and stops at 36em; the summary plate's right edge meets that measure. Below 1024px the summary comes first, then the contents, and each section's rule carries a "Contents ↑" link back.
 
+The sign-in page is all mat: no paper below it and no paper edge. The mat fills the viewport (100svh) under the usual rulers and nav; the sheet sits in the content column, up to 540px wide, at the top below 900px and centred in the remaining height from 900px. Its padding is 40px 24px 28px on phones and 42px 50px 30px from 480px, where the needs row goes three across. The fine print is printed on the mat under the sheet, split left and right.
+
 **The One Scale Rule.** Things on the page are measured in the page's own centimetres. The rulers, the pointer readout and the hero's dimension line all read the same CSS cm (measured from a 1 cm probe), so a stated size always agrees with the rulers.
 
 **The Unbroken Count Rule.** The left ruler runs the full height of the page with one count. On the mat it is the cream ruler on a mat-deep band; on the paper the same ruler is printed in ink on a transparent band, layered under the mat so the mat's own ruler covers its top.
 
 ## Elevation & Depth
 
-Three physical layers, seen from above: the green mat; the paper sheet lying on it; and the one loose object on the mat, the hero's AR print. Depth is only where a real object would cast it. The paper's edge casts a thin contact shadow onto the mat (a 10px gradient from 34% green-black at the mat's bottom edge) and is held by two masking strips that overhang the seam. The hero print casts the rest shadow and settles into it on load. The yellow tape casts its own shadow through `drop-shadow`, so the shadow follows its torn ends, tinted by the surface it lies on: green-black on the mat, ink on the paper (the `--shade` role).
+Three physical layers, seen from above: the green mat; the paper sheet lying on it; and the one loose object on the mat, the hero's AR print. On the sign-in there is no paper below; the loose object is the sheet itself, in the hero print's paper, taped by two strips across its top edge and resting in the rest shadow. Depth is only where a real object would cast it. The paper's edge casts a thin contact shadow onto the mat (a 10px gradient from 34% green-black at the mat's bottom edge) and is held by two masking strips that overhang the seam. The hero print casts the rest shadow and settles into it on load. The yellow tape casts its own shadow through `drop-shadow`, so the shadow follows its torn ends, tinted by the surface it lies on: green-black on the mat, ink on the paper (the `--shade` role).
 
 Everything printed is flat: text, rules, rulers, crop marks, and the plates on the paper. A plate is printed onto the sheet, not laid on it.
 
 ### Shadow Vocabulary
 
-- **Rest** (`0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62)`): the hero print lying on the mat.
-- **Lifted** (`0 2px 2px rgb(0 0 0 / 0.12), 0 40px 60px -18px rgb(0 18 8 / 0.5)`): the hero print in the air, only as the start frame of the settle.
+- **Rest** (`0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62)`): the hero print, or the sign-in sheet, lying on the mat.
+- **Lifted** (`0 2px 2px rgb(0 0 0 / 0.12), 0 40px 60px -18px rgb(0 18 8 / 0.5)`): the loose object in the air, only as the start frame of the settle.
 - **Edge contact** (`linear-gradient(to top, rgb(0 18 8 / 0.34), transparent)`, 10px tall): where the paper sheet meets the mat.
 - **Tape** (`drop-shadow(0 1px 1px rgb(0 0 0 / 0.22)) drop-shadow(0 8px 10px rgb(var(--shade) / 0.35))`, hover `drop-shadow(0 2px 2px rgb(0 0 0 / 0.18)) drop-shadow(0 14px 16px rgb(var(--shade) / 0.42))`): the action tape, `--shade` being `0 18 8` on the mat and `20 20 20` on the paper.
 
 ### Motion
 
-Easing is one expo-out curve, `cubic-bezier(0.16, 1, 0.3, 1)`. The hero print settles onto the mat once, on load, over 1s after 0.1s: from 1.5° more tilt, 18px higher, 3% larger and lifted, down to rest. Nothing else animates in. The tape straightens and rises 2px on hover (0.4s), its arrow nudges 4px; it presses down 1px when active. Ruler cursor ticks fade in over 0.25s. On the legal pages the contents tick grows to mark the section being read (0.25s). The settle, the tape and the contents tick transitions are off under `prefers-reduced-motion: reduce`.
+Easing is one expo-out curve, `cubic-bezier(0.16, 1, 0.3, 1)`. The hero print settles onto the mat once, on load, over 1s after 0.1s: from 1.5° more tilt, 18px higher, 3% larger and lifted, down to rest. The sign-in sheet settles the same way (1s after 0.1s, from -1.2° tilt, 18px higher, 2% larger and lifted). Nothing else animates in. The tape straightens and rises 2px on hover (0.4s), its arrow nudges 4px; it presses down 1px when active. Ruler cursor ticks fade in over 0.25s. On the legal pages the contents tick grows to mark the section being read (0.25s). Field borders and the outline control's fill change over 0.2s. Busy or disabled controls fade to 0.6 opacity and show the progress cursor; a busy tape drops to its 1px contact shadow. The settles, the tape and the contents tick transitions are off under `prefers-reduced-motion: reduce`.
 
 ### Named Rules
 
-**The Printed Is Flat Rule.** Only the paper's edge, the hero print and the tape cast shadows, and only the shadows above. Nothing printed (text, rules, rulers, plates, the nav) is ever lifted.
+**The Printed Is Flat Rule.** Only the paper's edge, the loose object on the mat (the hero print or the sign-in sheet) and the tape cast shadows, and only the shadows above. Nothing printed (text, rules, rulers, plates, the nav) is ever lifted.
 
 **The Already There Rule.** Motion starts from a visible state and runs once. Nothing waits invisible for a scroll trigger.
 
 ## Shapes
 
-Every corner is square (`rounded.none`): paper is cut, tape is torn, rulers are printed. The masking strips and the action tape have zigzag torn ends, made with a conic-gradient mask (9px teeth on the tape, 7px on the strips). The hero print is turned about -2.5° and taped across both top corners at ±40°; the edge strips cross the paper's top edge at -3° and +2.5°; the tape is turned -1.2°. Plates on the paper are square to the page, with a 1px ink-minor hairline and printer's crop marks: 11px ink ticks set 18px outside each corner, with a 7px gap to the plate. Rules are 1px hairlines; outlined controls use a 1.5px stroke. Dimension lines have 11px end ticks with the measurement set into a gap in the line.
+Every corner is square (`rounded.none`): paper is cut, tape is torn, rulers are printed. The masking strips and the action tape have zigzag torn ends, made with a conic-gradient mask (9px teeth on the tape, 7px on the strips). The hero print is turned about -2.5° and taped across both top corners at ±40°; the edge strips cross the paper's top edge at -3° and +2.5°; the tape is turned -1.2°; the sign-in sheet's strips (104px) sit 26px in from each top corner at -3° and +2.5°, overhanging the edge by half their height. Plates on the paper are square to the page, with a 1px ink-minor hairline and printer's crop marks: 11px ink ticks set 18px outside each corner, with a 7px gap to the plate. Rules are 1px hairlines; outlined controls use a 1.5px stroke. Dimension lines have 11px end ticks with the measurement set into a gap in the line.
 
 ## Components
 
@@ -314,7 +353,9 @@ Every corner is square (`rounded.none`): paper is cut, tape is torn, rulers are 
 
 - **Action tape:** the primary action is a strip of label-yellow tape, not a button. Ink condensed label, a 12px gap to a right arrow, torn ends, turned -1.2°, tape shadow tinted for its surface. Hover straightens it to 0°, lifts it 2px and deepens the shadow; the arrow slides 4px. Active presses it 1px down. It appears twice: in the hero on the mat and in the closing section on the paper.
 - **Outline button (Open Studio):** on the mat only. A 1.5px line-cream border, square, 600 weight, white text; hover fills with 10% white. Secondary navigation only.
+- **Outline control on paper (Continue with Google):** full-width, at least 50px tall, a 1.5px ink border, square, 600 weight ink text beside the provider's mark; hover fills with 5% ink. It is the paper's counterpart of the mat's outline button and, like it, never the primary action.
 - **Text button (Fill the screen):** looks like a text link, with an expand icon; underline at major strength, full on hover.
+- **Busy and disabled:** the label says what is happening ("Signing in…", "Redirecting to Google…"), the control fades to 0.6 opacity and the cursor shows progress; nothing else changes colour.
 - **Focus:** a 2px outline at 4px offset in the surface's focus colour: yellow on the mat, ink on the paper.
 
 ### Links
@@ -381,9 +422,25 @@ What the site keeps in the browser: condensed column heads over a 1.5px full-str
 
 Term and description pairs for the outside services, like the Feature List: each opened by a major-strength rule, the name in the title-sm voice, the description in ink soft.
 
+### Sign-in Sheet
+
+The one form in the system: a loose sheet in the hero print's paper on the mat, taped across its top edge, resting in the rest shadow and settling once on load. Printed on it in ink, top to bottom: the sheet headline, one lede sentence in ink soft, the Google outline control, an "or with email" divider (soft small text between two major-strength rules), the email and password fields, the action tape as the submit button (left-aligned, never full width), a create-account text button, a ruled row of three needs, and the terms line in small ink soft with ink links. Without a backend the same sheet says "Studio" and carries a "Start a draft" tape instead of the form.
+
+### Fields
+
+A label in 0.9375rem 600 ink over a 46px white plate field: 1px major-strength ink border, square, 12px side padding, body-size ink text with an ink caret, placeholder in ink placeholder. Hover and focus take the border to full ink; focus adds the paper's 2px ink outline at 2px offset. Hints sit under the field in 0.875rem ink soft.
+
+### Error Note
+
+A problem with sign-in is printed, never coloured: the note lies on a white plate strip between two major-strength ink rules (top and bottom only), small ink text beside the drawn alert mark, announced as an alert. It sits next to what failed: above the Google control for a Google failure, under the form for an email or password one.
+
+### Needs Row
+
+The foot of the sign-in sheet: a major-strength rule, then three items, each a condensed 700 term at 1.25rem over a 0.875rem ink-soft line. Stacked on phones, three across from 480px.
+
 ### Icons
 
-Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentColor, sized 1em: arrows right, down, up and up-right, and an expand mark. Icons accompany a text label; they are never the only content.
+Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentColor, sized 1em: arrows right, down, up and up-right, an expand mark, and an alert triangle beside error notes. Icons accompany a text label; they are never the only content. The one exception to ink-only marks is Google's four-colour "G" on its sign-in control, which its branding guidelines require.
 
 ## Do's and Don'ts
 
@@ -394,8 +451,9 @@ Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentCol
 - **Do** colour components through the surface roles (foreground, soft, print at full, major and minor, ruler background, focus, shade) so they print correctly on mat or paper.
 - **Do** use label yellow only for the action tape, the ruler cursor, selection and focus on the mat.
 - **Do** measure in the page's own centimetres, and keep the left ruler's count unbroken from mat to paper.
-- **Do** write every string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.
-- **Do** keep motion to the hero print's one settle, from an already-visible state, with reduced motion honoured.
+- **Do** write every landing and legal string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.
+- **Do** keep motion to the loose object's one settle (the hero print, or the sign-in sheet), from an already-visible state, with reduced motion honoured.
+- **Do** put a form on a loose sheet taped to the mat, printed in ink, with white plate fields and the tape as its one submit action; print errors between rules, beside what failed.
 - **Do** keep the legal pages printable: the print stylesheet drops the rulers, nav, contents and footer and prints the document in ink on white.
 
 ### Don't:
@@ -408,4 +466,4 @@ Line icons drawn on a 24-unit grid with a 2px square-capped stroke in currentCol
 - **Don't** lift anything printed with a shadow, or use a shadow other than the rest, lifted, edge-contact and tape shadows.
 - **Don't** set reading text in Barlow Condensed, or use the ruler's 8.5 to 10px numeral size for anything a person needs to read.
 - **Don't** use the mono stack for anything but inline code in notes.
-- **Don't** treat the Studio and Viewer's older UI (system fonts, white or near-black surfaces, the blue `#1f6feb` / `#4c8dff` link accent in `src/app/globals.css` and `src/app/studio/studio.module.css`) as part of this system, and don't extend the cutting-mat world to them without a deliberate redesign; label yellow is the only colour they share today.
+- **Don't** treat the signed-in Studio's (exhibit list and editor) and the Viewer's older UI (system fonts, white or near-black surfaces, the blue `#1f6feb` / `#4c8dff` link accent in `src/app/globals.css` and `src/app/studio/studio.module.css`) as part of this system, and don't extend the cutting-mat world to them without a deliberate redesign; label yellow is the only colour they share today. The signed-out Studio and `/login` are in the system (see Sign-in Sheet).

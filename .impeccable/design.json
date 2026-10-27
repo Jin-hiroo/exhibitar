@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-18T09:53:22+00:00",
+  "generatedAt": "2026-10-27T00:00:00+00:00",
   "title": "Design System: ExhibitAR",
   "extensions": {
     "colorMeta": {
@@ -243,6 +243,21 @@
           "oklch(85% 0.024 155.1)",
           "oklch(95% 0.024 155.1)"
         ]
+      },
+      "ink-placeholder": {
+        "role": "neutral",
+        "displayName": "Ink Placeholder",
+        "canonical": "oklch(54.2% 0.009 114.4)",
+        "tonalRamp": [
+          "oklch(15% 0.009 114.4)",
+          "oklch(26% 0.009 114.4)",
+          "oklch(38% 0.009 114.4)",
+          "oklch(50% 0.009 114.4)",
+          "oklch(62% 0.009 114.4)",
+          "oklch(74% 0.009 114.4)",
+          "oklch(85% 0.009 114.4)",
+          "oklch(95% 0.009 114.4)"
+        ]
       }
     },
     "typographyMeta": {
@@ -305,13 +320,17 @@
       "code": {
         "displayName": "Code",
         "purpose": "Inline code inside notes only: ui-monospace, SFMono-Regular, Menlo, monospace on a 7% ink chip."
+      },
+      "headline-sheet": {
+        "displayName": "Sheet Headline",
+        "purpose": "The title printed on a loose sheet (the sign-in), capped to fit a 540px sheet."
       }
     },
     "shadows": [
       {
         "name": "rest",
         "value": "0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62)",
-        "purpose": "The hero print lying on the mat."
+        "purpose": "The hero print, or the sign-in sheet, lying on the mat."
       },
       {
         "name": "lifted",
@@ -354,9 +373,23 @@
         "name": "ruler-cursor",
         "value": "opacity 0.25s",
         "purpose": "Yellow ruler ticks fade in when a mouse or pen is over the page."
+      },
+      {
+        "name": "settle-sheet",
+        "value": "1s ease-out 0.1s, from rotate(-1.2deg) translateY(-18px) scale(1.02) with the lifted shadow",
+        "purpose": "The sign-in sheet settles onto the mat once, on load. Off under reduced motion."
+      },
+      {
+        "name": "busy",
+        "value": "opacity 0.6, cursor: progress",
+        "purpose": "Busy or disabled controls fade; the busy tape drops to its 1px contact shadow."
       }
     ],
     "breakpoints": [
+      {
+        "name": "xs",
+        "value": "480px"
+      },
       {
         "name": "sm",
         "value": "640px"
@@ -465,15 +498,47 @@
       "description": "A dimension line with end ticks, the measured width set into the line, caption below.",
       "html": "<div class=\"ds-mat\"><figcaption class=\"ds-dim\"><span class=\"ds-dim-label\">12.4 cm</span>Seen through a phone: the skull on its A3 mat.</figcaption></div>",
       "css": ".ds-mat { background:#2d6a4f;padding:32px;color:#ffffff;font-family:Barlow,system-ui,sans-serif; padding:40px 32px 32px; } .ds-dim { position:relative; max-width:30em; padding-top:26px; font-size:.9375rem; color:#d5e6da; } .ds-dim::before { content:''; position:absolute; top:0; left:0; right:0; height:11px; border-inline:1px solid #e9e5c4; background:linear-gradient(#e9e5c4,#e9e5c4) 0 5px / 100% 1px no-repeat; } .ds-dim-label { position:absolute; top:-4px; left:50%; translate:-50% 0; padding:0 8px; background:#2d6a4f; color:#e9e5c4; font-family:'Barlow Condensed',sans-serif; font-size:.875rem; font-weight:600; line-height:1.2; letter-spacing:.04em; white-space:nowrap; }"
+    },
+    {
+      "name": "Sign-in Sheet",
+      "kind": "card",
+      "refersTo": "sign-in-sheet",
+      "description": "The one loose sheet on the sign-in mat: paper, two masking strips across its top edge, rest shadow, everything printed in ink.",
+      "html": "<div class=\"ds-mat\"><section class=\"ds-sheet\"><span class=\"ds-strip l\"></span><span class=\"ds-strip r\"></span><h1 class=\"ds-title\">Sign in to the Studio</h1><p class=\"ds-lede\">Make exhibits, publish them, and come back to edit them.</p></section></div>",
+      "css": ".ds-mat { background:#2d6a4f; padding:40px 24px; } .ds-sheet { position:relative; max-width:540px; margin:0 auto; padding:42px 50px 30px; background:#fbfbf8; box-shadow:0 1px 1px rgb(0 0 0 / 0.2), 0 14px 30px -12px rgb(0 18 8 / 0.62); font-family:Barlow,system-ui,sans-serif; color:#141414; } .ds-strip { position:absolute; top:-13px; width:104px; height:26px; background:rgb(238 230 198 / 0.86); } .ds-strip.l { left:26px; transform:rotate(-3deg); } .ds-strip.r { right:26px; transform:rotate(2.5deg); } .ds-title { margin:0; font-family:'Barlow Condensed',sans-serif; font-size:clamp(2.5rem, 1.7rem + 2.2vw, 3.6rem); font-weight:800; line-height:0.95; letter-spacing:-0.008em; } .ds-lede { margin:10px 0 0; color:#45463f; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Label over a 46px white plate field with a 1px major-strength ink border; full ink on hover and focus; placeholder in ink placeholder.",
+      "html": "<div class=\"ds-paper\"><label class=\"ds-field\"><span>Email</span><input placeholder=\"you@museum.org\"></label></div>",
+      "css": ".ds-paper { background:#fbfbf8; padding:32px; font-family:Barlow,system-ui,sans-serif; color:#141414; } .ds-field { display:grid; gap:6px; font-size:0.9375rem; font-weight:600; max-width:440px; } .ds-field input { height:46px; padding:0 12px; border:1px solid rgb(20 20 20 / 0.3); border-radius:0; background:#ffffff; color:#141414; font:inherit; font-size:1.0625rem; font-weight:400; transition:border-color .2s; } .ds-field input::placeholder { color:#6f706a; } .ds-field input:hover, .ds-field input:focus-visible { border-color:#141414; } .ds-field input:focus-visible { outline:2px solid #141414; outline-offset:2px; }"
+    },
+    {
+      "name": "Outline Control on Paper",
+      "kind": "button",
+      "refersTo": "button-outline-paper",
+      "description": "Full-width secondary control printed in ink: 1.5px ink border, square; hover fills 5% ink; busy fades to 0.6.",
+      "html": "<div class=\"ds-paper\"><button class=\"ds-outline\">Continue with Google</button></div>",
+      "css": ".ds-paper { background:#fbfbf8; padding:32px; font-family:Barlow,system-ui,sans-serif; color:#141414; } .ds-outline { display:flex; justify-content:center; width:100%; max-width:440px; min-height:50px; padding:12px 16px; border:1.5px solid #141414; border-radius:0; background:transparent; color:#141414; font:inherit; font-weight:600; cursor:pointer; transition:background-color .2s; } .ds-outline:hover { background:rgb(20 20 20 / 0.05); } .ds-outline:disabled { opacity:0.6; cursor:progress; }"
+    },
+    {
+      "name": "Error Note",
+      "kind": "alert",
+      "refersTo": "error-note",
+      "description": "A sign-in problem printed on a white strip between two major-strength ink rules, with a drawn alert mark. Never coloured.",
+      "html": "<div class=\"ds-paper\"><p class=\"ds-error\" role=\"alert\"><svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" aria-hidden=\"true\"><path d=\"M12 3 2 21h20L12 3zM12 10v5M12 17.5v.5\"/></svg><span>Google sign-in was cancelled. Try again, or sign in with email below.</span></p></div>",
+      "css": ".ds-paper { background:#fbfbf8; padding:32px; font-family:Barlow,system-ui,sans-serif; color:#141414; } .ds-error { display:grid; grid-template-columns:auto 1fr; gap:10px; max-width:440px; margin:0; padding:10px 12px; border-block:1px solid rgb(20 20 20 / 0.3); background:#ffffff; font-size:0.9375rem; line-height:1.45; } .ds-error svg { margin-top:2px; font-size:1.0625rem; }"
     }
   ],
   "narrative": {
     "northStar": "The Cutting Mat",
-    "overview": "The page is the exhibitor's workbench seen from above. The hero is the green self-healing cutting mat: a printed 1 cm grid with heavier 5 cm lines, centimetre rulers along the top and left edges in cream, and the AR photo lying on it as a taped print. Below the hero, a sheet of warm off-white paper lies on the mat, its top edge taped down with two masking strips, and everything after that point is printed on the paper in ink: type, hairline rules, a 45° and 60° guide, and white plates holding the Studio screenshots and the demo mat inside printer's crop marks. The left ruler keeps counting down the paper, now printed in ink, without a break in the count. The world is calm, exact and physical rather than glossy or techy.\n\nThere is one loud colour, borrowed from the product. Label yellow is the colour of the AR labels on the visitor's phone and in the Studio; on the page it is the strip of tape you click, the pointer ticks on the rulers, and the text selection. Type is a condensed engineering sans, the kind printed on cutting mats and rulers, for headlines and numerals, over a plain humanist sans for reading. Japanese is a first-class language on the same URL, with a heavy rounded gothic for display and the system Japanese gothic for text.\n\nScope: this system is the landing page at `/` (`src/components/landing/`). The Studio and Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour the two already share.",
+    "overview": "The page is the exhibitor's workbench seen from above. The hero is the green self-healing cutting mat: a printed 1 cm grid with heavier 5 cm lines, centimetre rulers along the top and left edges in cream, and the AR photo lying on it as a taped print. Below the hero, a sheet of warm off-white paper lies on the mat, its top edge taped down with two masking strips, and everything after that point is printed on the paper in ink: type, hairline rules, a 45° and 60° guide, and white plates holding the Studio screenshots and the demo mat inside printer's crop marks. The left ruler keeps counting down the paper, now printed in ink, without a break in the count. The world is calm, exact and physical rather than glossy or techy.\n\nThere is one loud colour, borrowed from the product. Label yellow is the colour of the AR labels on the visitor's phone and in the Studio; on the page it is the strip of tape you click, the pointer ticks on the rulers, and the text selection. Type is a condensed engineering sans, the kind printed on cutting mats and rulers, for headlines and numerals, over a plain humanist sans for reading. Japanese is a first-class language on the same URL, with a heavy rounded gothic for display and the system Japanese gothic for text.\n\nScope: this system is the landing page at `/` (`src/components/landing/`), the legal pages at `/privacy` and `/terms` (`src/components/legal/`), and the sign-in: the signed-out Studio at `/studio` and `/login`, which render one shared page (`src/components/studio/SignInSheet.tsx`, `sign-in.module.css`, with the form in `src/app/login/LoginForm.tsx`). All of them share the landing page's root, nav, rulers, ruler cursor and fonts through `src/components/landing/`. The signed-in Studio (exhibit list and editor) and the Viewer are an older, minimal utilitarian UI this world has not reached (see Do's and Don'ts); label yellow is the only colour they already share.",
     "keyCharacteristics": [
       "Two surfaces with two printing inks: green mat with cream lines in the hero, off-white paper with ink everywhere below it.",
       "One set of role variables (foreground, soft foreground, print at full, major and minor strength, ruler background, focus, shadow tint) that each surface sets for itself, so a component prints correctly on whichever surface it lies on.",
-      "The hero photo is the only object lying loose on the mat: tilted, taped, shadowed, settling once on load.",
+      "One loose object per mat, tilted or taped, shadowed, settling once on load: on the landing, the hero photo; on the sign-in, the paper sheet that carries the form.",
       "On the paper, screenshots are printed flat on white plates inside crop marks: no tilt, no shadow, no tape.",
       "Label yellow kept for what you act on: the tape, the ruler cursor, selection, and focus on the mat.",
       "Square corners everywhere; edges are cut paper, torn tape and printed lines.",
@@ -487,7 +552,7 @@
       },
       {
         "name": "The Two Inks Rule",
-        "body": "Every line is printed at one of three strengths of its surface's ink: cream at full, 42% and 15% on the mat; ink at full, 30% and 10% on the paper. No grey, no green on the paper, no new opacities. Components take these through the surface's role variables instead of naming a colour.",
+        "body": "Every line is printed at one of three strengths of its surface's ink: cream at full, 42% and 15% on the mat; ink at full, 30% and 10% on the paper. No grey, no green on the paper, no new opacities. Components take these through the surface's role variables instead of naming a colour. Text is ink, ink soft, or, inside an input only, ink placeholder.",
         "section": "colors"
       },
       {
@@ -497,7 +562,7 @@
       },
       {
         "name": "The Same Care in Both Languages Rule",
-        "body": "Every piece of copy exists in English and Japanese. Japanese headings get their own smaller sizes and looser leading (about 1.16 to 1.45), M PLUS 1 at 800 with `palt`, `word-break: keep-all`, and phrase breaks marked with `<wbr>` so lines never break inside a word. Japanese body runs at line-height 1.85 with strict line breaking.",
+        "body": "On the landing page and the legal pages, every piece of copy exists in English and Japanese (the sign-in sheet is English, like the rest of the app). Japanese headings get their own smaller sizes and looser leading (about 1.16 to 1.45), M PLUS 1 at 800 with `palt`, `word-break: keep-all`, and phrase breaks marked with `<wbr>` so lines never break inside a word. Japanese body runs at line-height 1.85 with strict line breaking.",
         "section": "typography"
       },
       {
@@ -517,7 +582,7 @@
       },
       {
         "name": "The Printed Is Flat Rule",
-        "body": "Only the paper's edge, the hero print and the tape cast shadows, and only the shadows above. Nothing printed (text, rules, rulers, plates, the nav) is ever lifted.",
+        "body": "Only the paper's edge, the loose object on the mat (the hero print or the sign-in sheet) and the tape cast shadows, and only the shadows above. Nothing printed (text, rules, rulers, plates, the nav) is ever lifted.",
         "section": "elevation"
       },
       {
@@ -532,8 +597,10 @@
       "**Do** colour components through the surface roles (foreground, soft, print at full, major and minor, ruler background, focus, shade) so they print correctly on mat or paper.",
       "**Do** use label yellow only for the action tape, the ruler cursor, selection and focus on the mat.",
       "**Do** measure in the page's own centimetres, and keep the left ruler's count unbroken from mat to paper.",
-      "**Do** write every string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.",
-      "**Do** keep motion to the hero print's one settle, from an already-visible state, with reduced motion honoured."
+      "**Do** write every landing and legal string in English and Japanese, and give Japanese its own sizes, leading and phrase breaks.",
+      "**Do** keep motion to the loose object's one settle (the hero print, or the sign-in sheet), from an already-visible state, with reduced motion honoured.",
+      "**Do** put a form on a loose sheet taped to the mat, printed in ink, with white plate fields and the tape as its one submit action; print errors between rules, beside what failed.",
+      "**Do** keep the legal pages printable: the print stylesheet drops the rulers, nav, contents and footer and prints the document in ink on white."
     ],
     "donts": [
       "**Don't** put a phone mockup in the hero or line features up as a row of icon cards; the real AR photo, screenshots and the demo mat do the showing.",
@@ -544,7 +611,7 @@
       "**Don't** lift anything printed with a shadow, or use a shadow other than the rest, lifted, edge-contact and tape shadows.",
       "**Don't** set reading text in Barlow Condensed, or use the ruler's 8.5 to 10px numeral size for anything a person needs to read.",
       "**Don't** use the mono stack for anything but inline code in notes.",
-      "**Don't** treat the Studio and Viewer's older UI (system fonts, white or near-black surfaces, the blue `#1f6feb` / `#4c8dff` link accent in `src/app/globals.css` and `src/app/studio/studio.module.css`) as part of this system, and don't extend the cutting-mat world to them without a deliberate redesign; label yellow is the only colour they share today."
+      "**Don't** treat the signed-in Studio's (exhibit list and editor) and the Viewer's older UI (system fonts, white or near-black surfaces, the blue `#1f6feb` / `#4c8dff` link accent in `src/app/globals.css` and `src/app/studio/studio.module.css`) as part of this system, and don't extend the cutting-mat world to them without a deliberate redesign; label yellow is the only colour they share today. The signed-out Studio and `/login` are in the system (see Sign-in Sheet)."
     ]
   }
 }

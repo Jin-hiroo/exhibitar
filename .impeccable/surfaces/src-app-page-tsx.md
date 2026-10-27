@@ -15,8 +15,8 @@ land here; they go straight to `/v/<id>`.
 
 ## Strategy
 
-- **Action:** start an exhibit in the Studio (`/studio/new`, works as a draft without an
-  account). Secondary: try the demo mat on this screen with a phone.
+- **Action:** start an exhibit in the Studio (`/studio/new`; signed-out visitors sign in on
+  `/studio` first). Secondary: try the demo mat on this screen with a phone.
 - **Belief:** a sheet of printed paper is all the tracking needs, so any 3D print can carry
   labels that sit on the real object, with nothing for visitors to install.
 - **Steps (owner-set order):** Upload your STL, Mark what matters, Print the mat,
