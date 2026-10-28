@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { sanitizeLink } from '@/lib/annotations/list';
-import type { ArCapabilities } from '@/lib/ar/capabilities';
+import { arAvailable, type ArCapabilities } from '@/lib/ar/capabilities';
 import type { ArRuntime, ArStatus, OrbitViewer, PreparedExhibit } from '@/lib/ar/launch';
 import type { ViewerProject } from '@/lib/types';
 import styles from './viewer.module.css';
@@ -19,8 +19,9 @@ interface Props {
 }
 
 /**
- * Audience Viewer (SPEC §4): landing card → AR (Android WebXR) or the
- * fallback 3D viewer, with labels, tap-for-details and a simple guided tour.
+ * Audience Viewer (SPEC §4): landing card → AR (matar: the phone camera in the
+ * page, iPhone and Android alike) or the fallback 3D viewer, with labels,
+ * tap-for-details and a simple guided tour.
  */
 export function ViewerApp({ project, assetBase }: Props) {
   const [caps, setCaps] = useState<ArCapabilities | null>(null);
@@ -34,6 +35,7 @@ export function ViewerApp({ project, assetBase }: Props) {
   const [debug, setDebug] = useState(
     () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'),
   );
+  const stageRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const orbitRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,8 @@ export function ViewerApp({ project, assetBase }: Props) {
     [project.annotations],
   );
   const selectedAnnotation = tour.find((a) => a.id === selected) ?? null;
+  // design ≤ 2 mats carry WebXR image markers, which matar can't track
+  const trackable = (project.mat.tags?.length ?? 0) > 0;
   // project data is untrusted here: only http(s) links, whatever was stored
   const safeLink = selectedAnnotation?.link ? sanitizeLink(selectedAnnotation.link) : undefined;
 
@@ -66,7 +70,7 @@ export function ViewerApp({ project, assetBase }: Props) {
       .catch(() => {});
   }, [project.id, assetBase]);
 
-  // Capabilities + prefetch the runtime, GLB and marker images (ARCHITECTURE §5).
+  // Capabilities + prefetch the runtime and the GLB (ARCHITECTURE §5).
   useEffect(() => {
     let cancelled = false;
     import('@/lib/ar/capabilities')
@@ -94,22 +98,25 @@ export function ViewerApp({ project, assetBase }: Props) {
 
   const startAr = () => {
     const m = runtimeModule.current;
+    const stage = stageRef.current;
     const overlay = overlayRef.current;
-    if (!m || !prepared || !overlay) return;
+    if (!m || !prepared || !stage || !overlay) return;
     setError(null);
     setStatus(null);
     setSelected(null);
     const exhibit = prepared.createScene();
     sceneSelectRef.current = (id) => exhibit.select(id);
-    const params = new URLSearchParams(window.location.search);
-    const override = params.get('convention');
+    const leave = () => {
+      arRef.current = null;
+      exhibit.dispose();
+      stage.classList.remove(styles.active!);
+      overlay.classList.remove(styles.active!);
+      setMode('landing');
+    };
     const runtime = new m.ArRuntime({
       project,
       exhibit,
-      markerBitmaps: prepared.assets.markerBitmaps,
-      // ?mattrack=0 tracks the corner markers only (to compare on a device)
-      matBitmap: params.get('mattrack') === '0' ? null : prepared.assets.matBitmap,
-      overlayRoot: overlay,
+      container: stage,
       onStatus: setStatus,
       onSelect: setSelected,
       onGuide: (g) => {
@@ -122,33 +129,27 @@ export function ViewerApp({ project, assetBase }: Props) {
           el.style.transform = `translate(-50%, -50%) rotate(${g.angleDeg}deg)`;
         }
       },
-      onEnd: () => {
-        arRef.current = null;
-        exhibit.dispose();
-        overlay.classList.remove(styles.active!);
-        setMode('landing');
+      onEnd: (err) => {
+        leave();
+        if (err) setError(err);
       },
-      conventionOverride: override === 'spec' || override === 'arcore' ? override : undefined,
     });
     arRef.current = runtime;
-    // the overlay must be displayable when the session starts, before React re-renders
+    // the view must have its size when the camera starts, before React re-renders
+    stage.classList.add(styles.active!);
     overlay.classList.add(styles.active!);
     setMode('ar');
-    // requestSession must run inside this tap (transient user activation)
-    runtime
-      .start()
-      .then(() => {
-        runtime.setGhost(ghost);
-        runtime.setDebug(debug);
-      })
-      .catch((e: unknown) => {
-        arRef.current = null;
-        exhibit.dispose();
-        overlay.classList.remove(styles.active!);
-        setMode('landing');
-        setError(arErrorText(e));
-      });
+    runtime.setGhost(ghost);
+    runtime.setDebug(debug);
+    // the camera prompt needs this tap (transient user activation): start right away
+    runtime.start().catch((e: unknown) => {
+      leave();
+      setError(m.cameraErrorText(e));
+    });
   };
+
+  // leaving the page while AR runs: release the camera
+  useEffect(() => () => arRef.current?.stop(), []);
 
   useEffect(() => {
     arRef.current?.setGhost(ghost);
@@ -229,20 +230,13 @@ export function ViewerApp({ project, assetBase }: Props) {
             <span className={styles.eyebrow}>AR exhibit</span>
             <h1 className={styles.title}>{project.title}</h1>
             {project.description && <p className={styles.description}>{project.description}</p>}
-            {caps && !caps.immersiveAr && caps.ios ? (
-              // iPhone/iPad: WebXR runs inside the Needle Go App Clip (same page, ARKit tracking)
-              <a className={styles.primary} href={appClipUrl()} style={{ textAlign: 'center' }}>
-                Start AR
-              </a>
-            ) : (
-              <button
-                className={styles.primary}
-                onClick={startAr}
-                disabled={!prepared || !caps?.immersiveAr}
-              >
-                {!prepared ? 'Loading…' : 'Start AR'}
-              </button>
-            )}
+            <button
+              className={styles.primary}
+              onClick={startAr}
+              disabled={!prepared || !caps || !arAvailable(caps) || !trackable}
+            >
+              {!prepared ? 'Loading…' : 'Start AR'}
+            </button>
             <button
               className={styles.secondary}
               onClick={() => setMode('orbit')}
@@ -250,7 +244,7 @@ export function ViewerApp({ project, assetBase }: Props) {
             >
               View in 3D
             </button>
-            {caps && <CapabilityNote caps={caps} />}
+            {caps && <CapabilityNote caps={caps} trackable={trackable} />}
             {error && <p className={styles.error}>{error}</p>}
             <p className={styles.fine}>
               Point your phone at the printed mat. Tracking uses only the mat, not the object.
@@ -259,7 +253,8 @@ export function ViewerApp({ project, assetBase }: Props) {
         </main>
       )}
 
-      {/* DOM overlay: shown on top of the camera view while in AR */}
+      {/* AR: the camera view, and the UI on top of it */}
+      <div ref={stageRef} className={`${styles.stage} ${mode === 'ar' ? styles.active : ''}`} />
       <div ref={overlayRef} className={`${styles.overlay} ${mode === 'ar' ? styles.active : ''}`}>
         {mode === 'ar' && (
           <>
@@ -289,7 +284,7 @@ export function ViewerApp({ project, assetBase }: Props) {
             {(!status || status.phase === 'searching' || status.phase === 'starting') && (
               <div className={styles.hint}>
                 <strong>Point your camera at the mat</strong>
-                {searchHint(status)}
+                {searchHint()}
               </div>
             )}
             {debug && status && <pre className={styles.debug}>{debugText(status)}</pre>}
@@ -320,37 +315,33 @@ export function ViewerApp({ project, assetBase }: Props) {
   );
 }
 
-/** Needle Go App Clip: WebXR (incl. image tracking) on iOS for any public HTTPS page. */
-function appClipUrl(): string {
-  return `https://appclip.needle.tools/ar?url=${encodeURIComponent(window.location.href)}`;
-}
-
-function CapabilityNote({ caps }: { caps: ArCapabilities }) {
+function CapabilityNote({ caps, trackable }: { caps: ArCapabilities; trackable: boolean }) {
   const cls = styles.note;
+  if (!trackable) {
+    return (
+      <p className={cls}>
+        This exhibit&apos;s mat was made for an older version of the app, so AR can&apos;t track it.
+        The exhibitor needs to rebuild and reprint the mat. You can still explore the exhibit in 3D.
+      </p>
+    );
+  }
   if (!caps.secureContext) {
     return <p className={cls}>AR needs a secure connection (https:// or localhost).</p>;
   }
-  if ((!caps.webxr || !caps.immersiveAr) && caps.ios) {
+  if (!caps.camera || !caps.webgl) {
     return (
-      <p className={styles.fine}>
-        On iPhone, AR opens in the Needle Go App Clip (nothing to install).
+      <p className={cls}>
+        AR isn&apos;t available in this browser. Open this page in Safari on iPhone or Chrome on
+        Android. You can still explore the exhibit in 3D.
       </p>
     );
   }
-  if (!caps.webxr || !caps.immersiveAr) {
+  if (caps.inAppBrowser) {
     return (
       <p className={cls}>
-        AR isn&apos;t available in this browser. On Android, open this page in Chrome (with Google
-        Play Services for AR); on iPhone, in Safari. You can still explore the exhibit in 3D.
-      </p>
-    );
-  }
-  if (!caps.imageTracking) {
-    return (
-      <p className={cls}>
-        One more step: image tracking is still an experimental Chrome feature. Open{' '}
-        <code>chrome://flags/#webxr-incubations</code>, set <b>WebXR Incubations</b> to Enabled,
-        restart Chrome, then reload this page.
+        You&apos;re in {caps.inAppBrowser}&apos;s built-in browser, which may block the camera. If
+        AR doesn&apos;t start, open this page in {caps.ios ? 'Safari' : 'Chrome'} (menu → Open in
+        browser).
       </p>
     );
   }
@@ -361,44 +352,26 @@ function statusText(s: ArStatus | null): string {
   if (!s || s.phase === 'starting') return 'Starting camera…';
   if (s.phase === 'searching') return 'Looking for the mat…';
   if (s.phase === 'holding') return 'Mat out of view';
-  const n = s.tracked.length;
-  return `Tracking · ${n} marker${n === 1 ? '' : 's'}`;
+  return `Tracking · ${s.tagsUsed} tag${s.tagsUsed === 1 ? '' : 's'}`;
 }
 
 /**
- * Where to hold the phone while searching. The whole printed page is only
- * found from a normal viewing distance when ARCore accepts it as a target
- * (textured mats); otherwise only the corner markers can lock on, and those
- * must fill a good part of the camera frame first. Said in screen terms, not
- * centimetres: mats get shown scaled down on monitors.
+ * Where to hold the phone while searching: the mat's tags are found from
+ * anywhere they fill a few pixels per cell, so the advice is about seeing
+ * enough of the mat, not about distance.
  */
-function searchHint(s: ArStatus | null): string {
-  return s?.pageTrackable
-    ? 'Keep the whole mat in view, 30–60 cm away.'
-    : 'Move in close to one corner marker until it fills about half the screen width. Once it locks on, step back.';
+function searchHint(): string {
+  return 'Hold the phone above the mat so most of it is on the screen.';
 }
 
 function debugText(s: ArStatus): string {
-  const state = (id: string) =>
-    s.tracked.includes(id) ? 'T' : s.emulated.includes(id) ? 'e' : '·';
-  const res = s.residualByConventionMm;
   return [
-    `phase      ${s.phase}   fps ${s.fps.toFixed(0)}`,
-    `images     ${s.targets.map((id) => `${id}:${state(id)}`).join(' ')}`,
-    `trackable  ${s.trackability ? s.trackability.map((t, i) => `${s.targets[i]}:${t === 'trackable' ? 'ok' : 'NO'}`).join(' ') : 'n/a'}`,
-    `fit        ${s.residualMm != null ? `${s.residualMm.toFixed(1)} mm` : '-'}${s.rejected.length ? `  rejected ${s.rejected.join(',')}` : ''}`,
-    `axes       ${s.frameConvention ?? '-'}${s.decidedBy ? ` (${s.decidedBy})` : ''} · saved ${s.convention} (${s.conventionSource})`,
-    `  residual ${res ? `spec ${res.spec.toFixed(1)}  arcore ${res.arcore.toFixed(1)} mm` : '-'}`,
-    `print      ${s.printScale != null ? `${(s.printScale * 100).toFixed(1)} % of expected size` : 'n/a'}`,
+    `phase   ${s.phase}   fps ${s.fps.toFixed(0)}   worker ${s.worker ?? '-'}`,
+    `tags    ${s.tagsFound} found, ${s.tagsUsed} used of ${s.tagsTotal}`,
+    `err     ${s.errPx != null ? `${s.errPx.toFixed(2)} px` : '-'}`,
+    `focal   ${s.focalPx != null ? `${s.focalPx.toFixed(0)} px (${s.focalSource})` : '-'}`,
+    `camera  ${s.camera || '-'}`,
   ].join('\n');
-}
-
-function arErrorText(e: unknown): string {
-  const msg = message(e);
-  if (/NotSupported|not supported|Unsupported/i.test(msg)) {
-    return `AR couldn't start: ${msg}. On Android make sure Chrome and "Google Play Services for AR" are up to date, and that chrome://flags/#webxr-incubations is enabled.`;
-  }
-  return `AR couldn't start: ${msg}`;
 }
 
 function message(e: unknown): string {

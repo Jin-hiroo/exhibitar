@@ -9,34 +9,25 @@ export { resolveAsset };
 export interface ExhibitAssets {
   /** the stored simplified mesh, model coords (metres), triangle order preserved */
   geometry: BufferGeometry;
-  /** marker images in `project.mat.markers` order, for the image tracker */
-  markerBitmaps: ImageBitmap[];
-  /** marker image URLs in the same order (for textures) */
+  /**
+   * design ≤ 2 mats only: marker image URLs in `project.mat.markers` order, for
+   * the 3D view's picture of the mat (loaded there as textures; AR doesn't use them)
+   */
   markerUrls: string[];
-  /** the whole-mat tracking image, when the project has one */
-  matBitmap: ImageBitmap | null;
 }
 
-/** Load the frozen GLB (meshopt-compressed) and the marker PNGs. */
+/**
+ * Load the frozen GLB (meshopt-compressed). AR needs nothing else: matar
+ * tracks the printed tags from their IDs and positions in the project data.
+ */
 export async function loadExhibitAssets(
   project: ViewerProject,
   base: string,
 ): Promise<ExhibitAssets> {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const markerUrls = (project.mat.markers ?? []).map((m) => resolveAsset(base, m.imagePath));
-  const trackImage = project.mat.trackImage;
-  const [gltf, markerBitmaps, matBitmap] = await Promise.all([
-    loader.loadAsync(resolveAsset(base, project.model.glbPath)),
-    Promise.all(markerUrls.map(loadBitmap)),
-    trackImage ? loadBitmap(resolveAsset(base, trackImage.imagePath)) : Promise.resolve(null),
-  ]);
-  return { geometry: firstMeshGeometry(gltf.scene), markerBitmaps, markerUrls, matBitmap };
-}
-
-async function loadBitmap(url: string): Promise<ImageBitmap> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`image ${url}: HTTP ${res.status}`);
-  return createImageBitmap(await res.blob());
+  const gltf = await loader.loadAsync(resolveAsset(base, project.model.glbPath));
+  return { geometry: firstMeshGeometry(gltf.scene), markerUrls };
 }
 
 /** The GLB holds exactly one mesh; bake its node transform so geometry = model coords. */
