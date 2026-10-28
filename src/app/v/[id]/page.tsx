@@ -22,7 +22,7 @@ export default async function ViewerPage(props: PageProps<'/v/[id]'>) {
   const { project, assetBase } = found;
   for (const path of [
     project.model.glbPath,
-    ...project.mat.markers.map((m) => m.imagePath),
+    ...(project.mat.markers ?? []).map((m) => m.imagePath),
     project.mat.trackImage?.imagePath,
   ]) {
     if (path) preload(resolveAsset(assetBase, path), { as: 'fetch', crossOrigin: 'anonymous' });

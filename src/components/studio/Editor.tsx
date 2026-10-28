@@ -47,7 +47,7 @@ export interface PreparedSession {
   prepared: PreparedModel;
   mat: GeneratedMat;
   geometryVersion: number;
-  /** object URLs for previews, keyed by marker id plus 'svg' / 'qr' / 'pdf' */
+  /** object URLs for previews: 'svg' / 'qr' / 'pdf' */
   urls: Record<string, string>;
 }
 

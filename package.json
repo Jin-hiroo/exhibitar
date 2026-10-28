@@ -27,8 +27,7 @@
     "mock": "tsx scripts/make-mock-project.ts",
     "samples": "tsx scripts/make-samples.ts",
     "perf:viewer": "node scripts/perf-viewer.mjs",
-    "perf:nav": "node scripts/perf-nav.mjs",
-    "track-scores": "tsx scripts/track-scores.ts"
+    "perf:nav": "node scripts/perf-nav.mjs"
   },
   "dependencies": {
     "@countertype/clipper2-ts": "1.5.4-3.9a869ba",
@@ -43,6 +42,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "fflate": "^0.8.3",
     "jspdf": "^4.2.1",
+    "matar": "file:vendor/matar-0.1.0.tgz",
     "meshoptimizer": "^1.2.0",
     "nanoid": "^6.0.1",
     "next": "16.3.8",

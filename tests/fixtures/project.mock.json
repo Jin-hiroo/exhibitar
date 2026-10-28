@@ -24,12 +24,12 @@
   },
   "mat": {
     "paper": "A4",
-    "orientation": "landscape",
+    "orientation": "portrait",
     "tiles": {
       "cols": 1,
       "rows": 1
     },
-    "sizeMm": [297, 210],
+    "sizeMm": [210, 297],
     "contactOutlineMm": [
       [
         [30, -30],
@@ -46,48 +46,107 @@
         [30.05, -30.05]
       ]
     ],
-    "markers": [
+    "tagFamily": "tag36h11",
+    "tags": [
       {
-        "id": "m0",
-        "widthMm": 69,
-        "centerMm": [-100, -56.5],
-        "rotationDeg": 0,
-        "seed": 210856400,
-        "imagePath": "fixtures/mock-cube-marker-m0.png"
+        "id": 7,
+        "centerMm": [-75, -118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
       },
       {
-        "id": "m1",
-        "widthMm": 69,
-        "centerMm": [100, -56.5],
-        "rotationDeg": 0,
-        "seed": 210856401,
-        "imagePath": "fixtures/mock-cube-marker-m1.png"
+        "id": 251,
+        "centerMm": [-25, -118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
       },
       {
-        "id": "m2",
-        "widthMm": 69,
-        "centerMm": [-100, 56.5],
-        "rotationDeg": 0,
-        "seed": 210856406,
-        "imagePath": "fixtures/mock-cube-marker-m2.png"
+        "id": 94,
+        "centerMm": [25, -118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
       },
       {
-        "id": "m3",
-        "widthMm": 69,
-        "centerMm": [100, 56.5],
-        "rotationDeg": 0,
-        "seed": 210856409,
-        "imagePath": "fixtures/mock-cube-marker-m3.png"
+        "id": 443,
+        "centerMm": [75, -118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 147,
+        "centerMm": [75, -71.1],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 4,
+        "centerMm": [75, -23.700000000000003],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 130,
+        "centerMm": [75, 23.69999999999999],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 11,
+        "centerMm": [75, 71.1],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 467,
+        "centerMm": [75, 118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 358,
+        "centerMm": [25, 118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 272,
+        "centerMm": [-25, 118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 162,
+        "centerMm": [-75, 118.5],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 360,
+        "centerMm": [-75, 71.1],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 412,
+        "centerMm": [-75, 23.69999999999999],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 309,
+        "centerMm": [-75, -23.700000000000003],
+        "sizeMm": 32,
+        "rotationDeg": 0
+      },
+      {
+        "id": 441,
+        "centerMm": [-75, -71.1],
+        "sizeMm": 32,
+        "rotationDeg": 0
       }
     ],
-    "trackImage": {
-      "widthMm": 297,
-      "heightMm": 210,
-      "centerMm": [0, 0],
-      "imagePath": "fixtures/mock-cube-mat-track.png"
-    },
     "qrUrl": "https://exhibitar.vercel.app/v/mockcube01",
-    "designVersion": 2,
+    "designVersion": 3,
     "svgPath": "fixtures/mock-cube-mat.svg"
   },
   "annotations": [

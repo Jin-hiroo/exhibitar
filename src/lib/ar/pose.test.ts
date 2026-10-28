@@ -1,7 +1,5 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { markerItems } from '../mat/drawing';
-import type { MarkerArt } from '../mat/markers';
 import {
   composeWorldFromModel,
   estimateWorldFromMat,
@@ -97,44 +95,6 @@ function labelErrorMm(est: Matrix4, truth: Matrix4) {
 }
 
 describe('matFromImage', () => {
-  it('matches how the mat SVG draws the marker (page x→X, page y→Z, clockwise rotation)', () => {
-    const art: MarkerArt = {
-      seed: 0,
-      shapes: [
-        {
-          fill: 0,
-          rings: [
-            [
-              [1, 0.5],
-              [0.5, 1],
-              [0.5, 0.5],
-            ],
-          ],
-        },
-      ],
-    };
-    // image-frame points (metres) at the right-edge centre and the bottom-edge centre
-    const conventions: [ImageConvention, Vector3, Vector3][] = [
-      ['arcore', new Vector3(0.03, 0, 0), new Vector3(0, 0, 0.03)], // +Z toward the bottom
-      ['spec', new Vector3(0.03, 0, 0), new Vector3(0, -0.03, 0)], // +Y toward the top
-    ];
-    for (const [convention, rightPt, bottomPt] of conventions) {
-      for (const rotationDeg of [0, 90, 30]) {
-        const m = { centerMm: [40, -25] as [number, number], rotationDeg };
-        const [item] = markerItems(art, m.centerMm, 60, rotationDeg, 't');
-        if (item?.kind !== 'shape') throw new Error();
-        const right = rightPt.clone().applyMatrix4(matFromImage(m, convention));
-        const bottom = bottomPt.clone().applyMatrix4(matFromImage(m, convention));
-        expect(right.x * 1000).toBeCloseTo(item.rings[0]![0]![0], 6);
-        expect(right.z * 1000).toBeCloseTo(item.rings[0]![0]![1], 6);
-        expect(bottom.x * 1000).toBeCloseTo(item.rings[0]![1]![0], 6);
-        expect(bottom.z * 1000).toBeCloseTo(item.rings[0]![1]![1], 6);
-        expect(right.y).toBeCloseTo(0, 9);
-        expect(bottom.y).toBeCloseTo(0, 9);
-      }
-    }
-  });
-
   it('puts the image normal along mat +Y in both conventions', () => {
     const m = { centerMm: [0, 0] as [number, number], rotationDeg: 0 };
     expect(new Vector3(0, 0, 1).transformDirection(matFromImage(m, 'spec')).y).toBeCloseTo(1, 9);

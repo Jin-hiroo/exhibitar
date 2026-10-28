@@ -1,20 +1,18 @@
+import { pickTagIds } from 'matar';
 import type { Polygons } from '../geometry/polygons';
-import type { Marker, Project, TrackImage } from '../types';
+import type { MatTag, Project } from '../types';
 import { buildMatDrawing } from './drawing';
 import { printInstructions } from './instructions';
-import { layoutMat, type MatLayout } from './layout';
-import { pickMarkers } from './markers';
+import { layoutMat, MAX_TAGS, TAG_FAMILY, type MatLayout } from './layout';
 import { PRINTER_MARGIN_MM, tileLabel, type PaperPreference } from './paper';
-import { encodePng } from './png';
 import { renderPdf, type PdfPage } from './pdf';
 import { qrPng, viewerUrl } from './qr';
-import { rasterizeDrawing } from './raster-drawing';
 import { MAT_DESIGN_VERSION } from './rebuild';
 import { renderSvg } from './svg';
 
 export interface MatInput {
   projectId: string;
-  /** part of the marker seed, so a new geometry version gets new markers */
+  /** part of the tag-ID seed, so a new geometry version gets new tags */
   geometryVersion: number;
   title: string;
   /** canonical public origin (NEXT_PUBLIC_SITE_URL), never a preview URL */
@@ -24,24 +22,13 @@ export interface MatInput {
   shadowOutlineMm: Polygons;
   contactWeak: boolean;
   paperPreference?: PaperPreference;
-  markerWidthMm?: number;
-  /** print the tracking texture (default true; off only to compare scores) */
-  texture?: boolean;
 }
 
-/** A `Marker` before its PNG has been uploaded (the publisher fills in `imagePath`). */
-export type MarkerSpec = Omit<Marker, 'imagePath'>;
-export type TrackImageSpec = Omit<TrackImage, 'imagePath'>;
-
-/** Longest side of the whole-mat tracking image, px (ARCore needs ≥ 300). */
-const TRACK_IMAGE_MAX_PX = 1600;
-const TRACK_IMAGE_MAX_PX_PER_MM = 4;
-
 export interface GeneratedMat {
-  /** everything for `Project.mat` except storage paths */
-  meta: Omit<Project['mat'], 'svgPath' | 'markers' | 'trackImage'> & {
-    markers: MarkerSpec[];
-    trackImage: TrackImageSpec;
+  /** everything for `Project.mat` except the SVG's storage path */
+  meta: Omit<Project['mat'], 'svgPath' | 'markers' | 'trackImage' | 'tags' | 'tagFamily'> & {
+    tags: MatTag[];
+    tagFamily: string;
   };
   /** the full mat at actual size */
   svg: string;
@@ -49,44 +36,40 @@ export interface GeneratedMat {
   tileSvgs: { label: string; svg: string }[];
   /** actual size, one page per sheet */
   pdf: Uint8Array;
-  markerPngs: { id: string; png: Uint8Array }[];
-  /** the whole mat as one tracking image (see `meta.trackImage`) */
-  trackPng: Uint8Array;
   qrUrl: string;
   qrPng: Uint8Array;
   instructions: string;
   layout: MatLayout;
 }
 
-/** Stable per project + geometry version: different exhibits in one room get different markers. */
-export function markerSeedFor(projectId: string, geometryVersion: number): number {
-  let h = 0x811c9dc5;
-  for (const ch of `${projectId}:${geometryVersion}`) {
-    h ^= ch.codePointAt(0)!;
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
+/**
+ * Stable per project + geometry version: exhibits in one room get different
+ * tags, and a rebuilt mat gets new ones, so an old print can't be mistaken for it.
+ */
+export function tagSeedFor(projectId: string, geometryVersion: number): string {
+  return `${projectId}:${geometryVersion}`;
 }
 
 export function generateMat(input: MatInput): GeneratedMat {
   const layout = layoutMat({
     shadowOutlineMm: input.shadowOutlineMm,
     title: input.title,
-    markerWidthMm: input.markerWidthMm,
+    // more than the rings take: the layout tells a too-big inner ring by its count
+    tagIds: pickTagIds(
+      TAG_FAMILY,
+      2 * MAX_TAGS,
+      tagSeedFor(input.projectId, input.geometryVersion),
+    ),
     paperPreference: input.paperPreference,
   });
-  const seed = markerSeedFor(input.projectId, input.geometryVersion);
-  const markers = pickMarkers(seed, layout.markers.length);
   const qrUrl = viewerUrl(input.siteUrl, input.projectId);
   const items = buildMatDrawing({
     layout,
     contactOutlineMm: input.contactOutlineMm,
     shadowOutlineMm: input.shadowOutlineMm,
     contactWeak: input.contactWeak,
-    markerArts: markers.map((m) => m.art),
     title: input.title,
     qrText: qrUrl,
-    textureSeed: input.texture === false ? undefined : (seed ^ 0x9e3779b9) >>> 0,
   });
 
   const [W, H] = layout.sizeMm;
@@ -110,22 +93,13 @@ export function generateMat(input: MatInput): GeneratedMat {
       }))
     : [];
 
-  const markerSpecs: MarkerSpec[] = layout.markers.map((slot, i) => ({
-    id: `m${i}`,
-    widthMm: slot.widthMm,
-    // page → mat XZ
-    centerMm: [slot.center[0] - layout.originMm[0], slot.center[1] - layout.originMm[1]],
-    rotationDeg: slot.rotationDeg,
-    seed: markers[i]!.art.seed,
+  // already in mat XZ (matar's board frame)
+  const tags: MatTag[] = layout.tags.map((t) => ({
+    id: t.id,
+    centerMm: [t.centerMm[0], t.centerMm[1]],
+    sizeMm: t.sizeMm,
+    rotationDeg: t.rotationDeg,
   }));
-
-  const pxPerMm = Math.min(TRACK_IMAGE_MAX_PX_PER_MM, TRACK_IMAGE_MAX_PX / Math.max(W, H));
-  const trackPng = encodePng(rasterizeDrawing(items, { x: 0, y: 0, w: W, h: H }, pxPerMm));
-  const trackImage: TrackImageSpec = {
-    widthMm: W,
-    heightMm: H,
-    centerMm: [W / 2 - layout.originMm[0], H / 2 - layout.originMm[1]],
-  };
 
   return {
     meta: {
@@ -135,16 +109,14 @@ export function generateMat(input: MatInput): GeneratedMat {
       sizeMm: layout.sizeMm,
       contactOutlineMm: input.contactOutlineMm,
       shadowOutlineMm: input.shadowOutlineMm,
-      markers: markerSpecs,
-      trackImage,
+      tagFamily: TAG_FAMILY,
+      tags,
       qrUrl,
       designVersion: MAT_DESIGN_VERSION,
     },
     svg,
     tileSvgs,
     pdf: renderPdf(items, pages),
-    markerPngs: markers.map((m, i) => ({ id: `m${i}`, png: m.png })),
-    trackPng,
     qrUrl,
     qrPng: qrPng(qrUrl),
     instructions: printInstructions(layout, input.title),

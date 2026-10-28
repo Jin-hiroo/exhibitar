@@ -11,8 +11,12 @@ import type { PaperName, PaperPreference } from './paper';
  * 2 (2026-10-14): tracking texture and bigger markers. ARCore rejects the
  * whole-page image of older mats, so phones only find them from close up
  * (docs/D0-FINDINGS.md §4).
+ *
+ * 3 (2026-10-29): matar square ID tags instead of image markers
+ * (docs/MATAR-MIGRATION.md). The viewer tracks only these, so older mats
+ * don't work at all until rebuilt and reprinted.
  */
-export const MAT_DESIGN_VERSION = 2;
+export const MAT_DESIGN_VERSION = 3;
 
 /** True when a stored mat was made with an older design than the current one. */
 export function matDesignOutdated(mat: Pick<Project['mat'], 'designVersion'>): boolean {
@@ -29,7 +33,7 @@ const PAPER_FAMILY: Record<PaperName, PaperPreference> = {
 /**
  * Inputs to regenerate a saved mat without the STL (it never leaves the
  * exhibitor's browser): the stored outlines and paper family, plus the current
- * title and site URL. The result is a new geometry version (new markers, new
+ * title and site URL. The result is a new geometry version (new tag IDs, new
  * file names past the CDN cache) that keeps the stored GLB, so painted
  * regions stay valid.
  */

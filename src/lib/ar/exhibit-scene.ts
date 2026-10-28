@@ -373,7 +373,7 @@ export class ExhibitScene {
   private buildDebug(): void {
     const y = 0.0008;
     const green = new LineBasicMaterial({ color: 0x00e676 });
-    for (const m of this.project.mat.markers) {
+    for (const m of this.project.mat.markers ?? []) {
       const h = mmToM(m.widthMm) / 2;
       const a = (-m.rotationDeg * Math.PI) / 180;
       const pts = [

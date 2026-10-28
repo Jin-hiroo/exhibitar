@@ -3,6 +3,8 @@ import {
   BufferGeometry,
   Color,
   DirectionalLight,
+  DoubleSide,
+  Float32BufferAttribute,
   Group,
   HemisphereLight,
   Line,
@@ -22,6 +24,8 @@ import {
   WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DEFAULT_FAMILY } from 'matar';
+import { tagBlackRects, tagPoint } from '../mat/tag-cells';
 import type { ViewerProject } from '../types';
 import { mmToM } from '../units';
 import type { ExhibitScene } from './exhibit-scene';
@@ -133,13 +137,23 @@ export class OrbitViewer {
   };
 }
 
-/** The printed mat, rebuilt from project data: paper, markers, outlines (mat frame, metres). */
+/** The printed mat, rebuilt from project data: paper, tags, outlines (mat frame, metres). */
 function buildVirtualMat(project: ViewerProject, markerUrls: string[]): Group {
   const g = new Group();
   g.name = 'virtual-mat';
+  const tags = project.mat.tags ?? [];
   const pts: [number, number][] = [
     ...project.mat.shadowOutlineMm.flat(),
-    ...project.mat.markers.flatMap((m) => [
+    ...tags.flatMap((t) => {
+      // half the footprint (black square + 1-cell white ring) at any rotation
+      const a = (t.rotationDeg * Math.PI) / 180;
+      const h = t.sizeMm * 0.625 * (Math.abs(Math.cos(a)) + Math.abs(Math.sin(a)));
+      return [
+        [t.centerMm[0] - h, t.centerMm[1] - h] as [number, number],
+        [t.centerMm[0] + h, t.centerMm[1] + h] as [number, number],
+      ];
+    }),
+    ...(project.mat.markers ?? []).flatMap((m) => [
       [m.centerMm[0] - m.widthMm / 2, m.centerMm[1] - m.widthMm / 2] as [number, number],
       [m.centerMm[0] + m.widthMm / 2, m.centerMm[1] + m.widthMm / 2] as [number, number],
     ]),
@@ -157,8 +171,29 @@ function buildVirtualMat(project: ViewerProject, markerUrls: string[]): Group {
   paper.position.set(mmToM((minX + maxX) / 2), -0.0005, mmToM((minZ + maxZ) / 2));
   g.add(paper);
 
+  // tags from their bits: black cells just above the paper
+  if (tags.length) {
+    const family = project.mat.tagFamily ?? DEFAULT_FAMILY;
+    const pos: number[] = [];
+    for (const t of tags) {
+      for (const [x0, y0, x1, y1] of tagBlackRects(family, t.id, t.sizeMm)) {
+        const q = [
+          tagPoint(t, x0, y0),
+          tagPoint(t, x1, y0),
+          tagPoint(t, x1, y1),
+          tagPoint(t, x0, y1),
+        ];
+        for (const k of [0, 2, 1, 0, 3, 2]) pos.push(mmToM(q[k]![0]), 0.0002, mmToM(q[k]![1]));
+      }
+    }
+    const cells = new BufferGeometry();
+    cells.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    g.add(new Mesh(cells, new MeshBasicMaterial({ color: 0x000000, side: DoubleSide })));
+  }
+
+  // legacy image markers (design ≤ 2)
   const loader = new TextureLoader();
-  project.mat.markers.forEach((m, i) => {
+  (project.mat.markers ?? []).forEach((m, i) => {
     const url = markerUrls[i];
     if (!url) return;
     const tex = loader.load(url);

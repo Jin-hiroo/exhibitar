@@ -27,7 +27,7 @@ export function printInstructions(
       '',
       'Assembling the sheets',
       `4. Sheets are labelled ${labels} (letter = column, number = row).`,
-      `5. Neighbouring sheets overlap by ${TILE_OVERLAP_MM} mm. Line up the grey crosshairs,`,
+      `5. Neighbouring sheets overlap by ${TILE_OVERLAP_MM} mm. Line up the grey crosshairs to within 1 mm,`,
       '   trim the overlap from one sheet, and tape from the back.',
     );
   }
@@ -37,7 +37,7 @@ export function printInstructions(
     'Setting up',
     `${n}. Mount the mat on card or foam board so it stays flat. Avoid glossy lamination (glare).`,
     `${n + 1}. Place the printed object on the solid outline with its front toward FRONT.`,
-    `${n + 2}. Keep the square markers uncovered and evenly lit.`,
+    `${n + 2}. Keep the square tags uncovered and evenly lit.`,
     `${n + 3}. Open calibration on your phone once to fine-tune the alignment.`,
     '',
   );

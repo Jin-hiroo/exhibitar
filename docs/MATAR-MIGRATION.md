@@ -1,7 +1,13 @@
 # Migration: WebXR → matar
 
-Status: **planned** (decided 2026-10-19). Until WS-M below lands, `main` still
-runs the WebXR viewer described in ARCHITECTURE.md §5.
+Status: **in progress** (decided 2026-10-19). M1–M2 are done: the Studio
+makes mats with matar tags. Until M3–M5 land, `main` still runs the WebXR
+viewer described in ARCHITECTURE.md §5, which can't track those mats.
+
+Decisions of 2026-10-28: ship to iPhone and Android together, iOS marked
+unverified until an iPhone test; existing exhibits rebuild and reprint their
+mat (no viewer for design ≤ 2 mats); vendor the tarball, and matar's repo
+goes public; land the work as stacked PRs (M1–M2, M3–M5, M6 + M8), M7 after.
 
 ## Why
 
@@ -21,7 +27,8 @@ works the same in iOS Safari and Android Chrome with no flags and no app.
 ## What changes where
 
 - **matar** (separate repo, `~/dev/matar`, `github.com/Jin-hiroo/matar`,
-  Apache-2.0, private until v0.1 works on devices): the tracker library.
+  Apache-2.0; private until v0.1 worked on devices, going public with the
+  vendored tarball, decided 2026-10-28): the tracker library.
   Generic: board = tag list, output = camera pose. It has its own CLAUDE.md
   and docs; build tracker features there, not here.
 - **ExhibitAR** (this repo): mat design with matar tags, the viewer and
@@ -52,12 +59,16 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
 
 - [ ] **M0 matar v0.1 ready**: matar TASKS.md I4 (v0.1.0) done and its demo
       passes matar DEVICE-TESTS.md on one iPhone and one Android phone.
-      _Blocked on matar._
-- [ ] **M1 Types**: in `src/lib/types.ts` replace `Marker` (image markers) with
+      _Android done (matar DEVICE-TESTS 2026-10-25 and 2026-10-28); no iPhone
+      run yet. The maintainer chose to go ahead without it (2026-10-28)._
+- [x] **M1 Types**: in `src/lib/types.ts` replace `Marker` (image markers) with
       a tag list `{ id, centerMm, sizeMm, rotationDeg }` plus `mat.tagFamily`;
       make `trackImage` legacy-optional. Note the change in the commit (it
-      affects every workstream).
-- [ ] **M2 Mat design v3**: draw matar AprilTag **tag36h11** tags instead of the
+      affects every workstream). _Done: `mat.tags: MatTag[]` and
+      `mat.tagFamily`; `markers` and `trackImage` stay optional and
+      deprecated, so stored design ≤ 2 mats still load (and are told to
+      rebuild)._
+- [x] **M2 Mat design v3**: draw matar AprilTag **tag36h11** tags instead of the
       seeded art, using matar's `layoutBorderTags` and `tagSvg`/`boardSvg`.
       Layout (matar ARCHITECTURE.md §3.1): `layoutBorderTags` fills the border
       band of a page rectangle (8 mm margin, one white cell between tags,
@@ -78,6 +89,21 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
       outline (`boardSvg` options): print scale can't be measured by the
       camera, so a mat printed at the wrong scale is corrected with
       `scaleBoard(board, s)` from the measured ruler.
+      _Done, with these differences:_
+      - _The title, QR, ruler and FRONT arrow go inside the outer ring (or
+        where the object displaced ring tags), so the inner ring fits only
+        when they still do: on A4 around objects up to about 30 mm. Moving
+        them into the ring band would make room (open)._
+      - _Tiled mats: the sheets are planned first and tags whose footprint
+        would straddle a seam are dropped (a ring along every edge can't keep
+        clear of every seam)._
+      - _A mat whose ring would exceed 32 tags takes bigger tags (40–64 mm)._
+      - _No ID-1 card outline yet: it needs about 86 × 54 mm of free space.
+        The 100 mm ruler stays the print-scale check._
+      - _The tags are drawn from matar's `tagCells` into the mat's own
+        display list (SVG and PDF), not with `tagSvg`. A test renders the mat
+        and checks that matar's detector finds every tag within 0.75 px of
+        the mat data at 3 px/mm._
 - [ ] **M3 Runtime**: replace `ar-runtime.ts` with a thin wrapper around matar
       that keeps today's callbacks (`onStatus`, `onGuide`, `onSelect`, `onEnd`)
       and `setGhost`/`setDebug`. Mat frame = world: `exhibit.root.matrix` stays
@@ -93,6 +119,8 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
 - [ ] **M6 Assets & publish**: stop uploading/preloading marker and track PNGs;
       AR needs only the GLB + project JSON. The orbit viewer draws tags from
       their bits instead of the PNGs. No Supabase migration (`mat` is jsonb).
+      _Uploading stopped and the orbit viewer draws the tags (with M2); the
+      viewer page still preloads a design ≤ 2 mat's PNGs until M3–M4._
 - [ ] **M7 Data budget**: store the exact total download size at publish; show
       it on the Start card ("1.3 MB, one time"). Make repeat visits download
       nothing (matar RESEARCH.md §1.7):

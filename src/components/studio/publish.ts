@@ -55,12 +55,6 @@ export async function saveToCloud(
       [svgPath, mat.svg, 'image/svg+xml'],
       [assetPath('mats', id, `mat-v${gv}.pdf`), mat.pdf, 'application/pdf'],
       [assetPath('mats', id, `qr-v${gv}.png`), mat.qrPng, 'image/png'],
-      [assetPath('mats', id, `track-v${gv}.png`), mat.trackPng, 'image/png'],
-      ...mat.markerPngs.map((m): [string, Uint8Array, string] => [
-        assetPath('mats', id, `marker-v${gv}-${m.id}.png`),
-        m.png,
-        'image/png',
-      ]),
     ];
     // a rebuilt mat keeps the stored GLB (never re-simplified: CLAUDE.md core idea #3)
     if (prepared) uploads.unshift([glbPath, prepared.glb, 'model/gltf-binary']);
@@ -79,18 +73,8 @@ export async function saveToCloud(
         },
         objectToMat: prepared.objectToMat,
       }),
-      mat: {
-        ...mat.meta,
-        svgPath,
-        markers: mat.meta.markers.map((m) => ({
-          ...m,
-          imagePath: assetPath('mats', id, `marker-v${gv}-${m.id}.png`),
-        })),
-        trackImage: {
-          ...mat.meta.trackImage,
-          imagePath: assetPath('mats', id, `track-v${gv}.png`),
-        },
-      },
+      // the tags are data (IDs and positions): no tracking images to upload
+      mat: { ...mat.meta, svgPath },
     };
   }
 

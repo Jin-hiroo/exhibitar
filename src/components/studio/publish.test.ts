@@ -121,8 +121,8 @@ describe('saveToCloud', () => {
     expect(paths).toContain('mats/cube000001/mat-v2.svg');
     expect(paths).toContain('mats/cube000001/mat-v2.pdf');
     expect(paths).toContain('mats/cube000001/qr-v2.png');
-    expect(paths).toContain('mats/cube000001/track-v2.png');
-    expect(paths.filter((p) => /marker-v2-m\d\.png$/.test(p))).toHaveLength(4);
+    // tags are data in the project row: no tracking images
+    expect(paths.some((p) => /(marker|track)-v\d/.test(p))).toBe(false);
     expect(paths.some((p) => p.startsWith(`annotation-media/cube000001/${point.id}-`))).toBe(true);
     expect(uploads.every((u) => u.type !== 'model/stl' && !u.path.endsWith('.stl'))).toBe(true);
     expect(uploads.find((u) => u.path.endsWith('.glb'))!.type).toBe('model/gltf-binary');
@@ -133,16 +133,16 @@ describe('saveToCloud', () => {
     expect((row.model as { glbPath: string }).glbPath).toBe('models/cube000001/model-v2.glb');
     const mat = row.mat as {
       svgPath: string;
-      markers: { imagePath: string }[];
-      trackImage: { imagePath: string };
+      tagFamily: string;
+      tags: { id: number }[];
+      markers?: unknown;
       qrUrl: string;
     };
     expect(mat.svgPath).toBe('mats/cube000001/mat-v2.svg');
     expect(mat.qrUrl).toBe('https://exhibitar.vercel.app/v/cube000001');
-    expect(
-      mat.markers.every((m) => /^mats\/cube000001\/marker-v2-m\d\.png$/.test(m.imagePath)),
-    ).toBe(true);
-    expect(mat.trackImage.imagePath).toBe('mats/cube000001/track-v2.png');
+    expect(mat.tagFamily).toBe('tag36h11');
+    expect(mat.tags.length).toBeGreaterThanOrEqual(12);
+    expect(mat.markers).toBeUndefined();
     expect(saved.annotations[0]!.imagePath).toMatch(/^annotation-media\/cube000001\//);
   });
 
