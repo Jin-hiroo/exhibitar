@@ -1,8 +1,9 @@
 # Migration: WebXR → matar
 
-Status: **in progress** (decided 2026-10-19). M1–M2 are done: the Studio
-makes mats with matar tags. Until M3–M5 land, `main` still runs the WebXR
-viewer described in ARCHITECTURE.md §5, which can't track those mats.
+Status: **in progress** (decided 2026-10-19). M1–M5 are done: the Studio
+makes mats with matar tags, and the viewer and calibration track them with
+matar. M6–M8 (assets, data budget, tests and docs) are next; ARCHITECTURE.md
+§5 still describes the WebXR viewer until M8.
 
 Decisions of 2026-10-28: ship to iPhone and Android together, iOS marked
 unverified until an iPhone test; existing exhibits rebuild and reprint their
@@ -104,18 +105,30 @@ Owned directories: `src/lib/ar`, `src/components/viewer`, `src/lib/mat`
         display list (SVG and PDF), not with `tagSvg`. A test renders the mat
         and checks that matar's detector finds every tag within 0.75 px of
         the mat data at 3 px/mm._
-- [ ] **M3 Runtime**: replace `ar-runtime.ts` with a thin wrapper around matar
+- [x] **M3 Runtime**: replace `ar-runtime.ts` with a thin wrapper around matar
       that keeps today's callbacks (`onStatus`, `onGuide`, `onSelect`, `onEnd`)
       and `setGhost`/`setDebug`. Mat frame = world: `exhibit.root.matrix` stays
       identity and matar sets the camera (`ExhibitScene` is unchanged). Taps:
       `pointerup` → ray → `exhibit.pick`. Delete `xr-image-tracking.ts` and the
       convention / emulated / print-scale code in `pose.ts` (keep `rigidFit`,
       `PoseFilter` only if still used).
-- [ ] **M4 Viewer UI**: one "Start AR" for iOS and Android; remove the App Clip
+      _Done: neither was still used, so `pose.ts` keeps only `matFromModel`.
+      The canvas goes into a container under the UI overlay (no DOM overlay);
+      taps on it that don't move are picks. The focal length matar measures is
+      saved per camera label in `localStorage` and reused on the next visit
+      (`saved-intrinsics.ts`, as matar's demo does). matar's options are left at
+      their defaults: the short exposure and edge gamma tried on the Android
+      phone are opt-in in matar and tested on one device only._
+- [x] **M4 Viewer UI**: one "Start AR" for iOS and Android; remove the App Clip
       link, flag notes, `?convention`, `?mattrack`; new status/debug text from
       matar's status. `capabilities.ts` checks secure context + `getUserMedia` +
       WebGL. Detect in-app browsers and tell users to open the page in Safari/Chrome.
-- [ ] **M5 Calibration**: `CalibrateApp` uses the new runtime (constructor change).
+      _Done. Camera errors (blocked, in use, none) get their own text. A mat of
+      design ≤ 2 can't be tracked: Start AR is disabled with a note to rebuild,
+      and the 3D view still works. e2e: Chromium's fake camera plays a picture
+      of the mock mat rendered with `matar/testing`; the viewer tracks all 16
+      tags (0.17 px) on matar's module worker, in dev and production builds._
+- [x] **M5 Calibration**: `CalibrateApp` uses the new runtime (constructor change).
 - [ ] **M6 Assets & publish**: stop uploading/preloading marker and track PNGs;
       AR needs only the GLB + project JSON. The orbit viewer draws tags from
       their bits instead of the PNGs. No Supabase migration (`mat` is jsonb).
