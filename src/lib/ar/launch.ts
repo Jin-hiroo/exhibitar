@@ -6,7 +6,7 @@ import type { ViewerProject } from '../types';
 import { loadExhibitAssets, type ExhibitAssets } from './assets';
 import { ExhibitScene } from './exhibit-scene';
 
-export { ArRuntime, type ArStatus } from './ar-runtime';
+export { ArRuntime, cameraErrorText, type ArStatus } from './ar-runtime';
 export type { ExhibitScene as ExhibitSceneType } from './exhibit-scene';
 export { OrbitViewer } from './orbit-viewer';
 export { ExhibitScene };

@@ -87,7 +87,23 @@
   color: #9ca3af;
 }
 
-/* ---- AR DOM overlay ---------------------------------------------------- */
+/* ---- AR: camera view (matar's canvas) and the UI overlay on top -------- */
+
+.stage {
+  display: none;
+}
+
+.stage.active {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  touch-action: none;
+}
+
+.stage canvas {
+  display: block;
+}
 
 .overlay {
   display: none;

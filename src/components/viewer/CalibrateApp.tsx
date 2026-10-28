@@ -30,6 +30,7 @@ export function CalibrateApp({
   const [savedCal, setSavedCal] = useState<Calibration>(project.calibration);
   const [message, setMessage] = useState<string | null>(null);
   const [showY, setShowY] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ArRuntime | null>(null);
   const exhibitRef = useRef<ExhibitScene | null>(null);
@@ -53,40 +54,53 @@ export function CalibrateApp({
     exhibitRef.current?.setCalibration(cal);
   }, [cal]);
 
+  // leaving the page while calibrating: release the camera
+  useEffect(() => () => runtimeRef.current?.stop(), []);
+
   const start = () => {
     const m = moduleRef.current;
+    const stage = stageRef.current;
     const overlay = overlayRef.current;
-    if (!m || !prepared || !overlay) return;
+    if (!m || !prepared || !stage || !overlay) return;
     const exhibit = prepared.createScene();
     exhibit.setCalibration(cal);
     exhibitRef.current = exhibit;
-    const runtime = new m.ArRuntime({
-      project,
-      exhibit,
-      markerBitmaps: prepared.assets.markerBitmaps,
-      matBitmap: prepared.assets.matBitmap,
-      overlayRoot: overlay,
-      onStatus: setStatus,
-      onSelect: () => {},
-      onEnd: () => {
-        runtimeRef.current = null;
-        exhibitRef.current = null;
-        exhibit.dispose();
-        overlay.classList.remove(styles.active!);
-        setActive(false);
-      },
-    });
+    const leave = () => {
+      runtimeRef.current = null;
+      exhibitRef.current = null;
+      exhibit.dispose();
+      stage.classList.remove(styles.active!);
+      overlay.classList.remove(styles.active!);
+      setActive(false);
+    };
+    let runtime: ArRuntime;
+    try {
+      runtime = new m.ArRuntime({
+        project,
+        exhibit,
+        container: stage,
+        onStatus: setStatus,
+        onSelect: () => {},
+        onEnd: (err) => {
+          leave();
+          if (err) setMessage(err);
+        },
+      });
+    } catch (e) {
+      exhibit.dispose(); // a mat without tags (made for the old viewer)
+      exhibitRef.current = null;
+      setMessage(e instanceof Error ? e.message : String(e));
+      return;
+    }
     runtimeRef.current = runtime;
+    stage.classList.add(styles.active!);
     overlay.classList.add(styles.active!);
     setActive(true);
-    runtime
-      .start()
-      .then(() => runtime.setGhost(true))
-      .catch((e: unknown) => {
-        overlay.classList.remove(styles.active!);
-        setActive(false);
-        setMessage(e instanceof Error ? e.message : String(e));
-      });
+    runtime.setGhost(true);
+    runtime.start().catch((e: unknown) => {
+      leave();
+      setMessage(m.cameraErrorText(e));
+    });
   };
 
   const nudge = (k: keyof Calibration, d: number) =>
@@ -148,6 +162,7 @@ export function CalibrateApp({
           </section>
         </main>
       )}
+      <div ref={stageRef} className={`${styles.stage} ${active ? styles.active : ''}`} />
       <div ref={overlayRef} className={`${styles.overlay} ${active ? styles.active : ''}`}>
         {active && (
           <>

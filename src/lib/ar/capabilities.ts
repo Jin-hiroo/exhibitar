@@ -1,41 +1,73 @@
-import { hasImageTrackingApi } from './xr-image-tracking';
-
+/**
+ * What the AR viewer needs from the browser (docs/MATAR-MIGRATION.md M4):
+ * a secure context, the camera API and WebGL. No WebXR: matar tracks the
+ * printed tags in the page, the same in iOS Safari and Android Chrome.
+ */
 export interface ArCapabilities {
-  /** WebXR only works on https:// or localhost */
+  /** the camera only opens on https:// or localhost */
   secureContext: boolean;
-  /** navigator.xr exists */
-  webxr: boolean;
-  /** an immersive-ar session can be requested */
-  immersiveAr: boolean;
-  /** the image tracking API is exposed (Chrome: #webxr-incubations flag) */
-  imageTracking: boolean;
-  /** iPhone / iPad (Safari has no WebXR AR: use the Needle Go App Clip) */
+  /** navigator.mediaDevices.getUserMedia exists */
+  camera: boolean;
+  /** a WebGL 2 context can be created (three.js needs it since r163) */
+  webgl: boolean;
+  /**
+   * the page is open in an app's built-in browser (Instagram, LINE, …), where
+   * the camera is often blocked: tell the visitor to open it in Safari or Chrome
+   */
+  inAppBrowser: string | null;
+  /** iPhone / iPad (for wording only) */
   ios: boolean;
 }
 
-export async function detectArCapabilities(): Promise<ArCapabilities> {
-  const secureContext = typeof window !== 'undefined' && window.isSecureContext;
-  const xr = typeof navigator !== 'undefined' ? navigator.xr : undefined;
-  let immersiveAr = false;
-  if (xr) {
-    try {
-      immersiveAr = await xr.isSessionSupported('immersive-ar');
-    } catch {
-      immersiveAr = false;
-    }
-  }
+export function detectArCapabilities(): ArCapabilities {
+  const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
   return {
-    secureContext,
-    webxr: !!xr,
-    immersiveAr,
-    imageTracking: hasImageTrackingApi(),
-    ios: isIOS(),
+    secureContext: typeof window !== 'undefined' && window.isSecureContext,
+    camera:
+      typeof navigator !== 'undefined' &&
+      typeof navigator.mediaDevices?.getUserMedia === 'function',
+    webgl: hasWebGl(),
+    inAppBrowser: inAppBrowser(ua),
+    ios: isIOS(ua),
   };
 }
 
-function isIOS(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent;
+/** True when AR can be started (the camera prompt may still be refused). */
+export function arAvailable(c: ArCapabilities): boolean {
+  return c.secureContext && c.camera && c.webgl;
+}
+
+/**
+ * The app whose built-in browser this is, from its user-agent token, or null.
+ * Only apps known to add a token; the list errs on the side of saying nothing.
+ */
+export function inAppBrowser(ua: string): string | null {
+  const apps: [RegExp, string][] = [
+    [/\bInstagram\b/, 'Instagram'],
+    [/\bFBAN\/|\bFBAV\/|\bFB_IAB\//, 'Facebook'],
+    [/\bLine\//, 'LINE'],
+    [/\bMicroMessenger\//, 'WeChat'],
+    [/\bTwitter\b/, 'X'],
+    [/\bmusical_ly_|\bBytedanceWebview\b/, 'TikTok'],
+    [/\bSnapchat\b/, 'Snapchat'],
+  ];
+  return apps.find(([re]) => re.test(ua))?.[1] ?? null;
+}
+
+function isIOS(ua: string): boolean {
   // iPadOS reports a Mac user agent; a touch screen gives it away
-  return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  return (
+    /iPad|iPhone|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1)
+  );
+}
+
+function hasWebGl(): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    const c = document.createElement('canvas');
+    return !!c.getContext('webgl2');
+  } catch {
+    return false;
+  }
 }

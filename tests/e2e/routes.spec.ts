@@ -128,12 +128,30 @@ test.describe('on iPhone', () => {
     hasTouch: true,
   });
 
-  test('Start AR opens the exhibit in the Needle Go App Clip', async ({ page }) => {
+  test('Start AR runs in the page, like on Android (no App Clip)', async ({ page }) => {
     await page.goto('/v/mockcube01');
-    const start = page.getByRole('link', { name: 'Start AR' });
-    await expect(start).toBeVisible({ timeout: 15_000 });
-    const href = await start.getAttribute('href');
-    expect(href).toMatch(/^https:\/\/appclip\.needle\.tools\/ar\?url=/);
-    expect(decodeURIComponent(href!.split('url=')[1]!)).toMatch(/\/v\/mockcube01$/);
+    const start = page.getByRole('button', { name: 'Start AR' });
+    await expect(start).toBeEnabled({ timeout: 15_000 });
+    await expect(page.getByRole('link', { name: 'Start AR' })).toHaveCount(0);
+    await expect(page.getByText(/App Clip|chrome:\/\/flags/)).toHaveCount(0);
+  });
+
+  test("tells visitors in an app's built-in browser to open the page in Safari", async ({
+    browser,
+  }) => {
+    const ctx = await browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.30.97',
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+    });
+    const page = await ctx.newPage();
+    await page.goto('/v/mockcube01');
+    await expect(
+      page.getByText(/Instagram.s built-in browser.*open this page in Safari/),
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+    await ctx.close();
   });
 });

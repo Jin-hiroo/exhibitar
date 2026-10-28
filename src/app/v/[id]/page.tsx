@@ -18,14 +18,11 @@ export default async function ViewerPage(props: PageProps<'/v/[id]'>) {
   const { id } = await props.params;
   const found = await getPublishedProject(id);
   if (!found) notFound();
-  // start downloading the model and tracking images with the HTML, in parallel with the JS
+  // start downloading the model with the HTML, in parallel with the JS (AR needs nothing else)
   const { project, assetBase } = found;
-  for (const path of [
-    project.model.glbPath,
-    ...(project.mat.markers ?? []).map((m) => m.imagePath),
-    project.mat.trackImage?.imagePath,
-  ]) {
-    if (path) preload(resolveAsset(assetBase, path), { as: 'fetch', crossOrigin: 'anonymous' });
-  }
+  preload(resolveAsset(assetBase, project.model.glbPath), {
+    as: 'fetch',
+    crossOrigin: 'anonymous',
+  });
   return <ViewerApp project={project} assetBase={assetBase} />;
 }
