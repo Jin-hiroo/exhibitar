@@ -15,7 +15,8 @@ export function PreviewTab({ ctx }: { ctx: EditorContext }) {
   useEffect(() => {
     const full = project.mat && geometry ? toProject({ ...project, calibration: zero }) : null;
     if (!full || !host.current || !geometry) return;
-    const markerUrls = full.mat.markers.map(
+    // legacy image markers (design ≤ 2); tags are drawn from their bits
+    const markerUrls = (full.mat.markers ?? []).map(
       (m) => ready?.urls[m.id] ?? (storageBase ? `${storageBase}/${m.imagePath}` : ''),
     );
     const exhibit = new ExhibitScene(full, geometry.clone());

@@ -12,9 +12,9 @@ const SUPERSAMPLE = 2;
 
 /**
  * Rasterise display-list shapes (fills and strokes, including dashes) to an
- * 8-bit grayscale image of `view` at `pxPerMm`. Text is skipped: this image is
- * a tracking reference, and the print having *extra* features is harmless,
- * while every feature in the reference must exist on the print.
+ * 8-bit grayscale image of `view` at `pxPerMm`. Text is skipped. Tests render
+ * mats with it to check that matar finds every printed tag where the mat data
+ * says it is.
  */
 export function rasterizeDrawing(items: DrawItem[], view: RasterView, pxPerMm: number): Raster {
   const s = pxPerMm * SUPERSAMPLE;

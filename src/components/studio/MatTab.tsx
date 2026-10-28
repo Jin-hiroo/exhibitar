@@ -26,8 +26,8 @@ export function MatTab({ ctx }: { ctx: EditorContext }) {
         {!ready && matDesignOutdated(mat) && (
           <div className={styles.warning}>
             <p>
-              This mat was made before the current mat design (tracking pattern, bigger markers), so
-              phones only find it from close up. Make a new one and print it instead.
+              This mat was made before the current mat design (square tracking tags), and the viewer
+              can&apos;t track it. Make a new one and print it instead.
             </p>
             <button className={styles.primary} onClick={() => ctx.setTab('publish')}>
               Make a new mat…
@@ -39,8 +39,8 @@ export function MatTab({ ctx }: { ctx: EditorContext }) {
           {sheets > 1 ? ` · ${sheets} sheets (${mat.tiles.cols} × ${mat.tiles.rows})` : ''}
         </strong>
         <span className={styles.small}>
-          {Math.round(mat.sizeMm[0])} × {Math.round(mat.sizeMm[1])} mm · {mat.markers.length}{' '}
-          markers + whole-page tracking
+          {Math.round(mat.sizeMm[0])} × {Math.round(mat.sizeMm[1])} mm ·{' '}
+          {mat.tags ? `${mat.tags.length} tracking tags` : `${mat.markers?.length ?? 0} markers`}
         </span>
         <div className={styles.row}>
           {pdfUrl && (

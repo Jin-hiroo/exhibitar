@@ -23,7 +23,7 @@ export async function loadExhibitAssets(
   base: string,
 ): Promise<ExhibitAssets> {
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const markerUrls = project.mat.markers.map((m) => resolveAsset(base, m.imagePath));
+  const markerUrls = (project.mat.markers ?? []).map((m) => resolveAsset(base, m.imagePath));
   const trackImage = project.mat.trackImage;
   const [gltf, markerBitmaps, matBitmap] = await Promise.all([
     loader.loadAsync(resolveAsset(base, project.model.glbPath)),

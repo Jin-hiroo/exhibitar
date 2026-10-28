@@ -79,27 +79,17 @@ const project: Project = {
   },
   objectToMat: prepared.objectToMat.map(round),
   calibration: { dxMm: 0, dyMm: 0, dzMm: 0, yawDeg: 0 },
-  mat: {
-    ...mat.meta,
-    svgPath: 'fixtures/mock-cube-mat.svg',
-    markers: mat.meta.markers.map((m) => ({
-      ...m,
-      imagePath: `fixtures/mock-cube-marker-${m.id}.png`,
-    })),
-    trackImage: { ...mat.meta.trackImage, imagePath: 'fixtures/mock-cube-mat-track.png' },
-  },
+  mat: { ...mat.meta, svgPath: 'fixtures/mock-cube-mat.svg' },
   annotations,
 };
 
 writeFileSync(join(pub, 'mock-cube.glb'), prepared.glb);
 writeFileSync(join(pub, 'mock-cube-mat.svg'), mat.svg);
 writeFileSync(join(pub, 'mock-cube-mat.pdf'), mat.pdf);
-writeFileSync(join(pub, 'mock-cube-mat-track.png'), mat.trackPng);
-for (const m of mat.markerPngs) writeFileSync(join(pub, `mock-cube-marker-${m.id}.png`), m.png);
 writeFileSync(
   join(root, 'tests/fixtures/project.mock.json'),
   JSON.stringify(project, null, 2) + '\n',
 );
 console.log(
-  `mock project: ${prepared.triangleCount} tris, front region ${front.length} tris, ${mat.meta.markers.length} markers`,
+  `mock project: ${prepared.triangleCount} tris, front region ${front.length} tris, ${mat.meta.tags.length} tags`,
 );

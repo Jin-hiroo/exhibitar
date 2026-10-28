@@ -41,7 +41,11 @@ for (const [name, build] of Object.entries(FIXTURES)) {
   writeFileSync(join(dir, 'mat.pdf'), mat.pdf);
   writeFileSync(join(dir, 'qr.png'), mat.qrPng);
   writeFileSync(join(dir, 'instructions.txt'), mat.instructions);
-  for (const m of mat.markerPngs) writeFileSync(join(dir, `marker-${m.id}.png`), m.png);
+  // the mat data the viewer gets, plus where the mat frame sits on the page
+  writeFileSync(
+    join(dir, 'mat.json'),
+    JSON.stringify({ ...mat.meta, originMm: mat.layout.originMm }, null, 2) + '\n',
+  );
   for (const t of mat.tileSvgs) writeFileSync(join(dir, `tile-${t.label}.svg`), t.svg);
 
   console.log(
@@ -49,7 +53,7 @@ for (const [name, build] of Object.entries(FIXTURES)) {
       `${String(prepared.triangleCount).padStart(6)} tris  glb ${(prepared.glb.byteLength / 1024).toFixed(1)} KB  ` +
       `contact ${prepared.footprint.contactAreaMm2.toFixed(0)} mm²${prepared.footprint.contactWeak ? ' (weak)' : ''}  ` +
       `mat ${mat.meta.paper} ${mat.meta.orientation} ${mat.meta.tiles.cols}×${mat.meta.tiles.rows}  ` +
-      `${mat.meta.markers.length} markers  ${(performance.now() - t0).toFixed(0)} ms`,
+      `${mat.meta.tags.length} tags (${mat.layout.innerTags} inner)  ${(performance.now() - t0).toFixed(0)} ms`,
   );
 }
 console.log(`wrote ${outRoot}`);

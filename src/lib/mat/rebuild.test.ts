@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import legacyMat from '../../../tests/fixtures/mat.design2.json';
 import { cube, toBinaryStl } from '../../../tests/fixtures/shapes';
 import { computeFootprint } from '../geometry/footprint';
 import { applyOrientation, restingRotation } from '../geometry/orient';
@@ -25,8 +26,6 @@ describe('rebuildMatInput', () => {
     const stored: Project['mat'] = {
       ...old.meta,
       svgPath: 'mats/abc123/mat-v2.svg',
-      markers: old.meta.markers.map((m) => ({ ...m, imagePath: '' })),
-      trackImage: { ...old.meta.trackImage, imagePath: '' },
     };
 
     const input = rebuildMatInput(
@@ -38,17 +37,15 @@ describe('rebuildMatInput', () => {
 
     const rebuilt = generateMat(input);
     expect(rebuilt.meta.qrUrl).toBe('https://exhibitar.vercel.app/v/abc123');
-    // same sheet and outline placement: only the QR (and the version's markers) change
-    for (const k of ['paper', 'orientation', 'tiles', 'sizeMm', 'trackImage'] as const) {
+    // same sheet and tag positions: only the QR and the version's tag IDs change,
+    // so an old print can't be taken for the new mat
+    for (const k of ['paper', 'orientation', 'tiles', 'sizeMm'] as const) {
       expect(rebuilt.meta[k]).toEqual(old.meta[k]);
     }
     expect(rebuilt.meta.paper).toBe('Letter');
-    expect(rebuilt.meta.markers.map((m) => m.centerMm)).toEqual(
-      old.meta.markers.map((m) => m.centerMm),
-    );
-    expect(rebuilt.meta.markers.map((m) => m.seed)).not.toEqual(
-      old.meta.markers.map((m) => m.seed),
-    );
+    expect(rebuilt.meta.tags.map((t) => t.centerMm)).toEqual(old.meta.tags.map((t) => t.centerMm));
+    const oldIds = new Set(old.meta.tags.map((t) => t.id));
+    expect(rebuilt.meta.tags.filter((t) => oldIds.has(t.id)).length).toBeLessThanOrEqual(3);
   });
 });
 
@@ -72,5 +69,26 @@ describe('matDesignOutdated', () => {
     });
     expect(mat.meta.designVersion).toBe(MAT_DESIGN_VERSION);
     expect(matDesignOutdated(mat.meta)).toBe(false);
+  });
+});
+
+describe('a mat stored before design 3 (image markers, no tags)', () => {
+  // tests/fixtures/mat.design2.json: the mock project's mat as design 2 stored it
+  const legacy = legacyMat as unknown as Project['mat'];
+
+  it('is outdated and rebuilds into a tag mat from its stored outlines', () => {
+    expect(legacy.tags).toBeUndefined();
+    expect(legacy.markers).toHaveLength(4);
+    expect(matDesignOutdated(legacy)).toBe(true);
+    const rebuilt = generateMat(
+      rebuildMatInput(
+        { id: 'mockcube01', title: 'Mock cube', geometryVersion: 1, mat: legacy },
+        'https://exhibitar.vercel.app',
+      ),
+    );
+    expect(rebuilt.meta.designVersion).toBe(MAT_DESIGN_VERSION);
+    expect(rebuilt.meta.tagFamily).toBe('tag36h11');
+    expect(rebuilt.meta.tags.length).toBeGreaterThanOrEqual(12);
+    expect('markers' in rebuilt.meta || 'trackImage' in rebuilt.meta).toBe(false);
   });
 });

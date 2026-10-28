@@ -21,7 +21,7 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
   // the QR was baked into the mat when it was generated; the site URL may have changed since
   const printedUrl = project.mat?.qrUrl;
   const linkDrifted = !!project.mat && project.status === 'published' && printedUrl !== viewerUrl;
-  // made before the tracking texture: phones only find it from close up
+  // made before the square tracking tags: the viewer can't track it
   const outdated = !!project.mat && matDesignOutdated(project.mat);
   const hasGeometry = !!(ready || project.model?.glbPath);
   const qrUrl =
@@ -117,13 +117,13 @@ export function PublishTab({ ctx }: { ctx: EditorContext }) {
           <div className={styles.warning}>
             <p>
               {outdated &&
-                'This mat was made before the current mat design (tracking pattern, bigger markers), so phones only find it from close up. '}
+                "This mat was made before the current mat design (square tracking tags), and the viewer can't track it. "}
               {linkDrifted &&
                 (printedUrl
                   ? `The QR code on this mat opens ${printedUrl}, not the link above. `
                   : 'This mat was made before the Studio recorded its QR link. If scanning it does not open the link above, replace it. ')}
-              Make a new mat, then print it and throw the old one away: it also gets new markers.
-              Your annotations stay as they are.
+              Make a new mat, then print it and throw the old one away: it also gets new tags. Your
+              annotations stay as they are.
             </p>
             <button className={styles.primary} disabled={!!busy} onClick={() => void remakeMat()}>
               {linkDrifted && !outdated ? 'Make a new mat with this link' : 'Make a new mat'}

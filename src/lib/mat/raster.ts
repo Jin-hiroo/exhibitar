@@ -1,7 +1,7 @@
 /**
  * Minimal 8-bit grayscale rasterizer for filled polygons (painter's order).
- * Pure TypeScript so marker PNGs are identical in Node tests, workers and
- * browsers.
+ * Pure TypeScript so images (the QR PNG, test renders of the mat) are
+ * identical in Node tests, workers and browsers.
  */
 export interface Raster {
   width: number;

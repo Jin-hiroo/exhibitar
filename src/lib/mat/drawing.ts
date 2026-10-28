@@ -1,14 +1,13 @@
+import type { BoardTag } from 'matar';
 import type { Polygons } from '../geometry/polygons';
 import { rectRing, type DrawItem, type Rect } from './display-list';
 import type { MatLayout } from './layout';
-import { MARKER_QUIET_MM, QR_SIZE_MM, SUBTITLE, SUBTITLE_SIZE_MM } from './layout';
-import type { MarkerArt } from './markers';
+import { QR_SIZE_MM, SUBTITLE_GAP_MM, SUBTITLE_SIZE_MM, TAG_FAMILY, tagFootprint } from './layout';
 import { tileLabel, TILE_OVERLAP_MM } from './paper';
 import { qrDrawItems } from './qr';
-import { textureItems } from './texture';
+import { tagBlackRects, tagPoint } from './tag-cells';
 
 const BLACK = '#000';
-const WHITE = '#fff';
 const GRAY = '#777';
 const CONTACT_FILL = '#e6e6e6';
 
@@ -18,12 +17,8 @@ export interface DrawingInput {
   contactOutlineMm: Polygons;
   shadowOutlineMm: Polygons;
   contactWeak: boolean;
-  /** one per layout marker slot */
-  markerArts: MarkerArt[];
   title: string;
   qrText: string;
-  /** print the tracking texture over the free space (see texture.ts); omit for none */
-  textureSeed?: number;
 }
 
 /** Everything printed on the mat, in page mm, back to front. */
@@ -55,11 +50,7 @@ export function buildMatDrawing(d: DrawingInput): DrawItem[] {
     });
   }
 
-  l.markers.forEach((slot, i) => {
-    const art = d.markerArts[i];
-    if (!art) throw new Error(`missing art for marker ${i}`);
-    items.push(...markerItems(art, slot.center, slot.widthMm, slot.rotationDeg, `marker:m${i}`));
-  });
+  for (const tag of l.tags) items.push(tagItem(tag, l.originMm));
 
   items.push(...frontArrow(l.front.x + l.front.w / 2, l.front.y));
   items.push(...ruler(l.ruler.x, l.ruler.y));
@@ -76,51 +67,32 @@ export function buildMatDrawing(d: DrawingInput): DrawItem[] {
   );
 
   if (l.title) {
-    const { rect, sizeMm } = l.title;
+    const { rect, sizeMm, subtitle } = l.title;
     const cx = rect.x + rect.w / 2;
     items.push({ ...text(cx, rect.y + sizeMm, d.title, sizeMm, 'middle', 'title'), bold: true });
-    items.push({
-      ...text(
-        cx,
-        rect.y + sizeMm + 2 + SUBTITLE_SIZE_MM,
-        SUBTITLE,
-        SUBTITLE_SIZE_MM,
-        'middle',
-        'subtitle',
-      ),
-      fill: GRAY,
+    subtitle.forEach((line, i) => {
+      const y = rect.y + sizeMm + (i + 1) * (SUBTITLE_GAP_MM + SUBTITLE_SIZE_MM);
+      items.push({ ...text(cx, y, line, SUBTITLE_SIZE_MM, 'middle', 'subtitle'), fill: GRAY });
     });
   }
 
   if (l.tilePlan) items.push(...tileMarks(l));
-  // last: the texture keeps clear of everything above
-  if (d.textureSeed !== undefined) items.push(...textureItems(items, l, d.textureSeed));
   return items;
 }
 
-/** Marker art (unit square, y down) placed at `center`, rotated clockwise on the page. */
-export function markerItems(
-  art: MarkerArt,
-  center: [number, number],
-  widthMm: number,
-  rotationDeg: number,
-  role: string,
-): DrawItem[] {
-  const a = (rotationDeg * Math.PI) / 180;
-  const c = Math.cos(a);
-  const s = Math.sin(a);
-  const map = ([u, v]: [number, number]): [number, number] => {
-    const x = (u - 0.5) * widthMm;
-    const y = (v - 0.5) * widthMm;
-    return [center[0] + x * c - y * s, center[1] + x * s + y * c];
+/** One matar tag (mat XZ, page = centre + origin) as its black cells. */
+export function tagItem(tag: BoardTag, originMm: [number, number], family = TAG_FAMILY): DrawItem {
+  const page = {
+    ...tag,
+    centerMm: [tag.centerMm[0] + originMm[0], tag.centerMm[1] + originMm[1]] as [number, number],
   };
-  return art.shapes.map((sh) => ({
-    kind: 'shape' as const,
-    role,
-    rings: sh.rings.map((r) => r.map(map)),
-    closed: true,
-    fill: sh.fill === 0 ? BLACK : WHITE,
-  }));
+  const rings = tagBlackRects(family, tag.id, tag.sizeMm).map(([x0, y0, x1, y1]) => [
+    tagPoint(page, x0, y0),
+    tagPoint(page, x1, y0),
+    tagPoint(page, x1, y1),
+    tagPoint(page, x0, y1),
+  ]);
+  return { kind: 'shape', role: `tag:${tag.id}`, rings, closed: true, fill: BLACK };
 }
 
 function text(
@@ -203,12 +175,9 @@ function ruler(x: number, y: number): DrawItem[] {
 /** Crosshairs in the overlap zones and a label per sheet, for assembling tiled mats. */
 function tileMarks(l: MatLayout): DrawItem[] {
   const plan = l.tilePlan!;
-  // never draw over markers (it would change the tracked image) or other elements
+  // never draw over tags or their white ring (they would stop being found) or other elements
   const obstacles: Rect[] = [
-    ...l.markers.map((m) => {
-      const s = m.widthMm + 2 * MARKER_QUIET_MM;
-      return { x: m.center[0] - s / 2, y: m.center[1] - s / 2, w: s, h: s };
-    }),
+    ...l.tags.map((t) => tagFootprint(t, l.originMm)),
     l.qr,
     l.ruler,
     l.front,

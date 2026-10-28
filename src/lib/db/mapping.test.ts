@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import legacyMat from '../../../tests/fixtures/mat.design2.json';
 import mock from '../../../tests/fixtures/project.mock.json';
 import type { ProjectRow } from './database.types';
 import { rowToStudioProject, toProject, toRowUpdate } from './mapping';
@@ -48,9 +49,21 @@ describe('project mapping', () => {
     });
     const p = rowToStudioProject({ ...row, ...u } as ProjectRow);
     const full = toProject(p)!;
-    expect(full.mat.markers).toHaveLength(4);
+    expect(full.mat.tags).toEqual(mock.mat.tags);
     expect(full.objectToMat).toEqual(mock.objectToMat);
     expect(full.status).toBe('published');
     expect(Object.keys(toRowUpdate({ title: 'x' }))).toEqual(['title']);
+  });
+
+  it('still reads a mat stored before design 3 (image markers, no tags)', () => {
+    const u = toRowUpdate({
+      model: mock.model as never,
+      objectToMat: mock.objectToMat,
+      mat: legacyMat as never,
+    });
+    const full = toProject(rowToStudioProject({ ...row, ...u } as ProjectRow))!;
+    expect(full.mat.tags).toBeUndefined();
+    expect(full.mat.markers).toHaveLength(4);
+    expect(full.mat.designVersion).toBe(2);
   });
 });

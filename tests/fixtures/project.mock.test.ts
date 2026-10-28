@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createBoard } from 'matar';
 import { describe, expect, it } from 'vitest';
 import { decodeGlb } from '@/lib/geometry/glb';
-import type { Annotation, Marker, Project, Vec3 } from '@/lib/types';
+import type { Annotation, MatTag, Project, Vec3 } from '@/lib/types';
 import raw from './project.mock.json';
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -12,13 +13,11 @@ const isPolys = (v: unknown) =>
   Array.isArray(v) &&
   v.every((ring) => Array.isArray(ring) && ring.length >= 3 && ring.every(isPt));
 
-function checkMarker(m: Marker) {
-  expect(typeof m.id).toBe('string');
-  expect(typeof m.imagePath).toBe('string');
-  expect(m.widthMm).toBeGreaterThan(0);
-  expect(isPt(m.centerMm)).toBe(true);
-  expect(isNum(m.rotationDeg)).toBe(true);
-  expect(Number.isInteger(m.seed)).toBe(true);
+function checkTag(t: MatTag) {
+  expect(Number.isInteger(t.id)).toBe(true);
+  expect(t.sizeMm).toBeGreaterThan(0);
+  expect(isPt(t.centerMm)).toBe(true);
+  expect(isNum(t.rotationDeg)).toBe(true);
 }
 
 function checkAnnotation(a: Annotation) {
@@ -52,16 +51,24 @@ describe('project.mock.json', () => {
     expect(isPt(p.mat.sizeMm)).toBe(true);
     expect(isPolys(p.mat.contactOutlineMm)).toBe(true);
     expect(isPolys(p.mat.shadowOutlineMm)).toBe(true);
-    expect(p.mat.markers.length).toBeGreaterThanOrEqual(3);
-    p.mat.markers.forEach(checkMarker);
+    expect(p.mat.tagFamily).toBe('tag36h11');
+    expect(p.mat.tags!.length).toBeGreaterThanOrEqual(12);
+    p.mat.tags!.forEach(checkTag);
+    expect(p.mat.markers).toBeUndefined();
+    expect(p.mat.trackImage).toBeUndefined();
     p.annotations.forEach(checkAnnotation);
   });
 
-  it('keeps markers on the paper', () => {
+  it('has tags that make a valid matar board', () => {
+    expect(() => createBoard({ family: p.mat.tagFamily, tags: p.mat.tags! })).not.toThrow();
+  });
+
+  it('keeps the tags and their white ring on the paper (the cube sits at the page centre)', () => {
     const [w, h] = p.mat.sizeMm;
-    for (const m of p.mat.markers) {
-      expect(Math.abs(m.centerMm[0]) + m.widthMm / 2).toBeLessThanOrEqual(w / 2);
-      expect(Math.abs(m.centerMm[1]) + m.widthMm / 2).toBeLessThanOrEqual(h / 2);
+    for (const t of p.mat.tags!) {
+      const half = (t.sizeMm * 10) / 8 / 2;
+      expect(Math.abs(t.centerMm[0]) + half).toBeLessThanOrEqual(w / 2);
+      expect(Math.abs(t.centerMm[1]) + half).toBeLessThanOrEqual(h / 2);
     }
   });
 
@@ -76,6 +83,5 @@ describe('project.mock.json', () => {
       }
     }
     expect(existsSync(join(pub, p.mat.svgPath))).toBe(true);
-    for (const m of p.mat.markers) expect(existsSync(join(pub, m.imagePath))).toBe(true);
   });
 });

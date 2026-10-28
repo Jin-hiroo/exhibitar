@@ -109,7 +109,7 @@ export function SetupTab({ ctx }: { ctx: EditorContext }) {
       );
       setBusy('Generating the placement mat…');
       setProgress(0.75);
-      // a new geometry gets a new version (and therefore new markers and a new mat)
+      // a new geometry gets a new version (and therefore new tags and a new mat)
       const geometryVersion = project.geometryVersion + 1;
       const mat = await ctx.matClient.call('generate', {
         projectId: project.id,
@@ -129,9 +129,7 @@ export function SetupTab({ ctx }: { ctx: EditorContext }) {
         svg: blobUrl(mat.svg, 'image/svg+xml'),
         pdf: blobUrl(mat.pdf, 'application/pdf'),
         qr: blobUrl(mat.qrPng, 'image/png'),
-        track: blobUrl(mat.trackPng, 'image/png'),
       };
-      for (const m of mat.markerPngs) urls[m.id] = blobUrl(m.png, 'image/png');
 
       ctx.setReady({ prepared, mat, geometryVersion, urls });
       setProject((p) => ({
@@ -145,12 +143,7 @@ export function SetupTab({ ctx }: { ctx: EditorContext }) {
           sourceScale: geo.loaded.sourceScale,
         },
         objectToMat: prepared.objectToMat,
-        mat: {
-          ...mat.meta,
-          svgPath: '',
-          markers: mat.meta.markers.map((m) => ({ ...m, imagePath: '' })),
-          trackImage: { ...mat.meta.trackImage, imagePath: '' },
-        },
+        mat: { ...mat.meta, svgPath: '' },
         annotations: p.annotations.map((a): Annotation =>
           a.kind === 'region' ? { ...a, triangles: [] } : a,
         ),

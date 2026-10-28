@@ -48,12 +48,16 @@ export interface Project {
     svgPath: string;
     contactOutlineMm: [number, number][][]; // polygons, mat XZ plane
     shadowOutlineMm: [number, number][][];
-    markers: Marker[];
     /**
-     * The whole printed page as one extra tracking image (optional). A large
-     * target is detected sooner and tracked more steadily than the small
-     * corner markers; it is rendered from the same drawing as the SVG.
+     * matar tag family of `tags` (`'tag36h11'`); absent on mats made before
+     * design 3, which carry image `markers` instead.
      */
+    tagFamily?: string;
+    /** The square ID tags the viewer tracks (design 3 on); absent before. */
+    tags?: MatTag[];
+    /** @deprecated design ≤ 2: image markers for WebXR. Such mats need a rebuild. */
+    markers?: Marker[];
+    /** @deprecated design ≤ 2: the whole page as one WebXR tracking image. */
     trackImage?: TrackImage;
     /** Viewer URL encoded in the printed QR code (absent on mats made before it was recorded). */
     qrUrl?: string;
@@ -67,6 +71,22 @@ export interface Project {
   annotations: Annotation[];
 }
 
+/**
+ * One printed matar tag (matar `BoardTag`): the mat frame is matar's board
+ * frame, so these are the board the viewer tracks.
+ */
+export interface MatTag {
+  /** tag ID within `mat.tagFamily` */
+  id: number;
+  /** centre, mat XZ, mm */
+  centerMm: [number, number];
+  /** edge of the black square, mm */
+  sizeMm: number;
+  /** in-plane rotation, degrees, clockwise as seen on the printed page */
+  rotationDeg: number;
+}
+
+/** @deprecated design ≤ 2 (WebXR image tracking). */
 export interface Marker {
   id: string;
   imagePath: string; // PNG used by the tracker (same art as in SVG)
@@ -77,6 +97,7 @@ export interface Marker {
   seed: number; // generator seed (reproducible)
 }
 
+/** @deprecated design ≤ 2 (WebXR image tracking). */
 export interface TrackImage {
   imagePath: string; // PNG given to the tracker
   widthMm: number; // physical printed size of the whole image

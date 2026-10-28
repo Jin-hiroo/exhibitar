@@ -4,7 +4,12 @@ import { computeFootprint } from '../geometry/footprint';
 import { applyOrientation, restingRotation } from '../geometry/orient';
 import { parseStl } from '../geometry/parse-stl';
 import * as poly from '../geometry/polygons';
-import { generateMat, markerSeedFor, type MatInput } from './generate';
+import { boardTagCornersMm, createBoard, createDetector } from 'matar';
+import { generateMat, tagSeedFor, type MatInput } from './generate';
+import { buildMatDrawing } from './drawing';
+import { tagFootprint } from './layout';
+import { rasterizeDrawing } from './raster-drawing';
+import { tagBlackRects } from './tag-cells';
 
 async function cubeInput(): Promise<MatInput> {
   const mesh = parseStl(toBinaryStl(cube())).mesh;
@@ -37,7 +42,7 @@ describe('generateMat', () => {
     const s = svgSize(mat.svg)!;
     expect([s.w, s.h]).toEqual(mat.meta.sizeMm);
     expect(s.viewBox).toEqual([0, 0, ...mat.meta.sizeMm]);
-    expect(mat.meta.sizeMm).toEqual([297, 210]);
+    expect(mat.meta.sizeMm).toEqual([210, 297]);
     expect(mat.svg).toContain('Print at 100% / Actual size');
     expect(mat.svg).toContain('FRONT');
     expect(mat.tileSvgs).toEqual([]);
@@ -49,8 +54,8 @@ describe('generateMat', () => {
     const boxes = mediaBoxes(mat.pdf);
     expect(boxes).toHaveLength(1);
     const [, , w, h] = boxes[0]!;
-    expect(w).toBeCloseTo((297 * 72) / 25.4, 1);
-    expect(h).toBeCloseTo((210 * 72) / 25.4, 1);
+    expect(w).toBeCloseTo((210 * 72) / 25.4, 1);
+    expect(h).toBeCloseTo((297 * 72) / 25.4, 1);
   });
 
   it('is deterministic for the same project + geometry version', async () => {
@@ -59,38 +64,70 @@ describe('generateMat', () => {
     const b = generateMat(input);
     expect(a.svg).toBe(b.svg);
     expect(a.meta).toEqual(b.meta);
-    a.markerPngs.forEach((m, i) =>
-      expect(Buffer.from(m.png).equals(Buffer.from(b.markerPngs[i]!.png))).toBe(true),
-    );
-    // a new geometry version gets different markers
+    // a new geometry version gets other tag IDs in the same places
     const c = generateMat({ ...input, geometryVersion: 2 });
-    expect(c.meta.markers.map((m) => m.seed)).not.toEqual(a.meta.markers.map((m) => m.seed));
-    expect(markerSeedFor('abc123', 1)).toBe(markerSeedFor('abc123', 1));
+    expect(c.meta.tags.map((t) => t.centerMm)).toEqual(a.meta.tags.map((t) => t.centerMm));
+    expect(c.meta.tags.map((t) => t.id)).not.toEqual(a.meta.tags.map((t) => t.id));
+    expect(tagSeedFor('abc123', 1)).toBe('abc123:1');
   });
 
-  it('reports marker poses in the mat frame, clear of the object', async () => {
+  it('reports the tags in the mat frame, clear of the object, as a valid matar board', async () => {
     const mat = generateMat(await cubeInput());
-    expect(mat.markerPngs.map((m) => m.id)).toEqual(mat.meta.markers.map((m) => m.id));
-    for (const m of mat.meta.markers) {
-      const half = m.widthMm / 2;
-      const square = [
-        poly.rect(
-          m.centerMm[0] - half,
-          m.centerMm[1] - half,
-          m.centerMm[0] + half,
-          m.centerMm[1] + half,
-        ),
-      ];
+    expect(mat.meta.tagFamily).toBe('tag36h11');
+    expect(() => createBoard({ family: mat.meta.tagFamily, tags: mat.meta.tags })).not.toThrow();
+    for (const t of mat.meta.tags) {
+      const r = tagFootprint(t, [0, 0]); // mat XZ
+      const square = [poly.rect(r.x, r.y, r.x + r.w, r.y + r.h)];
       expect(poly.area(poly.intersect(square, mat.meta.shadowOutlineMm))).toBe(0);
+    }
+    // the SVG draws each tag's black cells where the meta says, in page mm (mat XZ + origin)
+    const [ox, oy] = mat.layout.originMm;
+    for (const t of mat.meta.tags) {
+      const [x0, y0] = tagBlackRects(mat.meta.tagFamily, t.id, t.sizeMm)[0]!;
+      const corner = `M${+(t.centerMm[0] + ox + x0).toFixed(2)} ${+(t.centerMm[1] + oy + y0).toFixed(2)}`;
+      expect(mat.svg).toContain(corner);
     }
     expect(mat.qrUrl).toBe('https://exhibitar.vercel.app/v/abc123');
     // recorded with the project, so the Studio can tell when the printed QR no longer matches
     expect(mat.meta.qrUrl).toBe(mat.qrUrl);
-    // the whole page as one tracking image, centred on the page
-    expect(mat.meta.trackImage).toEqual({ widthMm: 297, heightMm: 210, centerMm: [0, 0] });
-    const v = new DataView(mat.trackPng.buffer, mat.trackPng.byteOffset);
-    expect([v.getUint32(16), v.getUint32(20)]).toEqual([1188, 840]);
+    expect(mat.meta).not.toHaveProperty('markers');
+    expect(mat.meta).not.toHaveProperty('trackImage');
     expect(mat.instructions).toMatch(/Actual size/);
+  });
+
+  it('prints tags matar finds where the mat data says they are', async () => {
+    const input = await cubeInput();
+    const mat = generateMat(input);
+    const items = buildMatDrawing({
+      layout: mat.layout,
+      contactOutlineMm: input.contactOutlineMm,
+      shadowOutlineMm: input.shadowOutlineMm,
+      contactWeak: input.contactWeak,
+      title: input.title,
+      qrText: mat.qrUrl,
+    });
+    const pxPerMm = 3;
+    const [W, H] = mat.meta.sizeMm;
+    const img = rasterizeDrawing(items, { x: 0, y: 0, w: W, h: H }, pxPerMm);
+    const ids = mat.meta.tags.map((t) => t.id);
+    const found = createDetector({
+      width: img.width,
+      height: img.height,
+      family: mat.meta.tagFamily,
+      ids,
+    }).detect(img);
+    expect(found.map((f) => f.id).sort()).toEqual([...ids].sort());
+    const [ox, oy] = mat.layout.originMm;
+    for (const f of found) {
+      const tag = mat.meta.tags.find((t) => t.id === f.id)!;
+      // mat XZ → page mm → px (pixel centres at integers)
+      boardTagCornersMm(tag).forEach(([x, z], i) => {
+        const [u, v] = f.corners[i]!;
+        expect(
+          Math.hypot(u - ((x + ox) * pxPerMm - 0.5), v - ((z + oy) * pxPerMm - 0.5)),
+        ).toBeLessThan(0.75);
+      });
+    }
   });
 
   it('tiles a huge mat: one SVG and one PDF page per sheet', () => {

@@ -12,11 +12,7 @@ export const matHandlers: RpcHandlers<MatApi> = {
     ctx.progress('mat', 1);
     return {
       result,
-      transfer: [
-        result.pdf.buffer,
-        result.qrPng.buffer,
-        ...result.markerPngs.map((m) => m.png.buffer),
-      ],
+      transfer: [result.pdf.buffer, result.qrPng.buffer],
     };
   },
 };

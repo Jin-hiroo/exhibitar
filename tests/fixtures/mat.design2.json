@@ -1,0 +1,68 @@
+{
+  "paper": "A4",
+  "orientation": "landscape",
+  "tiles": {
+    "cols": 1,
+    "rows": 1
+  },
+  "sizeMm": [297, 210],
+  "contactOutlineMm": [
+    [
+      [30, -30],
+      [30, 30],
+      [-30, 30],
+      [-30, -30]
+    ]
+  ],
+  "shadowOutlineMm": [
+    [
+      [30.05, 30.05],
+      [-30.05, 30.05],
+      [-30.05, -30.05],
+      [30.05, -30.05]
+    ]
+  ],
+  "markers": [
+    {
+      "id": "m0",
+      "widthMm": 69,
+      "centerMm": [-100, -56.5],
+      "rotationDeg": 0,
+      "seed": 210856400,
+      "imagePath": "fixtures/mock-cube-marker-m0.png"
+    },
+    {
+      "id": "m1",
+      "widthMm": 69,
+      "centerMm": [100, -56.5],
+      "rotationDeg": 0,
+      "seed": 210856401,
+      "imagePath": "fixtures/mock-cube-marker-m1.png"
+    },
+    {
+      "id": "m2",
+      "widthMm": 69,
+      "centerMm": [-100, 56.5],
+      "rotationDeg": 0,
+      "seed": 210856406,
+      "imagePath": "fixtures/mock-cube-marker-m2.png"
+    },
+    {
+      "id": "m3",
+      "widthMm": 69,
+      "centerMm": [100, 56.5],
+      "rotationDeg": 0,
+      "seed": 210856409,
+      "imagePath": "fixtures/mock-cube-marker-m3.png"
+    }
+  ],
+  "trackImage": {
+    "widthMm": 297,
+    "heightMm": 210,
+    "centerMm": [0, 0],
+    "imagePath": "fixtures/mock-cube-mat-track.png"
+  },
+  "qrUrl": "https://exhibitar.vercel.app/v/mockcube01",
+  "designVersion": 2,
+  "svgPath": "fixtures/mock-cube-mat.svg"
+}

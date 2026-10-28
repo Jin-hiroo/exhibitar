@@ -80,7 +80,7 @@ export function trackTargets(
   mat: Pick<Project['mat'], 'markers' | 'trackImage'>,
   { includeMatImage = true }: { includeMatImage?: boolean } = {},
 ): TrackTarget[] {
-  const targets: TrackTarget[] = mat.markers.map((m) => ({
+  const targets: TrackTarget[] = (mat.markers ?? []).map((m) => ({
     id: m.id,
     centerMm: m.centerMm,
     rotationDeg: m.rotationDeg,
