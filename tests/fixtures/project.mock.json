@@ -11,32 +11,11 @@
     "glbPath": "fixtures/mock-cube.glb",
     "triangleCount": 12,
     "boundsMm": {
-      "size": [
-        60,
-        60,
-        60
-      ]
+      "size": [60, 60, 60]
     },
     "sourceScale": 1
   },
-  "objectToMat": [
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    -1,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1
-  ],
+  "objectToMat": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
   "calibration": {
     "dxMm": 0,
     "dyMm": 0,
@@ -50,193 +29,118 @@
       "cols": 1,
       "rows": 1
     },
-    "sizeMm": [
-      210,
-      297
-    ],
+    "sizeMm": [210, 297],
     "contactOutlineMm": [
       [
-        [
-          30,
-          -30
-        ],
-        [
-          30,
-          30
-        ],
-        [
-          -30,
-          30
-        ],
-        [
-          -30,
-          -30
-        ]
+        [30, -30],
+        [30, 30],
+        [-30, 30],
+        [-30, -30]
       ]
     ],
     "shadowOutlineMm": [
       [
-        [
-          30.05,
-          30.05
-        ],
-        [
-          -30.05,
-          30.05
-        ],
-        [
-          -30.05,
-          -30.05
-        ],
-        [
-          30.05,
-          -30.05
-        ]
+        [30.05, 30.05],
+        [-30.05, 30.05],
+        [-30.05, -30.05],
+        [30.05, -30.05]
       ]
     ],
     "tagFamily": "tag36h11",
     "tags": [
       {
         "id": 7,
-        "centerMm": [
-          -75,
-          -118.5
-        ],
+        "centerMm": [-75, -118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 251,
-        "centerMm": [
-          -25,
-          -118.5
-        ],
+        "centerMm": [-25, -118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 94,
-        "centerMm": [
-          25,
-          -118.5
-        ],
+        "centerMm": [25, -118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 443,
-        "centerMm": [
-          75,
-          -118.5
-        ],
+        "centerMm": [75, -118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 147,
-        "centerMm": [
-          75,
-          -71.1
-        ],
+        "centerMm": [75, -71.1],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 4,
-        "centerMm": [
-          75,
-          -23.700000000000003
-        ],
+        "centerMm": [75, -23.700000000000003],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 130,
-        "centerMm": [
-          75,
-          23.69999999999999
-        ],
+        "centerMm": [75, 23.69999999999999],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 11,
-        "centerMm": [
-          75,
-          71.1
-        ],
+        "centerMm": [75, 71.1],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 467,
-        "centerMm": [
-          75,
-          118.5
-        ],
+        "centerMm": [75, 118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 358,
-        "centerMm": [
-          25,
-          118.5
-        ],
+        "centerMm": [25, 118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 272,
-        "centerMm": [
-          -25,
-          118.5
-        ],
+        "centerMm": [-25, 118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 162,
-        "centerMm": [
-          -75,
-          118.5
-        ],
+        "centerMm": [-75, 118.5],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 360,
-        "centerMm": [
-          -75,
-          71.1
-        ],
+        "centerMm": [-75, 71.1],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 412,
-        "centerMm": [
-          -75,
-          23.69999999999999
-        ],
+        "centerMm": [-75, 23.69999999999999],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 309,
-        "centerMm": [
-          -75,
-          -23.700000000000003
-        ],
+        "centerMm": [-75, -23.700000000000003],
         "sizeMm": 32,
         "rotationDeg": 0
       },
       {
         "id": 441,
-        "centerMm": [
-          -75,
-          -71.1
-        ],
+        "centerMm": [-75, -71.1],
         "sizeMm": 32,
         "rotationDeg": 0
       }
@@ -253,16 +157,8 @@
       "title": "Top face",
       "body": "The top of the cube, 60 mm above the mat.",
       "anchor": {
-        "position": [
-          0,
-          0,
-          0.06
-        ],
-        "normal": [
-          0,
-          0,
-          1
-        ]
+        "position": [0, 0, 0.06],
+        "normal": [0, 0, 1]
       }
     },
     {
@@ -273,21 +169,10 @@
       "body": "The face that points at the visitor (FRONT on the mat).",
       "link": "https://example.com",
       "anchor": {
-        "position": [
-          0,
-          -0.03,
-          0.03
-        ],
-        "normal": [
-          0,
-          -1,
-          0
-        ]
+        "position": [0, -0.03, 0.03],
+        "normal": [0, -1, 0]
       },
-      "triangles": [
-        4,
-        5
-      ]
+      "triangles": [4, 5]
     }
   ]
 }
