@@ -43,6 +43,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "fflate": "^0.8.3",
     "jspdf": "^4.2.1",
+    "matar": "file:vendor/matar-0.1.0.tgz",
     "meshoptimizer": "^1.2.0",
     "nanoid": "^6.0.1",
     "next": "16.3.8",

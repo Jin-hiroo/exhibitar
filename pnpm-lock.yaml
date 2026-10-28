@@ -44,6 +44,9 @@ importers:
       jspdf:
         specifier: ^4.2.1
         version: 4.2.1
+      matar:
+        specifier: file:vendor/matar-0.1.0.tgz
+        version: file:vendor/matar-0.1.0.tgz(three@0.186.0)
       meshoptimizer:
         specifier: ^1.2.0
         version: 1.2.0
@@ -2143,6 +2146,16 @@ packages:
 
   magic-string@1.4.2:
     resolution: {integrity: sha512-vG+rjFRj1PqdIBozIxAGMjPlOhaVe+GXpbttY/iSK7rGcJRMlwNJO7dcUwmUqkymsFLJiNGI06t4D7Fr7yRC9g==}
+
+  matar@file:vendor/matar-0.1.0.tgz:
+    resolution: {integrity: sha512-EVcUc5B3hbM0+d4INozxi6zW6+s4hR4hi3t42HDJeQZJJ0uwqWCsSb/eae0AG2RqKmZblyqEa75Hz7qntXkLxA==, tarball: file:vendor/matar-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=24'}
+    peerDependencies:
+      three: '>=0.173.0'
+    peerDependenciesMeta:
+      three:
+        optional: true
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -5004,6 +5017,10 @@ snapshots:
   magic-string@1.4.2:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  matar@file:vendor/matar-0.1.0.tgz(three@0.186.0):
+    optionalDependencies:
+      three: 0.186.0
 
   math-intrinsics@1.1.0: {}
 
