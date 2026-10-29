@@ -160,6 +160,17 @@ describe('ArRuntime', () => {
     ]);
   });
 
+  it('asks for a short exposure, with or without a saved camera', async () => {
+    await setup().runtime.start();
+    const intrinsics = { fx: 1100 };
+    h.savedCamera = () => Promise.resolve({ label: 'back', intrinsics, deviceId: 'cam-1' });
+    await setup().runtime.start();
+    const opts = h.trackers.map((t) => (t as unknown as { opts: Record<string, unknown> }).opts);
+    expect(opts[0]).toMatchObject({ camera: { maxExposureMs: 4 } });
+    expect(opts[0]).not.toHaveProperty('intrinsics');
+    expect(opts[1]).toMatchObject({ camera: { maxExposureMs: 4, deviceId: 'cam-1' }, intrinsics });
+  });
+
   it('stopped while looking for the saved camera: nothing is opened', async () => {
     const saved = deferred<null>();
     h.savedCamera = () => saved.promise;

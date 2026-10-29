@@ -371,7 +371,16 @@ function debugText(s: ArStatus): string {
     `err     ${s.errPx != null ? `${s.errPx.toFixed(2)} px` : '-'}`,
     `focal   ${s.focalPx != null ? `${s.focalPx.toFixed(0)} px (${s.focalSource})` : '-'}`,
     `camera  ${s.camera || '-'}`,
+    `expo    ${exposureText(s.exposure)}`,
   ].join('\n');
+}
+
+/** The exposure cap's state, the camera's exposure time and its ISO, e.g. `short 4.0 ms ISO 624`. */
+function exposureText(e: ArStatus['exposure']): string {
+  if (!e) return '-';
+  const ms = e.timeMs != null ? ` ${e.timeMs.toFixed(1)} ms` : '';
+  const iso = e.iso != null ? ` ISO ${e.iso}` : '';
+  return `${e.state}${ms}${iso}`;
 }
 
 function message(e: unknown): string {

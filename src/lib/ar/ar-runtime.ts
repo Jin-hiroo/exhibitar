@@ -3,6 +3,7 @@ import {
   createTracker,
   DEFAULT_FAMILY,
   type Board,
+  type CameraExposure,
   type IntrinsicsEvent,
   type PoseEvent,
   type StateEvent,
@@ -50,6 +51,8 @@ export interface ArStatus {
   /** camera label (empty until known) and where tracking runs */
   camera: string;
   worker: 'module' | 'inline' | null;
+  /** what became of the exposure cap (`MAX_EXPOSURE_MS`); null before the first frame */
+  exposure: CameraExposure | null;
 }
 
 export interface ArRuntimeOptions {
@@ -69,6 +72,13 @@ export interface ArRuntimeOptions {
 }
 
 const STATUS_INTERVAL_MS = 200;
+/**
+ * Longest camera exposure, ms (matar's `camera.maxExposureMs`): against motion
+ * blur. Indoors, Android picks about 10 ms or more by itself, which smears the
+ * tags when the phone moves. Android Chrome only; nothing changes on iOS.
+ * The matar demo ran with 4 ms (`?exposure=4`) in the device tests.
+ */
+const MAX_EXPOSURE_MS = 4;
 /** a tap that moved further than this is a drag, not a selection, CSS px */
 const TAP_SLOP_PX = 10;
 
@@ -129,7 +139,11 @@ export class ArRuntime {
     try {
       const tracker = createTracker({
         board: this.board,
-        ...(saved ? { intrinsics: saved.intrinsics, camera: { deviceId: saved.deviceId } } : {}),
+        camera: {
+          maxExposureMs: MAX_EXPOSURE_MS,
+          ...(saved ? { deviceId: saved.deviceId } : {}),
+        },
+        ...(saved ? { intrinsics: saved.intrinsics } : {}),
       });
       this.tracker = tracker;
       tracker.addEventListener('pose', this.onPose);
@@ -326,6 +340,7 @@ export class ArRuntime {
       focalSource: e?.stats.focal.source ?? null,
       camera: e?.stats.camera.label ?? '',
       worker: e?.stats.worker ?? null,
+      exposure: e?.stats.camera.exposure ?? null,
     });
   }
 }
