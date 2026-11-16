@@ -13,6 +13,6 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const out = path.join(root, 'public', 'third-party-notices.txt');
 
 const notices = collectNotices(root);
-if (notices.length === 0) throw new Error('pnpm licenses listed no production dependencies');
+if (notices.length === 0) throw new Error('found no production dependencies');
 writeFileSync(out, formatNotices(notices));
 console.log(`notices: ${notices.length} packages → ${path.relative(root, out)}`);
