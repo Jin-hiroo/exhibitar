@@ -65,6 +65,14 @@ pnpm lint && pnpm typecheck
   Never install packages globally.
 - Small, focused commits. Each task in `docs/TASKS.md` should be completable and
   testable on its own.
+- **Closed source.** ExhibitAR is proprietary (see `LICENSE`); only matar is
+  open source. Never copy ExhibitAR code into matar. Add only dependencies
+  whose licence allows closed-source use (MIT, BSD, ISC, Apache 2.0 and
+  similar; no GPL or AGPL in the app), and keep vendored code with its licence
+  and notices. `pnpm build` writes every production dependency's licence and
+  notices to `/third-party-notices.txt` (`pnpm notices`); a package without a
+  licence file fails it until its reviewed upstream licence is added to
+  `scripts/third-party-licences/`.
 
 ## Working with parallel sessions / subagents
 

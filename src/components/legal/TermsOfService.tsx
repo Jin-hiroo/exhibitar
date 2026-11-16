@@ -1,9 +1,7 @@
-import { REPO } from '../landing/chrome';
+import { NOTICES } from '../landing/chrome';
 import { Contact, LegalPage, SheetLink, type Bi, type LegalSection } from './LegalPage';
 import styles from './legal.module.css';
 import { OPERATOR, SERVICE_HOST } from './operator';
-
-const LICENSE = `${REPO}/blob/main/LICENSE`;
 
 const SUMMARY: Bi[] = [
   {
@@ -290,20 +288,21 @@ const SECTIONS: LegalSection[] = [
   },
   {
     id: 'open-source',
-    title: { en: 'Open source', ja: 'オープンソース' },
+    title: { en: 'Open-source software', ja: 'オープンソースソフトウェア' },
     body: {
       en: (
         <p>
-          The ExhibitAR source code is licensed under the <a href={LICENSE}>Apache License 2.0</a>.
-          That licence governs the code; these terms govern the hosted service at {SERVICE_HOST}. If
-          you run your own copy, you operate it yourself and under your own terms.
+          ExhibitAR’s own source code is not published. The service includes open-source software,
+          such as the matar tracking library (Apache License 2.0). Each of those packages is under
+          its own licence; see the <a href={NOTICES}>open-source notices</a>.
         </p>
       ),
       ja: (
         <p>
-          ExhibitARのソースコードは <a href={LICENSE}>Apache License 2.0</a>{' '}
-          で公開しています。コードにはこのライセンスが、{SERVICE_HOST}{' '}
-          上の本サービスには本規約が適用されます。自分の環境でExhibitARを動かす場合は、あなた自身が運営者となり、ご自身の規約のもとで運営してください。
+          ExhibitAR自体のソースコードは公開していません。本サービスには、トラッキングライブラリmatar（Apache
+          License
+          2.0）などのオープンソースソフトウェアが含まれ、それぞれのライセンスが適用されます。一覧は
+          <a href={NOTICES}>OSSライセンス</a>をご覧ください。
         </p>
       ),
     },
@@ -452,8 +451,8 @@ export function TermsOfService() {
     <LegalPage
       doc="terms"
       lede={{
-        en: `The rules for using ExhibitAR at ${SERVICE_HOST}. The code is open source under Apache 2.0; these terms cover the hosted service.`,
-        ja: `${SERVICE_HOST} でExhibitARを利用するためのルールです。コードはApache 2.0のオープンソースで、本規約はホスティングされたサービスに適用されます。`,
+        en: `The rules for using ExhibitAR at ${SERVICE_HOST}.`,
+        ja: `${SERVICE_HOST} でExhibitARを利用するためのルールです。`,
       }}
       summary={SUMMARY}
       sections={SECTIONS}

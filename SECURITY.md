@@ -2,8 +2,9 @@
 
 ## Reporting a vulnerability
 
-Please **do not open a public issue** for security problems. Report them privately through
-GitHub: open the repository's **Security** tab and choose **Report a vulnerability**.
+Please don't report security problems in public. Email them to the contact address on the
+[privacy policy](https://exhibitar.belebt.com/privacy) (`CONTACT_EMAIL` in
+`src/components/legal/operator.ts`).
 
 Include what you found, how to reproduce it, and what an attacker could do with it. You should
 get a first reply within a week. Fixes land on `main`, which is what the hosted instance runs;

@@ -364,7 +364,7 @@ Every corner is square (`rounded.none`): paper is cut, tape is torn, rulers are 
 
 ### Navigation
 
-Printed on the mat beneath the top ruler: the wordmark in Barlow Condensed 800 at 1.75rem in line cream, then text links (from 900px), the language switch, and the outline Studio button (from 640px). No bar, no background, no sticky header. Off the landing page, the in-page links point back to `/#how` and `/#demo`. The footer is printed on the paper: the imprint in the dimension-label voice and a row of links (Studio, Demo, GitHub, the licence, Privacy, Terms), under a major-strength ink rule that spans the content column.
+Printed on the mat beneath the top ruler: the wordmark in Barlow Condensed 800 at 1.75rem in line cream, then text links (from 900px), the language switch, and the outline Studio button (from 640px). No bar, no background, no sticky header. Off the landing page, the in-page links point back to `/#how` and `/#demo`. The footer is printed on the paper: the imprint in the dimension-label voice and a row of links (Studio, Demo, the open-source licences, Privacy, Terms), under a major-strength ink rule that spans the content column.
 
 ### Language Switch
 

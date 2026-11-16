@@ -27,8 +27,9 @@ works the same in iOS Safari and Android Chrome with no flags and no app.
 ## What changes where
 
 - **matar** (separate repo, `~/dev/matar`, `github.com/Jin-hiroo/matar`,
-  Apache-2.0; private until v0.1 worked on devices, going public with the
-  vendored tarball, decided 2026-10-28): the tracker library.
+  Apache-2.0, public since 2026-10-28; on npm from 0.2.0): the tracker library.
+  It is open source and ExhibitAR is not (decided 2026-11-17), so the
+  dependency goes one way: never copy ExhibitAR code into matar.
   Generic: board = tag list, output = camera pose. It has its own CLAUDE.md
   and docs; build tracker features there, not here.
 - **ExhibitAR** (this repo): mat design with matar tags, the viewer and
@@ -39,7 +40,7 @@ works the same in iOS Safari and Android Chrome with no flags and no app.
 
 ## How ExhibitAR depends on matar
 
-1. **While matar is private:** vendor a packed tarball. In matar,
+1. **Until matar 0.2.0 is on npm:** vendor a packed tarball. In matar,
    `pnpm build && pnpm pack`, then copy `matar-<version>.tgz` to
    `vendor/` here and depend on `"matar": "file:vendor/matar-<version>.tgz"`.
    Vercel installs it with no credentials. Commit the tarball with the bump.
@@ -47,7 +48,12 @@ works the same in iOS Safari and Android Chrome with no flags and no app.
    only reads files under its root, so while linked also set
    `turbopack: { root: path.join(__dirname, '..') }` in `next.config.ts`.
    Commit neither the `link:` dependency nor that root.
-3. **Once matar is public on npm:** `"matar": "^0.x"`, and delete `vendor/`.
+3. **Once matar is on npm (0.2.0, same code as the vendored tarball):**
+   `"matar": "^0.2.0"`, and delete `vendor/`.
+4. **Licences:** matar is Apache-2.0 and includes the AprilTag tag36h11 table
+   (BSD-2-Clause). Their notices ship with the app in
+   `/third-party-notices.txt`, which `pnpm build` writes from the installed
+   packages (`pnpm notices`); nothing to copy by hand.
 
 The matar version in use is the single source of truth for tag family and board
 format; mats store `tagFamily` so old mats stay readable.

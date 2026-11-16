@@ -6,7 +6,15 @@ import { siteUrl } from '@/lib/db/env';
 import { viewerUrl } from '@/lib/mat/qr';
 import { FullscreenMat } from './FullscreenMat';
 import { displayFont, jaFont, textFont } from './fonts';
-import { DEMO_ID, EdgeStrips, MatRulers, PaperRuler, REPO, SiteFooter, SiteNav } from './chrome';
+import {
+  DEMO_ID,
+  EdgeStrips,
+  MATAR_REPO,
+  MatRulers,
+  PaperRuler,
+  SiteFooter,
+  SiteNav,
+} from './chrome';
 import { ArrowDown, ArrowRight, ArrowUpRight } from './icons';
 import arAngle from './img/ar-skull-angle.jpg';
 import skullPhoto from './img/ar-skull-front.jpg';
@@ -244,18 +252,7 @@ export async function Landing() {
                 </a>
               </div>
               <p className={styles.fine}>
-                <T
-                  en={
-                    <>
-                      Free and open source under Apache 2.0. <a href={REPO}>Source on GitHub</a>
-                    </>
-                  }
-                  ja={
-                    <>
-                      無料・オープンソース（Apache 2.0）。<a href={REPO}>GitHubでソースを見る</a>
-                    </>
-                  }
-                />
+                <T en="Free to use." ja="無料で使えます。" />
               </p>
             </div>
 
@@ -672,21 +669,12 @@ export async function Landing() {
 
         <section className={styles.close} aria-labelledby="close-title">
           <h2 id="close-title" className={styles.h2}>
-            <T
-              en="Free and open source"
-              ja={
-                <>
-                  無料・
-                  <wbr />
-                  オープンソース
-                </>
-              }
-            />
+            <T en="Free to use" ja="無料で使えます" />
           </h2>
           <p>
             <T
-              en="ExhibitAR is licensed under Apache 2.0. Read the code, run your own copy, or help build it."
-              ja="ExhibitARはApache 2.0ライセンスで公開しています。コードを読むのも、自分の環境で動かすのも、開発に参加するのも自由です。"
+              en="ExhibitAR is free to use. Its mats carry tags from matar, our open-source tracking library (Apache 2.0), which you can use in your own projects too."
+              ja="ExhibitARは無料で使えます。マットのタグは、オープンソースのトラッキングライブラリmatar（Apache 2.0）で作っています。matarはあなたのプロジェクトでも使えます。"
             />
           </p>
           <div className={styles.actions}>
@@ -696,8 +684,8 @@ export async function Landing() {
                 <ArrowRight />
               </span>
             </Link>
-            <a href={REPO} className={styles.textLink}>
-              <T en="Source on GitHub" ja="GitHubでソースを見る" />
+            <a href={MATAR_REPO} className={styles.textLink}>
+              <T en="matar on GitHub" ja="GitHubでmatarを見る" />
               <ArrowUpRight />
             </a>
           </div>

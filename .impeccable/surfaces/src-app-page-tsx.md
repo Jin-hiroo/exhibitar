@@ -71,4 +71,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 ## Open decisions
 
 - The name ExhibitAR is still a working title.
-- The GitHub link 404s until the repo goes public (owner's choice to link it now).
+- ExhibitAR is closed source and its repo is private, so the page doesn't link it; the closing
+  section links matar, the open-source tracking library, instead.

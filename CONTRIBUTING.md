@@ -1,6 +1,6 @@
 # Contributing to ExhibitAR
 
-Thanks for helping. Bug reports, device test results and pull requests are all welcome.
+This repository is private. These rules apply to everyone who works on it.
 
 ## Before you start
 
@@ -54,5 +54,14 @@ Don't open a public issue. See [SECURITY.md](SECURITY.md).
 
 ## License
 
-ExhibitAR is licensed under the [Apache License 2.0](LICENSE). By submitting a contribution you
-agree that it is licensed under the same terms (section 5 of the license).
+ExhibitAR is proprietary (see [LICENSE](LICENSE)); only the tracking library
+[matar](https://github.com/Jin-hiroo/matar) is open source. Contribute only under terms agreed
+with the copyright holder.
+
+- Don't copy ExhibitAR code into matar or anywhere public.
+- Add only dependencies whose licence allows closed-source use (MIT, BSD, ISC, Apache 2.0 and
+  similar; no GPL or AGPL in the app). Vendored code keeps its licence and notices (see
+  [NOTICE](NOTICE)).
+- `pnpm build` writes every production dependency's licence to `/third-party-notices.txt`. A
+  package that ships no licence file stops the build until its upstream licence is added to
+  `scripts/third-party-licences/` and listed in `FALLBACKS` (`scripts/third-party-notices-lib.ts`).

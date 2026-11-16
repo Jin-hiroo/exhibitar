@@ -19,6 +19,20 @@ for (const [path, heading] of routes) {
   });
 }
 
+test('the footer links the open-source notices that the build wrote', async ({ page }) => {
+  // `pnpm build` writes the file (`pnpm notices`); a bare `pnpm dev` may not have it.
+  test.skip(!process.env.CI, 'needs the pnpm build output');
+  await page.goto('/');
+  const link = page.getByRole('contentinfo').getByRole('link', { name: 'Open-source licences' });
+  await expect(link).toHaveAttribute('href', '/third-party-notices.txt');
+  const res = await page.request.get('/third-party-notices.txt');
+  expect(res.status()).toBe(200);
+  const text = await res.text();
+  expect(text).toContain('ExhibitAR itself is not open source');
+  expect(text).toMatch(/^matar \d+\.\d+\.\d+$/m);
+  expect(text).toContain('The Regents of The University of Michigan');
+});
+
 test('unknown exhibits are 404', async ({ page }) => {
   const res = await page.goto('/v/does-not-exist');
   expect(res?.status()).toBe(404);
