@@ -65,7 +65,8 @@ the annotations are uploaded. Visitors need nothing installed. It is open source
 - The landing page is bilingual, **English and Japanese**; the rest of the app is English.
 - Open source under **Apache 2.0**, repo `github.com/Jin-hiroo/exhibitar`. The repo is
   still private, so that link 404s until it goes public; the owner chose to link it anyway.
-- Hosted at https://exhibitar.vercel.app.
+- Hosted at https://exhibitar.belebt.com. The old https://exhibitar.vercel.app redirects there
+  (path kept), so mats printed before the move still scan.
 
 ## Evidence on Hand
 

@@ -4,7 +4,7 @@
 
 1. On the phone: Chrome up to date, "Google Play Services for AR" installed.
 2. `chrome://flags/#webxr-incubations` → **Enabled** → Relaunch.
-3. Either use the live site (`https://exhibitar.vercel.app`, simplest: scan the mat's QR), or
+3. Either use the live site (`https://exhibitar.belebt.com`, simplest: scan the mat's QR), or
    for local development: `pnpm dev`, USB debugging on, `adb reverse tcp:3000 tcp:3000`, and
    open `http://localhost:3000` on the phone (a secure context).
 
@@ -26,7 +26,7 @@ The mock exhibit (`mockcube01`) has its own markers — use *its* mat. Mats from
 
 ## AR smoke test
 
-Open `https://exhibitar.vercel.app/v/mockcube01?debug` (or the localhost URL) on the phone →
+Open `https://exhibitar.belebt.com/v/mockcube01?debug` (or the localhost URL) on the phone →
 **Start AR** → allow the camera.
 
 - [ ] Landing card shows no capability warning (otherwise follow its instructions).
@@ -56,7 +56,7 @@ Open `https://exhibitar.vercel.app/v/mockcube01?debug` (or the localhost URL) on
 
 ## QR check
 
-- [ ] Scan the mat's QR with the phone camera → opens `https://exhibitar.vercel.app/v/mockcube01`.
+- [ ] Scan the mat's QR with the phone camera → opens `https://exhibitar.belebt.com/v/mockcube01`.
 
 ## Calibration (owner)
 
