@@ -4,7 +4,10 @@ import { LangSwitch } from './LangSwitch';
 import { RulerCursor } from './RulerCursor';
 import { T } from './T';
 
-export const REPO = 'https://github.com/Jin-hiroo/exhibitar';
+/** The open-source tracking library the mats are built on (Apache 2.0). */
+export const MATAR_REPO = 'https://github.com/Jin-hiroo/matar';
+/** Licences and notices of the open-source packages in the app, written by `pnpm build`. */
+export const NOTICES = '/third-party-notices.txt';
 /** Bundled demo exhibit (public/fixtures), served without a database. */
 export const DEMO_ID = 'mockcube01';
 
@@ -63,7 +66,6 @@ export function SiteNav({ home = false }: { home?: boolean }) {
         <a href={`${at}#demo`}>
           <T en="Demo" ja="デモ" />
         </a>
-        <a href={REPO}>GitHub</a>
       </nav>
       <LangSwitch />
       <Link href="/studio" className={styles.navStudio}>
@@ -95,8 +97,9 @@ export function SiteFooter() {
         <Link href={`/v/${DEMO_ID}`}>
           <T en="Demo" ja="デモ" />
         </Link>
-        <a href={REPO}>GitHub</a>
-        <a href={`${REPO}/blob/main/LICENSE`}>Apache 2.0</a>
+        <a href={NOTICES}>
+          <T en="Open-source licences" ja="OSSライセンス" />
+        </a>
         <Link href="/privacy">
           <T en="Privacy" ja="プライバシー" />
         </Link>

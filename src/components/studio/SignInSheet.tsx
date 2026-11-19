@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { LoginForm } from '@/app/login/LoginForm';
-import { DEMO_ID, MatRulers, REPO } from '../landing/chrome';
+import { DEMO_ID, MatRulers } from '../landing/chrome';
 import { displayFont, textFont } from '../landing/fonts';
 import { ArrowRight } from '../landing/icons';
 import landing from '../landing/landing.module.css';
@@ -109,9 +109,7 @@ export function SignInSheet({
           </main>
 
           <footer className={styles.foot}>
-            <p>
-              Free and open source under <a href={`${REPO}/blob/main/LICENSE`}>Apache 2.0</a>.
-            </p>
+            <p>Free to use.</p>
             {configured && (
               <p>
                 Visitors never sign in: <Link href={`/v/${DEMO_ID}`}>try the demo exhibit</Link>.

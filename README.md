@@ -4,7 +4,7 @@
 on the real object.**
 
 [![Live app status](https://img.shields.io/website?url=https%3A%2F%2Fexhibitar.belebt.com&label=live%20app&logo=vercel&up_message=online&down_message=offline)](https://exhibitar.belebt.com)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![License: proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](LICENSE)
 [![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-blue)](package.json)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
 [![Node ≥24](https://img.shields.io/badge/node-%E2%89%A524-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
@@ -98,6 +98,7 @@ Workstreams: [docs/TASKS.md](docs/TASKS.md).
 | `pnpm demo`                   | runs the full geometry + mat pipeline on every fixture → `tests/fixtures/out/demo/` (GLB, mat SVG/PDF, marker PNGs, QR) |
 | `pnpm mock`                   | regenerates `tests/fixtures/project.mock.json` + `public/fixtures/*` from the real pipeline                             |
 | `pnpm perf:nav [url] [runs]`  | times Studio page switches on any deployment (see below)                                                                |
+| `pnpm notices`                | writes `public/third-party-notices.txt`, the licences of every production dependency (`pnpm build` runs it first)       |
 
 ### Checking page speed
 
@@ -184,4 +185,10 @@ demo exhibit still loads; only saving and publishing are disabled.
 
 ## License
 
-ExhibitAR is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE).
+ExhibitAR is proprietary: all rights reserved (see [LICENSE](LICENSE)). Versions published
+before 2026-11-17 were released under the Apache License 2.0.
+
+It uses open-source software under its own licences, among them
+[matar](https://github.com/Jin-hiroo/matar) (Apache 2.0), the tracking library its mats are
+built on. See [NOTICE](NOTICE); the hosted app lists every package's licence at
+`/third-party-notices.txt`.

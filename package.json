@@ -2,7 +2,7 @@
   "name": "exhibitar",
   "version": "0.1.0",
   "private": true,
-  "license": "Apache-2.0",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "https://github.com/Jin-hiroo/exhibitar.git"
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm notices && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
@@ -27,7 +27,8 @@
     "mock": "tsx scripts/make-mock-project.ts",
     "samples": "tsx scripts/make-samples.ts",
     "perf:viewer": "node scripts/perf-viewer.mjs",
-    "perf:nav": "node scripts/perf-nav.mjs"
+    "perf:nav": "node scripts/perf-nav.mjs",
+    "notices": "tsx scripts/third-party-notices.ts"
   },
   "dependencies": {
     "@countertype/clipper2-ts": "1.5.4-3.9a869ba",

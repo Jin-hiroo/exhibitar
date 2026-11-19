@@ -30,7 +30,8 @@ paper. Success (v1): STL to published exhibit in under 10 minutes; labels within
 Tracking uses only the printed mat, never the object: the object's pose is known because it
 stands on its printed outline. So any printable shape works, with nothing to scan or train.
 The original STL never leaves the exhibitor's browser; only a simplified model, the mat and
-the annotations are uploaded. Visitors need nothing installed. It is open source.
+the annotations are uploaded. Visitors need nothing installed. ExhibitAR itself is closed source; its mats are built on
+matar, the owner's open-source tracking library.
 
 ## Operating Context
 
@@ -63,8 +64,11 @@ the annotations are uploaded. Visitors need nothing installed. It is open source
 
 - Name: **ExhibitAR** (still a working title).
 - The landing page is bilingual, **English and Japanese**; the rest of the app is English.
-- Open source under **Apache 2.0**, repo `github.com/Jin-hiroo/exhibitar`. The repo is
-  still private, so that link 404s until it goes public; the owner chose to link it anyway.
+- **Closed source** (all rights reserved, decided 2026-11-17); the repo
+  `github.com/Jin-hiroo/exhibitar` is private and the site doesn't link it. Versions published
+  before then were Apache 2.0. The tracking library **matar** is open source (Apache 2.0,
+  `github.com/Jin-hiroo/matar`); the landing page links it, and the footer links the
+  open-source notices (`/third-party-notices.txt`).
 - Hosted at https://exhibitar.belebt.com. The old https://exhibitar.vercel.app redirects there
   (path kept), so mats printed before the move still scan.
 

@@ -1,10 +1,7 @@
-import { REPO } from '../landing/chrome';
 import { T } from '../landing/T';
 import { Contact, LegalPage, type Bi, type LegalSection } from './LegalPage';
 import styles from './legal.module.css';
 import { OPERATOR, SERVICE_HOST } from './operator';
-
-const SECURITY = `${REPO}/security`;
 
 const SUMMARY: Bi[] = [
   {
@@ -124,10 +121,6 @@ const SECTIONS: LegalSection[] = [
             described here is used, and we answer for it.
           </p>
           <p>
-            ExhibitAR is open source, so anyone can run their own copy. This policy covers only the
-            copy at {SERVICE_HOST}. Copies run by others have their own operators and policies.
-          </p>
-          <p>
             Questions and requests about your data: <Contact />.
           </p>
         </>
@@ -137,11 +130,6 @@ const SECTIONS: LegalSection[] = [
           <p>
             {SERVICE_HOST} で提供するExhibitAR（以下「本サービス」）は、{OPERATOR}
             （以下「当方」）が運営しています。本ポリシーに記載するデータの扱いは当方が決め、その責任を負います。
-          </p>
-          <p>
-            ExhibitARはオープンソースのため、誰でも自分の環境で動かせます。本ポリシーの対象は{' '}
-            {SERVICE_HOST}{' '}
-            上の本サービスだけです。他の人が運営する環境には、それぞれの運営者とポリシーがあります。
           </p>
           <p>
             データに関するご質問・ご請求：
@@ -596,8 +584,7 @@ const SECTIONS: LegalSection[] = [
             address can open the file, so don’t upload anything you need to keep secret.
           </p>
           <p>
-            Found a security problem? Please report it privately through the{' '}
-            <a href={SECURITY}>repository’s Security tab on GitHub</a>.
+            Found a security problem? Please report it privately to <Contact />.
           </p>
         </>
       ),
@@ -612,8 +599,7 @@ const SECTIONS: LegalSection[] = [
           </p>
           <p>
             セキュリティ上の問題を見つけた場合は、
-            <a href={SECURITY}>GitHubリポジトリのSecurityタブ</a>
-            から非公開でご報告ください。
+            <Contact /> まで非公開でご報告ください。
           </p>
         </>
       ),
@@ -665,8 +651,8 @@ const SECTIONS: LegalSection[] = [
             <Contact />
           </p>
           <p>
-            {OPERATOR}, operator of ExhibitAR. Please write in English or Japanese. For security
-            reports, use GitHub’s private reporting (section 10).
+            {OPERATOR}, operator of ExhibitAR. Please write in English or Japanese. Security reports
+            go to the same address (section 10).
           </p>
         </>
       ),
@@ -677,7 +663,7 @@ const SECTIONS: LegalSection[] = [
           </p>
           <p>
             ExhibitAR運営者 {OPERATOR}
-            。日本語または英語でご連絡ください。セキュリティに関するご報告は、GitHubの非公開報告をご利用ください（第10条）。
+            。日本語または英語でご連絡ください。セキュリティに関するご報告も同じアドレスにお送りください（第10条）。
           </p>
         </>
       ),

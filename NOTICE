@@ -1,4 +1,20 @@
 ExhibitAR
-Copyright 2026 Jin-hiroo and the ExhibitAR contributors
+Copyright 2026 Jin-hiroo. All rights reserved (see LICENSE).
 
-This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+ExhibitAR uses the following open-source software, each under its own licence.
+
+- The app's production dependencies, among them matar (Apache License 2.0,
+  https://github.com/Jin-hiroo/matar), which includes the AprilTag tag36h11 code
+  table (BSD-2-Clause, The Regents of The University of Michigan). `pnpm build`
+  writes the licence and notice files of every production dependency (and of
+  the components bundled inside them) to public/third-party-notices.txt; the
+  hosted app serves it at /third-party-notices.txt. Packages that ship no
+  licence file get a reviewed copy of their upstream licence from
+  scripts/third-party-licences/.
+- The impeccable design skill and its agents in .claude/ (Apache License 2.0,
+  https://github.com/pbakaus/impeccable), a development tool that is not part of
+  the app. Its licence and notices: .claude/skills/impeccable/LICENSE and
+  .claude/skills/impeccable/NOTICE.md. Its reference/ios.md and
+  reference/android.md are derived from platform-design-skills by ehmo (MIT,
+  https://github.com/ehmo/platform-design-skills); that licence is in
+  .claude/skills/impeccable/LICENSE-platform-design-skills.
